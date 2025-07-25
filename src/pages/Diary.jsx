@@ -9,9 +9,9 @@ const Diary = () => {
       className="w-full h-screen bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: `url(${backgroundImage})` }}
     >
-      <div className="bg-white w-[90%] h-[80%] rounded-2xl p-24 relative overflow-auto">
+      <div className="bg-white w-[90%] h-[750px] rounded-2xl p-24 mt-10 relative overflow-auto">
         <button
-          className="absolute top-5 right-5 text-2xl text-black transition hover:scale-90"
+          className="absolute top-7 right-7 text-2xl text-black transition hover:scale-90"
           onClick={() => setIsModalOpen(true)} // 클릭시 모달 열림
         >
           완료
@@ -27,7 +27,7 @@ const Diary = () => {
         <div className="w-full flex justify-end mt-6">
           <textarea
             placeholder="일기를 입력해보세요!"
-            className="bg-gray-100 w-[600px] h-[380px] rounded-2xl p-4 text-black text-lg shadow-md focus:outline-none focus:ring-2 focus:ring-black"
+            className="bg-gray-100 w-[600px] h-[480px] rounded-2xl p-4 text-black text-lg shadow-md focus:outline-none focus:ring-2 focus:ring-black"
           />
         </div>
 

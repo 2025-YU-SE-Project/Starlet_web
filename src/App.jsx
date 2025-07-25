@@ -6,7 +6,7 @@ import Tag from "./pages/Tag";
 import Diary from "./pages/Diary";
 
 const App = () => {
-  return <Diary />;
+  return <Emotion />;
 };
 
 export default App;

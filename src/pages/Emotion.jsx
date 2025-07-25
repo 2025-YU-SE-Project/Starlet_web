@@ -22,15 +22,15 @@ const Emotion = () => {
       className="w-full h-screen bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: `url(${backgroundImage})` }}
     >
-      <div className="bg-white w-[90%] h-[80%] rounded-2xl p-24 relative overflow-auto">
-        <button className="absolute top-5 right-5 text-2xl text-black transition hover:scale-90">
+      <div className="bg-white w-[90%] h-[750px] rounded-2xl p-24 mt-10 relative overflow-auto">
+        <button className="absolute top-7 right-7 text-2xl text-black transition hover:scale-90">
           완료
         </button>
 
         <h1 className="text-6xl font-bold text-gray-500">오늘의 감정은?</h1>
         <hr className="my-8 text-gray-500 border-t-2" />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 p-12">
           {" "}
           {/* 모바일에서는 1열로 나타나고 태블릿 이상 크기에서는 2열로 나타남 */}
           {emotions.map(({ title, subtitle }) => (
