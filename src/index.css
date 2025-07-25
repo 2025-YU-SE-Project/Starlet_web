@@ -1,7 +1,1 @@
 @import "tailwindcss";
-/* index.css—or 아무 곳에나 */
-@import url('https://fonts.googleapis.com/css2?family=Julius+Sans+One&display=swap');
-
-.font-julius {
-  font-family: 'Julius Sans One', sans-serif;
-}
