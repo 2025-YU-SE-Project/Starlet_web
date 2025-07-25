@@ -29,7 +29,7 @@ const SignUp = () => {
         <button className="text-white text-5xl px-3 py-2 transition hover:scale-95">
           ←
         </button>
-        <div className="pt-15 text-center">
+        <div className="pt-16 text-center">
           <h1 className="text-white text-2xl mb-2">
             작은 별, 작은 감정의 조각
           </h1>
