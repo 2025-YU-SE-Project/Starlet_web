@@ -64,7 +64,7 @@ const SignUp = () => {
                 type="password"
                 placeholder="비밀번호 확인"
                 value={checkPassword}
-                onChange={(e) => validPassword(e.target.value)} // 여기 핵심!
+                onChange={(e) => validPassword(e.target.value)}
                 className="bg-black/20 border border-white text-white placeholder-white p-3 rounded w-full"
               />
               {errorPassword === "notCollect" && (
