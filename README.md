@@ -1,12 +1,23 @@
-# React + Vite
+[SE_FE]
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+조민서 : 
+ 구현 - 로그인 + 마이 페이지 
+임태현 : https://github.com/limtaehyeon
+ 구현 - 회원가입 + 일기 페이지 담당
+조은별 : 
+ 구현 - 메인 페이지 + 별자리 메인 배경화면 담당
+ 
 
-Currently, two official plugins are available:
+개발현황
+2025/07/26
+- 캘린더 페이지 기초 작업 진행
+- 감정 선택 페이지 생성
+- 일기 작성 페이지 + 모달창 생성
+2025/07/25 
+- 회원가입 페이지 생성
+- 로그인 페이지 생성
+2025/07/24 
+- 개발 환경 생성
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
