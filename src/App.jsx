@@ -1,9 +1,17 @@
-import React from 'react'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Layout from "./Layout";
+import Home from "./pages/Home";
 
-const App = () => {
+function App() {
   return (
-    <div className='bg-red-500 text-white'>tailwind 적용 확인</div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
