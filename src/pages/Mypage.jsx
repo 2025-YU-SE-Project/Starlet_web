@@ -86,7 +86,7 @@ const Mypage = () => {
 
           {/* 닉네임, 레벨 */}
           <div className="flex flex-col gap-2 flex-1">
-            <input
+            <input 
               value={userData.nickname}
               onChange={(e) =>
                 setUserData({ ...userData, nickname: e.target.value })
@@ -192,7 +192,7 @@ const Mypage = () => {
         {tab === "profile" && (
           <div className="flex flex-col md:flex-row gap-10">
             <div className="flex-1 mt-10">
-              <p className="text-3xl">닉네임 : {userData.nickname}</p>
+              <p className="text-3xl mb-3">닉네임 : {userData.nickname}</p>
               <p className="text-2xl mb-6">
                 레벨 : {userData.level} (Lv.5)
               </p>
