@@ -1,8 +1,19 @@
 import React from 'react'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+
+
+
 
 const App = () => {
   return (
-    <div className='bg-red-500 text-white'>tailwind 적용 확인</div>
+     <BrowserRouter>
+      <div className="bg-cover min-h-screen bg-[url('/src/assets/background.png')]">
+        <Routes>
+       
+        </Routes>
+      </div>
+    </BrowserRouter>
+
   )
 }
 
