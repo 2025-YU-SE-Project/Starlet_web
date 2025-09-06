@@ -5,7 +5,7 @@
 ### 🧑‍💻 팀원 및 팀 소개
 
 | 임태현 | 조민서 | 조은별 | 
-|:------:|:------:|
+|:------:|:------:|:------:|
 | <img src="https://avatars.githubusercontent.com/u/165642906?v=4" alt="임태현" width="150"> | <img src="https://avatars.githubusercontent.com/u/165632548?v=4" alt="조민서" width="150"> | <img src="https://avatars.githubusercontent.com/u/84177264?v=4" alt="조은별" width="150"> |
 | FE | FE | FE |
 | [GitHub](https://github.com/Limtaehyeon) | [GitHub](https://github.com/chominseo0723) | [GitHub](https://github.com/choibyeoli) |
