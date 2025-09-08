@@ -102,7 +102,7 @@ const Home = () => {
               />
             </button>
             <Link
-              to="/diary"
+              to="/calendar"
               className="bg-white/20 hover:bg-white/30 transition rounded-xl w-[250px] h-[310px] flex flex-col items-center justify-center p-4"
             >
               <img src={diaryIcon} alt="일기" className="w-27 h-27 mb-7" />

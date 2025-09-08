@@ -1,7 +1,7 @@
 import menuIcon from "./assets/menu.png";
 import { Link } from "react-router-dom";
 
-const Sidebar = ({ isOpen, setIsOpen }) => {
+const Sidebar = ({ isOpen, setIsOpen, showAuthLinks = true }) => {
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   return (
@@ -19,22 +19,27 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </button>
       )}
 
-      <div className="fixed top-4 right-6 z-50 flex space-x-4 text-white text-sm md:text-lg font-medium">
-        <Link to="/login" className="hover:underline transition cursor-pointer">
-          로그인
-        </Link>
-        <Link
-          to="/signup"
-          className="hover:underline transition cursor-pointer"
-        >
-          회원가입
-        </Link>
-      </div>
+      {showAuthLinks && (
+        <div className="fixed top-4 right-6 z-50 flex space-x-4 text-white text-sm md:text-lg font-medium">
+          <Link
+            to="/login"
+            className="hover:underline transition cursor-pointer"
+          >
+            로그인
+          </Link>
+          <Link
+            to="/signup"
+            className="hover:underline transition cursor-pointer"
+          >
+            회원가입
+          </Link>
+        </div>
+      )}
 
       <div
         className={`fixed top-0 left-0 h-full max-w-[70vw] sm:w-72 text-white shadow-md ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 z-40 bg-black/40 backdrop-blur-xs rounded-r-2xl`}
+        } transition-transform duration-300 z-40 bg-black/40 backdrop-blur-sm rounded-r-2xl`}
       >
         <div className="relative mt-10 px-6">
           <div className="flex items-start gap-3 mb-2">
@@ -53,7 +58,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         <div
           className="fixed inset-0 bg-transparent z-30"
           onClick={() => setIsOpen(false)}
-        ></div>
+        />
       )}
     </>
   );
