@@ -76,16 +76,7 @@ export default function DiaryModal({
 
   if (!open) return null;
 
-  const TAGS_PRESET = [
-    "가족",
-    "연인",
-    "친구",
-    "회사",
-    "공부",
-    "취미",
-    "여행",
-    "운동",
-  ];
+  const TAGS_PRESET = ["가족", "연인", "친구", "회사", "공부", "취미"];
   const toggleTag = (t) =>
     setTags((prev) =>
       prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
