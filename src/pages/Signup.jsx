@@ -137,7 +137,7 @@ const Signup = () => {
                   className="w-[431px] h-[66px] border rounded-[5px] px-5"
                 />
                 <button
-                  className="border rounded-[5px] w-[111px] h-[66px] text-[20px]"
+                  className="border rounded-[5px] w-[111px] h-[66px] text-[20px] hover:bg-[#3E33DB] hover:text-white"
                   onClick={handleEmailCheck}
                   type="button"
                   disabled={emailLoading}
@@ -164,7 +164,7 @@ const Signup = () => {
                   className="w-[431px] h-[66px] border rounded-[5px] px-5"
                 />
                 <button
-                  className="border rounded-[5px] w-[111px] h-[66px] text-[20px]"
+                  className="border rounded-[5px] hover:bg-[#3E33DB] hover:text-white w-[111px] h-[66px] text-[20px]"
                   onClick={handleNicknameCheck}
                   type="button"
                 >
@@ -221,7 +221,7 @@ const Signup = () => {
               <span className="text-[13px] text-[#54C65B]">비밀번호가 일치합니다.</span>
             )}
 
-            <button type="submit" className="w-[554px] h-[66px] text-[24px] bg-[#3E33DB] ">
+            <button type="submit" className="w-[554px] h-[66px] text-[24px] bg-[#3E33DB] hover:bg-[#2519cc]">
               가입하기
             </button>
           </form>
