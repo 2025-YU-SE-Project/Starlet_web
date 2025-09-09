@@ -222,7 +222,7 @@ const Signup = () => {
             )}
 
             <button type="submit" className="w-[554px] h-[66px] text-[24px] bg-[#3E33DB] hover:bg-[#2519cc]">
-              가입하기
+              SIGNUP
             </button>
           </form>
         </div>
