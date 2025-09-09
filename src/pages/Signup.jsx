@@ -9,8 +9,6 @@ import emailInitApi from "../apis/emailInitApi";
 const Signup = () => {
   const navigate = useNavigate();
   const [search] = useSearchParams();
-
-
   const verifiedFlag = search.get("verified");
 
 
@@ -19,15 +17,19 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [checkpassword, setCheckpassword] = useState("");
 
- 
+
   const [emailMsg, setEmailMsg] = useState("");
   const [emailMsgColor, setEmailMsgColor] = useState("#FF0000");
   const [emailLoading, setEmailLoading] = useState(false);
+  const [emailInitSent, setEmailInitSent] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+
 
   const [nicknameMsg, setNicknameMsg] = useState("");
 
   useEffect(() => {
     if (verifiedFlag === "done") {
+      setEmailVerified(true);
       setEmailMsg("이메일 인증이 완료되었습니다.");
       setEmailMsgColor("#54C65B");
     }
@@ -41,13 +43,7 @@ const Signup = () => {
     }
     try {
       const result = await nicknameCheckApi(v);
-      if (result?.available === true) {
-        setNicknameMsg("사용 가능한 닉네임입니다.");
-      } else if (result?.available === false) {
-        setNicknameMsg("중복된 닉네임입니다.");
-      } else {
-        setNicknameMsg("서버 응답 형식이 예상과 달라요.");
-      }
+      setNicknameMsg(result?.available ? "사용 가능한 닉네임입니다." : "중복된 닉네임입니다.");
     } catch (err) {
       console.error("닉네임 중복 확인 오류:", err);
       setNicknameMsg("닉네임 확인 오류가 발생했습니다.");
@@ -61,26 +57,24 @@ const Signup = () => {
       setEmailMsgColor("#FF0000");
       return;
     }
-    // 간단 형식 검증
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
       setEmailMsg("이메일 형식이 올바르지 않습니다.");
       setEmailMsgColor("#FF0000");
       return;
     }
-
     try {
       setEmailLoading(true);
 
-      // 중복 검사
       const result = await emailCheckApi(v);
-
       if (result?.available) {
-        // 중복 → 인증 메일 발송
+    
         await emailInitApi(v);
-        setEmailMsg("사용 가능한 이메일입니다. 메일함에서 인증 링크를 확인해주세요.");
+        setEmailInitSent(true);
+        setEmailMsg("인증 메일을 보냈습니다. 메일함에서 인증을 완료한 뒤, 아래 '인증 완료'를 눌러주세요.");
         setEmailMsgColor("#54C65B");
       } else {
-        // 중복 → 발송 X
+
+        setEmailInitSent(false);
         setEmailMsg("중복된 이메일입니다.");
         setEmailMsgColor("#FF0000");
       }
@@ -93,9 +87,43 @@ const Signup = () => {
     }
   };
 
+
+  const handleEmailConfirm = async () => {
+    const v = email.trim();
+    if (!v) return;
+
+    try {
+      setEmailLoading(true);
+      const result = await emailCheckApi(v);
+
+      if (result?.available === false) {
+ 
+        setEmailVerified(true);
+        setEmailMsg("이메일 인증이 완료되었습니다.");
+        setEmailMsgColor("#54C65B");
+      } else {
+      
+        setEmailVerified(false);
+        setEmailMsg("아직 인증이 확인되지 않았습니다. 메일함의 링크를 눌렀는지 다시 확인해주세요.");
+        setEmailMsgColor("#FF0000");
+      }
+    } catch (err) {
+      console.error("인증 확인 오류:", err);
+      setEmailMsg("인증 확인 중 오류가 발생했습니다.");
+      setEmailMsgColor("#FF0000");
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
+
+  useEffect(() => {
+    setEmailInitSent(false);
+    setEmailVerified(false);
+  }, [email]);
+
   const SignUpHandler = async (e) => {
     e.preventDefault();
-
     if (password !== checkpassword) return;
 
     try {
@@ -111,123 +139,133 @@ const Signup = () => {
   const isPwValid = password.length >= 6 && password.length <= 15;
 
   return (
-    <>
-      <div className="text-white">
-        <button className="text-[55px] ml-[25px] mt-[18px]" type="button">
-          <GoArrowLeft />
-        </button>
+    <div className="text-white">
+      <button className="text-[55px] ml-[25px] mt-[18px]" type="button">
+        <GoArrowLeft />
+      </button>
 
-        <div className="flex flex-col items-center">
-          <span className="mt-[77px] text-[23px]">작은 별, 작은 감정의 조각</span>
-          <span className="text-[90px] font-julius mt-[2px]">STARLET</span>
+      <div className="flex flex-col items-center">
+        <span className="mt-[77px] text-[23px]">작은 별, 작은 감정의 조각</span>
+        <span className="text-[90px] font-julius mt-[2px]">STARLET</span>
 
-      
-          <form className="flex flex-col gap-[12px] text-[20px]" onSubmit={SignUpHandler}>
-
-      
-            <div className="flex flex-col gap-[6px]">
-              <div className="flex flex-row gap-[12px] items-center">
-                <input
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (verifiedFlag !== "done") setEmailMsg("");
-                  }}
-                  placeholder="이메일 주소"
-                  className="w-[431px] h-[66px] border rounded-[5px] px-5"
-                />
-                <button
-                  className="border rounded-[5px] w-[111px] h-[66px] text-[20px] hover:bg-[#3E33DB] hover:text-white"
-                  onClick={handleEmailCheck}
-                  type="button"
-                  disabled={emailLoading}
-                >
-                  {emailLoading ? "발송중..." : "중복 확인"}
-                </button>
-              </div>
-        
-              <div className="h-[18px] leading-[18px] text-[13px]" style={{ color: emailMsgColor }}>
-                {emailMsg || "\u00A0"}
-              </div>
-            </div>
-
-      
-            <div className="flex flex-col gap-[6px]">
-              <div className="flex flex-row gap-[12px] items-center">
-                <input
-                  value={nickname}
-                  onChange={(e) => {
-                    setNickname(e.target.value);
-                    setNicknameMsg("");
-                  }}
-                  placeholder="닉네임"
-                  className="w-[431px] h-[66px] border rounded-[5px] px-5"
-                />
-                <button
-                  className="border rounded-[5px] hover:bg-[#3E33DB] hover:text-white w-[111px] h-[66px] text-[20px]"
-                  onClick={handleNicknameCheck}
-                  type="button"
-                >
-                  중복 확인
-                </button>
-              </div>
-              <div className="h-[18px] leading-[18px] text-[13px]">
-                {nicknameMsg ? (
-                  <span className={nicknameMsg.includes("사용 가능") ? "text-[#54C65B]" : "text-[#FF0000]"}>
-                    {nicknameMsg}
-                  </span>
-                ) : (
-                  "\u00A0"
-                )}
-              </div>
+        <form className="flex flex-col gap-[12px] text-[20px]" onSubmit={SignUpHandler}>
+       
+          <div className="flex flex-col gap-[6px]">
+            <div className="flex flex-row gap-[12px] items-center">
+              <input
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (!emailVerified) setEmailMsg("");
+                }}
+                placeholder="이메일 주소"
+                className="w-[431px] h-[66px] border rounded-[5px] px-5"
+                disabled={emailVerified}
+              />
+              <button
+                className="border rounded-[5px] w-[111px] h-[66px] text-[20px] hover:bg-[#3E33DB] hover:text-white disabled:opacity-60"
+                onClick={handleEmailCheck}
+                type="button"
+                disabled={emailLoading || emailVerified}
+              >
+                {emailLoading ? "발송중..." : "중복 확인"}
+              </button>
             </div>
 
      
-            <div className="flex flex-col gap-[6px]">
-              <input
-                type="password"
-                placeholder="비밀번호"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-[554px] h-[66px] border rounded-[5px] p-5"
-              />
-  
-              <div className="h-[18px] leading-[18px] text-[13px]">
-                {password
-                  ? (
-                    <span className={isPwValid ? "text-[#54C65B]" : "text-[#FF0000]"}>
-                      {isPwValid
-                        ? "사용 가능한 비밀번호입니다."
-                        : "비밀번호는 6~15글자 이내여야합니다."}
-                    </span>
-                  )
-                  : "\u00A0"}
+            {!emailVerified && emailInitSent && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleEmailConfirm}
+                  className="mt-[2px] w-[554px] h-[44px] border rounded-[5px] hover:bg-[#3E33DB] text-[20px]"
+                  disabled={emailLoading}
+                >
+                  인증 완료
+                </button>
               </div>
-            </div>
+            )}
 
- 
+            <div className="h-[18px] leading-[18px] text-[13px]" style={{ color: emailMsgColor }}>
+              {emailMsg || "\u00A0"}
+            </div>
+          </div>
+
+
+          <div className="flex flex-col gap-[6px]">
+            <div className="flex flex-row gap-[12px] items-center">
+              <input
+                value={nickname}
+                onChange={(e) => {
+                  setNickname(e.target.value);
+                  setNicknameMsg("");
+                }}
+                placeholder="닉네임"
+                className="w-[431px] h-[66px] border rounded-[5px] px-5"
+              />
+              <button
+                className="border rounded-[5px] hover:bg-[#3E33DB] hover:text-white w-[111px] h-[66px] text-[20px]"
+                onClick={handleNicknameCheck}
+                type="button"
+              >
+                중복 확인
+              </button>
+            </div>
+            <div className="h-[18px] leading-[18px] text-[13px]">
+              {nicknameMsg ? (
+                <span className={nicknameMsg.includes("사용 가능") ? "text-[#54C65B]" : "text-[#FF0000]"}>{nicknameMsg}</span>
+              ) : (
+                "\u00A0"
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-[6px]">
             <input
               type="password"
-              placeholder="비밀번호 확인"
-              value={checkpassword}
-              onChange={(e) => setCheckpassword(e.target.value)}
-              className="w-[554px] h-[66px] border rounded-[5px] px-5"
+              placeholder="비밀번호"
+              value={password}
+              onChange={(e) => e.target.value.length <= 15 && setPassword(e.target.value)}
+              className="w-[554px] h-[66px] border rounded-[5px] p-5"
             />
-             <div className="h-[18px] leading-[18px] text-[13px]">
+            <div className="h-[18px] leading-[18px] text-[13px]">
+              {password ? (
+                <span className={isPwValid ? "text-[#54C65B]" : "text-[#FF0000]"}>
+                  {isPwValid ? "사용 가능한 비밀번호입니다." : "비밀번호는 6~15글자 이내여야합니다."}
+                </span>
+              ) : (
+                "\u00A0"
+              )}
+            </div>
+          </div>
+
+          {/* 비밀번호 확인 */}
+          <input
+            type="password"
+            placeholder="비밀번호 확인"
+            value={checkpassword}
+            onChange={(e) => setCheckpassword(e.target.value)}
+            className="w-[554px] h-[66px] border rounded-[5px] px-5"
+          />
+          <div className="h-[18px] leading-[18px] text-[13px]">
             {password && checkpassword && password !== checkpassword && (
               <span className="text-[13px] text-[#FF0000]">비밀번호가 일치하지 않습니다.</span>
             )}
             {password && checkpassword && password === checkpassword && (
               <span className="text-[13px] text-[#54C65B]">비밀번호가 일치합니다.</span>
-            )}</div>
+            )}
+          </div>
 
-            <button type="submit" className="w-[554px] h-[66px] text-[24px] bg-[#3E33DB] hover:bg-[#2519cc]">
-              SIGNUP
-            </button>
-          </form>
-        </div>
+          <button
+            type="submit"
+            className="w-[554px] h-[66px] text-[24px] bg-[#3E33DB] hover:bg-[#2519cc]"
+            disabled={!emailVerified} 
+          >
+            SIGNUP
+          </button>
+        </form>
       </div>
-    </>
+    </div>
   );
 };
 
