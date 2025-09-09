@@ -189,7 +189,7 @@ const Signup = () => {
                 placeholder="비밀번호"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-[554px] h-[66px] border rounded-[5px] px-5"
+                className="w-[554px] h-[66px] border rounded-[5px] p-5"
               />
   
               <div className="h-[18px] leading-[18px] text-[13px]">
@@ -213,13 +213,13 @@ const Signup = () => {
               onChange={(e) => setCheckpassword(e.target.value)}
               className="w-[554px] h-[66px] border rounded-[5px] px-5"
             />
-
+             <div className="h-[18px] leading-[18px] text-[13px]">
             {password && checkpassword && password !== checkpassword && (
               <span className="text-[13px] text-[#FF0000]">비밀번호가 일치하지 않습니다.</span>
             )}
             {password && checkpassword && password === checkpassword && (
               <span className="text-[13px] text-[#54C65B]">비밀번호가 일치합니다.</span>
-            )}
+            )}</div>
 
             <button type="submit" className="w-[554px] h-[66px] text-[24px] bg-[#3E33DB] hover:bg-[#2519cc]">
               SIGNUP
