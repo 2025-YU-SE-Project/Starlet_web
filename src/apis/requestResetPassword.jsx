@@ -1,0 +1,15 @@
+import api from "./api";
+
+const requestResetPassword = async (email) => {
+  const res = await api.post(
+    "email/password-reset/request",
+    { address: email },
+    {
+      headers: { Accept: "*/*" },
+    }
+  );
+
+  return res.data
+};
+
+export default requestResetPassword;
