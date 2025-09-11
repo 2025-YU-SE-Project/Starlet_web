@@ -30,8 +30,7 @@ const Signup = () => {
 
   useEffect(() => {
     const confirmByStatus = async () => {
-      // 메일 링크 클릭 후 리다이렉트된 경우(verified=done)
-      // 이메일 입력칸에 값이 있어야 조회 가능
+      
       if (verifiedFlag === "done" && email.trim()) {
         try {
           const { verifyType } = await emailVerificationStatusApi(email.trim());
@@ -119,7 +118,7 @@ const Signup = () => {
         setEmailMsgColor("#54C65B");
       } else if (verifyType === "EMAIL_VERIFICATION") {
         setEmailVerified(false);
-        // 만료 시간 노출이 필요하면 verifyExpireAt 활용
+ 
         setEmailMsg("아직 인증이 완료되지 않았습니다. 메일함의 인증 버튼을 눌러주세요.");
         setEmailMsgColor("#FF0000");
       } else {
@@ -166,7 +165,8 @@ const Signup = () => {
 
   return (
     <div className="text-white">
-      <button className="text-[55px] ml-[25px] mt-[18px]" type="button">
+      <button className="text-[55px] ml-[25px] mt-[18px]" type="button"
+      onClick={() => navigate(-1)}>
         <GoArrowLeft />
       </button>
 
