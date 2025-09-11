@@ -5,11 +5,12 @@ import signUpApi from "../apis/signUpApi";
 import emailCheckApi from "../apis/emailCheckApi";
 import nicknameCheckApi from "../apis/nicknameCheckApi";
 import emailInitApi from "../apis/emailInitApi";
+import emailVerificationStatusApi from "../apis/emailVerificationStatusApi";
 
 const Signup = () => {
   const navigate = useNavigate();
   const [search] = useSearchParams();
-  const verifiedFlag = search.get("verified");
+  const verifiedFlag = search.get("verified"); 
 
 
   const [email, setEmail] = useState("");
@@ -28,12 +29,30 @@ const Signup = () => {
   const [nicknameMsg, setNicknameMsg] = useState("");
 
   useEffect(() => {
-    if (verifiedFlag === "done") {
-      setEmailVerified(true);
-      setEmailMsg("이메일 인증이 완료되었습니다.");
-      setEmailMsgColor("#54C65B");
-    }
-  }, [verifiedFlag]);
+    const confirmByStatus = async () => {
+      // 메일 링크 클릭 후 리다이렉트된 경우(verified=done)
+      // 이메일 입력칸에 값이 있어야 조회 가능
+      if (verifiedFlag === "done" && email.trim()) {
+        try {
+          const { verifyType } = await emailVerificationStatusApi(email.trim());
+          if (verifyType === "VERIFY") {
+            setEmailVerified(true);
+            setEmailMsg("이메일 인증이 완료되었습니다.");
+            setEmailMsgColor("#54C65B");
+          } else {
+            setEmailVerified(false);
+            setEmailMsg("인증 상태 확인에 실패했어요. 이메일의 인증 버튼을 누른 뒤 다시 시도해 주세요.");
+            setEmailMsgColor("#FF0000");
+          }
+        } catch (e) {
+          setEmailVerified(false);
+          setEmailMsg("인증 상태 조회 중 오류가 발생했습니다.");
+          setEmailMsgColor("#FF0000");
+        }
+      }
+    };
+   confirmByStatus();
+  }, [verifiedFlag, email]);
 
   const handleNicknameCheck = async () => {
     const v = nickname.trim();
@@ -88,29 +107,36 @@ const Signup = () => {
   };
 
 
-  const handleEmailConfirm = async () => {
+   const handleEmailConfirm = async () => {
     const v = email.trim();
     if (!v) return;
-
     try {
       setEmailLoading(true);
-      const result = await emailCheckApi(v);
-
-      if (result?.available === false) {
- 
+      const { verifyType, verifyExpireAt } = await emailVerificationStatusApi(v);
+      if (verifyType === "VERIFY") {
         setEmailVerified(true);
         setEmailMsg("이메일 인증이 완료되었습니다.");
         setEmailMsgColor("#54C65B");
-      } else {
-      
+      } else if (verifyType === "EMAIL_VERIFICATION") {
         setEmailVerified(false);
-        setEmailMsg("아직 인증이 확인되지 않았습니다. 메일함의 링크를 눌렀는지 다시 확인해주세요.");
+        // 만료 시간 노출이 필요하면 verifyExpireAt 활용
+        setEmailMsg("아직 인증이 완료되지 않았습니다. 메일함의 인증 버튼을 눌러주세요.");
+        setEmailMsgColor("#FF0000");
+      } else {
+        setEmailVerified(false);
+        setEmailMsg("회원가입 인증 상태가 아닙니다. 다시 시도해 주세요.");
         setEmailMsgColor("#FF0000");
       }
     } catch (err) {
-      console.error("인증 확인 오류:", err);
-      setEmailMsg("인증 확인 중 오류가 발생했습니다.");
-      setEmailMsgColor("#FF0000");
+      if (err?.response?.status === 404) {
+        setEmailVerified(false);
+        setEmailMsg("인증 내역이 없습니다. ‘중복 확인’으로 인증 메일을 다시 받아주세요.");
+        setEmailMsgColor("#FF0000");
+      } else {
+        console.error("인증 확인 오류:", err);
+        setEmailMsg("인증 상태 조회 중 오류가 발생했습니다.");
+        setEmailMsgColor("#FF0000");
+      }
     } finally {
       setEmailLoading(false);
     }
