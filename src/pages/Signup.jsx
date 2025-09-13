@@ -154,7 +154,7 @@ const Signup = () => {
     try {
       await signUpApi({ email, nickname, password });
       alert("회원가입이 완료되었습니다");
-      navigate("/");
+      navigate("/signin");
     } catch (err) {
       alert(`회원가입 실패: ${err.message}`);
       console.error("회원가입 에러:", err);
