@@ -1,11 +1,12 @@
-import api from "./api"
+import api from "./api";
 
-const applyNewPassword = async( {token, newPassword }) => {
-    const res = await api.post( "verify/password-reset/new-password",
-        {token, newPassword},
-        {headers: { Accept: "*/*"}}
-    )
-    return res.data
-}
+const applyNewPasswordByEmail = async ({ email, newPassword }) => {
+  const res = await api.post(
+    "/verify/password-reset/new-password",
+    { email, newPassword },
+    { headers: { "Content-Type": "application/json", Accept: "*/*" } }
+  );
+  return res.data;
+};
 
-export default applyNewPassword
+export default applyNewPasswordByEmail;
