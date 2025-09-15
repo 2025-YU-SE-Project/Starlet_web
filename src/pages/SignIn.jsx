@@ -83,7 +83,8 @@ const [email, setEmail] = useState("");
   <span className='text-[#AEAEB2]'>계정이 없으신가요?</span>
   <Link to='/signup' className='text-white'>가입하기</Link>
 </div>
-<Link to='/' className='font-bold mt-[41px] text-[20px]'>HOME</Link>
+<Link to='/foundpassword' className='font-bold mt-[34px] text-[20px]'>비밀번호 찾기</Link>
+<Link to='/' className='font-bold mt-[34px] text-[20px]'>HOME</Link>
    </div>
    </>
    
