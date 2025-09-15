@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Signup from './pages/Signup'
 import SignIn from './pages/SignIn'
 import AuthProvider from "./contexts/AuthProvider";
+import FoundPassword from './pages/FoundPassword';
 
 
 
@@ -15,6 +16,7 @@ const App = () => {
         <Routes>
           <Route path='signup' element={<Signup/>}/>
           <Route path='signin' element={<SignIn/>}/>
+          <Route path='/foundpassword' element={<FoundPassword/>}/>
         </Routes>
       </div>
     </BrowserRouter>
