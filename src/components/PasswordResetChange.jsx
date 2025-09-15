@@ -19,7 +19,7 @@ const PasswordResetChange = ({
   const [checkLoading, setCheckLoading] = useState(false);
 
   const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-  const isPwValid = pw.length >= 6;
+  const isPwValid = pw.length >= 6 && pw.length <= 12;
 
  
   useEffect(() => {
