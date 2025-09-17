@@ -36,6 +36,9 @@ jobs:
           source: dist/
           target: /home/ubuntu/Starlet_web/
 
+        
+
+
       # EC2 서버 설정 및 Nginx 재시작
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.8
