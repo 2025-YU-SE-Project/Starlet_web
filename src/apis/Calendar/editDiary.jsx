@@ -1,8 +1,9 @@
-import api from "./api";
+import api from "../api";
 
-const signInApi = async (body) => {
+/** 감정 일기 수정 */
+const updateDiary = async (payload) => {
   try {
-    const response = await api.post("user/login", body);
+    const response = await api.patch("calendar/diary", payload);
     return response.data;
   } catch (err) {
     if (err.response?.data?.message) {
@@ -17,4 +18,4 @@ const signInApi = async (body) => {
   }
 };
 
-export default signInApi;
+export default updateDiary;
