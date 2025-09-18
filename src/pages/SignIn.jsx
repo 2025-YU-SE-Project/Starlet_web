@@ -4,19 +4,37 @@ import signInApi from '../apis/signInApi';
 import AuthContext from "../contexts/AuthContext";
 
 
+
 const SignIn = () => {
 
 const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const[remember, setRemember] = useState(false)
+  const [errormsg, setErrorMessage] = useState("") // 이메일 형식관련 오류 메시지 상태 추가
 
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
 
   const SignInHandler = async (e) => {
+
     e.preventDefault();
 
+    let hasError = false;
+    if (!email){
+     setErrorMessage("이메일 값을 입력해주세요");
+      hasError = true;
+    }
+
+    else if(!email.includes("@")){
+      setErrorMessage("이메일 주소에 '@'를 포함해주세요");
+      hasError = true;
+    }
+    
+    if(!password){
+      setErrorMessage("비밀번호를 입력해주세요");
+      hasError = true;
+    }
 
     const body = {
       email: email,
@@ -39,19 +57,18 @@ const [email, setEmail] = useState("");
 
    
       navigate("/");
-    } catch (err) {
-      alert(`로그인 실패: ${err.message}`);
+    } catch (err) { //alert창 제거
       console.error("로그인 에러:", err);
     }
   };
 
 
   return (
-   <>
-   <div className='flex flex-col text-white items-center'>
+   <div className='h-screen w-screen overflow-hidden'>
+   <div className='flex flex-col text-white items-center w-full h-full overflow-y-auto'>
       <span className='text-[23px] mt-[147px]'>작은 별, 작은 감정의 조각</span>
       <span className='text-[90px] font-julius mt-[2px]'>STARLET</span>
-      <form onSubmit={SignInHandler} className='flex flex-col gap-[34px]'>
+      <form onSubmit={SignInHandler} className='flex flex-col gap-[25px]'>
         <input value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder='이메일 주소'
@@ -61,11 +78,13 @@ const [email, setEmail] = useState("");
         onChange={(e) => setPassword(e.target.value)}
         placeholder='비밀번호'
         className='p-5 border rounded-[5px] text-[20px]'/>
+        <span className='h-[10px] text-[#FF0000]'>{errormsg}</span>
         <button type='submit' className='w-[554px] h-[66px] bg-[#3E33DB] text-[24px] p-3'>LOGIN</button>
       </form>
     <div className="flex items-center mt-[10px]">
  <div className="w-[554px] flex justify-start mt-[10px]">
   <label className="flex items-center gap-[10px] cursor-pointer">
+    
     <input
       type="checkbox"
       checked={remember}
@@ -84,9 +103,9 @@ const [email, setEmail] = useState("");
   <Link to='/signup' className='text-white'>가입하기</Link>
 </div>
 <Link to='/foundpassword' className='font-bold mt-[34px] text-[20px]'>비밀번호 찾기</Link>
-<Link to='/' className='font-bold mt-[34px] text-[20px]'>HOME</Link>
+<Link to='/' className='font-bold mt-[20px] text-[20px]'>HOME</Link>
    </div>
-   </>
+   </div>
    
   )
 }
