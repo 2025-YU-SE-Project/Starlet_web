@@ -16,7 +16,7 @@ const PasswordResetRequest = ({
     const v = email.trim();
 
     if (!v || !isValidEmail(v)) {
-      setMsg("올바른 이메일 주소를 입력해주세요.");
+      setMsg("올바른 이메일 주소를 입력해주세요 (ex.starlet@yu.ac.kr)");
       setMsgColor("#FF4D4F");
       return;
     }
@@ -39,7 +39,7 @@ const PasswordResetRequest = ({
   return (
     <form onSubmit={handleSendMail} className="flex flex-col gap-[20px] mt-[40px]">
       <input
-        type="email"
+        type="text"
         value={email}
         onChange={(e) => {
           setEmail(e.target.value);
