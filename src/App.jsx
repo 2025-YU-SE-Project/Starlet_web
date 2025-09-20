@@ -4,7 +4,7 @@ import Signup from './pages/Signup'
 import SignIn from './pages/SignIn'
 import AuthProvider from "./contexts/AuthProvider";
 import FoundPassword from './pages/FoundPassword';
-
+import MainPage from "./pages/MainPage";
 
 
 const App = () => {
@@ -17,6 +17,7 @@ const App = () => {
           <Route path='signup' element={<Signup/>}/>
           <Route path='signin' element={<SignIn/>}/>
           <Route path='/foundpassword' element={<FoundPassword/>}/>
+          <Route path='/' element={<MainPage/>}/>
         </Routes>
       </div>
     </BrowserRouter>
