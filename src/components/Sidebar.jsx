@@ -8,14 +8,21 @@ const Sidebar = ({ isOpen, setIsOpen, showAuthLinks = true }) => {
     <>
       {!isOpen && (
         <button onClick={toggleSidebar} className="fixed top-4 left-4 z-50 ">
-          <img src={menuIcon} className="w-8 h-8 cursor-pointer transition hover:opacity-70" />
+          <img
+            src={menuIcon}
+            className="w-8 h-8 cursor-pointer transition hover:opacity-70"
+          />
         </button>
       )}
 
       {showAuthLinks && (
         <div className="fixed top-4 right-6 z-50 flex space-x-4 text-white text-[20px]">
-          <Link to="/signin" className="hover:underline cursor-pointer">로그인</Link>
-          <Link to="/signup" className="hover:underline cursor-pointer">회원가입</Link>
+          <Link to="/signin" className="hover:underline cursor-pointer">
+            로그인
+          </Link>
+          <Link to="/signup" className="hover:underline cursor-pointer">
+            회원가입
+          </Link>
         </div>
       )}
 
@@ -41,14 +48,21 @@ const Sidebar = ({ isOpen, setIsOpen, showAuthLinks = true }) => {
               <div className="w-[60px] h-[60px] bg-[#D9D9D9] rounded-full flex-shrink-0" />
               <div className="flex flex-col pl-1">
                 <span className="text-[23px]">미등록 사용자</span>
-                <span className="text-[12px] text-white mt-1">로그인 후 이용해주세요!</span>
+                <span className="text-[12px] text-white mt-1">
+                  로그인 후 이용해주세요!
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {isOpen && <div className="fixed inset-0 z-30 bg-transparent" onMouseDown={() => setIsOpen(false)} />}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/30"
+          onMouseDown={() => setIsOpen(false)}
+        />
+      )}
     </>
   );
 };

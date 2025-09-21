@@ -109,6 +109,7 @@ function Calendar() {
   const [isEdit, setIsEdit] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [pickedEmotion, setPickedEmotion] = useState("");
+  const [selectedTags, setSelectedTags] = useState([]);
 
   const userName =
     localStorage.getItem("nickname") ||
@@ -135,6 +136,7 @@ function Calendar() {
         inCurrentMonth: false,
       });
     }
+
     for (let d = 1; d <= thisMonthDays; d++) {
       cells.push({
         key: `c-${d}`,
@@ -142,7 +144,9 @@ function Calendar() {
         inCurrentMonth: true,
       });
     }
+
     let nextDay = 1;
+
     while (cells.length < totalCells) {
       cells.push({
         key: `n-${nextDay}`,
@@ -150,6 +154,7 @@ function Calendar() {
         inCurrentMonth: false,
       });
     }
+
     return cells;
   }, [viewDate]);
 
@@ -159,8 +164,10 @@ function Calendar() {
       navigate("/signin");
       return;
     }
+
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
+
     (async () => {
       try {
         const list = await getStars(year, month + 1);
@@ -168,11 +175,7 @@ function Calendar() {
         for (const it of list) m[it.date] = it.color;
         setStars(m);
       } catch (e) {
-        if (
-          e.status === 401 ||
-          e.message?.includes("토큰") ||
-          e.message?.includes("로그인")
-        ) {
+        if (e.status === 401 || e.message?.includes("토큰")) {
           navigate("/signin");
           return;
         }
@@ -189,16 +192,24 @@ function Calendar() {
   const openModalFor = async (dateObj) => {
     setSelectedDate(dateObj);
     const k = ymd(dateObj);
+
     try {
       const data = await getDiary(k);
       if (!data) {
         setPickedEmotion("");
+        setSelectedTags([]);
         setIsEdit(false);
         setIsEmotionOpen(true);
         return;
       }
+
       const localEmotion = EMOTION_API_TO_LOCAL[data.emotion] || "";
       setPickedEmotion(localEmotion);
+      setSelectedTags(
+        data.factors?.map((f) =>
+          Object.keys(TAG_TO_FACTOR).find((k) => TAG_TO_FACTOR[k] === f)
+        ) || []
+      );
       setEntries((prev) => ({
         ...prev,
         [k]: { text: data.content, emotion: localEmotion, color: data.color },
@@ -206,11 +217,7 @@ function Calendar() {
       setIsEdit(true);
       setIsDiaryOpen(true);
     } catch (e) {
-      if (
-        e.status === 401 ||
-        e.message?.includes("토큰") ||
-        e.message?.includes("로그인")
-      ) {
+      if (e.status === 401 || e.message?.includes("토큰")) {
         navigate("/signin");
         return;
       }
@@ -218,8 +225,9 @@ function Calendar() {
     }
   };
 
-  const handlePickEmotion = (emotionId) => {
+  const handlePickEmotion = (emotionId, tags = []) => {
     setPickedEmotion(emotionId);
+    setSelectedTags(tags);
     setIsEmotionOpen(false);
     setIsEdit(false);
     setIsDiaryOpen(true);
@@ -228,6 +236,7 @@ function Calendar() {
   const refreshStars = async () => {
     const y = viewDate.getFullYear();
     const mth = viewDate.getMonth() + 1;
+
     try {
       const list = await getStars(y, mth);
       const m = {};
@@ -236,13 +245,13 @@ function Calendar() {
     } catch {}
   };
 
-  const handleSaveDiary = async (text, tags) => {
+  const handleSaveDiary = async (text) => {
     if (!selectedDate) return;
     const k = ymd(selectedDate);
 
     if (!isEdit) {
       try {
-        const factors = (tags || [])
+        const factors = selectedTags
           .map((t) => TAG_TO_FACTOR[t])
           .filter(Boolean);
         const payload = {
@@ -260,15 +269,12 @@ function Calendar() {
             color: data.color,
           },
         }));
+
         setStars((prev) => ({ ...prev, [k]: data.color }));
         setIsDiaryOpen(false);
         await refreshStars();
       } catch (e) {
-        if (
-          e.status === 401 ||
-          e.message?.includes("토큰") ||
-          e.message?.includes("로그인")
-        ) {
+        if (e.status === 401 || e.message?.includes("토큰")) {
           navigate("/signin");
           return;
         }
@@ -281,11 +287,7 @@ function Calendar() {
         setIsDiaryOpen(false);
         await refreshStars();
       } catch (e) {
-        if (
-          e.status === 401 ||
-          e.message?.includes("토큰") ||
-          e.message?.includes("로그인")
-        ) {
+        if (e.status === 401 || e.message?.includes("토큰")) {
           navigate("/signin");
           return;
         }
@@ -305,22 +307,14 @@ function Calendar() {
         <span className="text-[50px] font-julius">STAR CALENDAR</span>
 
         <span className="text-[30px] font-julius flex items-center gap-8">
-          <button
-            className="px-2 py-1 hover:opacity-80 cursor-pointer"
-            onClick={() => setViewDate((d) => addMonths(d, -1))}
-          >
+          <button onClick={() => setViewDate((d) => addMonths(d, -1))}>
             {"<"}
           </button>
-
-          <span className="min-w-[12rem] text-[30px] font-julius text-center flex justify-center gap-6">
+          <span className="min-w-[12rem] text-[30px] text-center flex justify-center gap-6">
             <span>{year}</span>
             <span>{MONTH_NAMES[month].toUpperCase()}</span>
           </span>
-
-          <button
-            className="text-[30px] font-julius px-2 py-1 hover:opacity-80 cursor-pointer"
-            onClick={() => setViewDate((d) => addMonths(d, 1))}
-          >
+          <button onClick={() => setViewDate((d) => addMonths(d, 1))}>
             {">"}
           </button>
         </span>
@@ -338,7 +332,6 @@ function Calendar() {
         <div className="grid grid-cols-7">
           {grid.map((cell, idx) => {
             const label = cell.date.getDate();
-            const isCurrent = cell.inCurrentMonth;
             const k = ymd(cell.date);
             const color = stars[k];
             const isLastCol = (idx + 1) % 7 === 0;
@@ -347,30 +340,17 @@ function Calendar() {
             return (
               <div
                 key={cell.key}
-                role="button"
-                tabIndex={0}
                 onClick={() => openModalFor(cell.date)}
-                onKeyDown={(e) =>
-                  (e.key === "Enter" || e.key === " ") &&
-                  openModalFor(cell.date)
-                }
                 className={`h-24 sm:h-28 md:h-32 relative bg-black/30 cursor-pointer
                   ${isLastCol ? "" : "border-r border-white"}
                   ${isLastRow ? "" : "border-b border-white"}`}
               >
-                <div
-                  className={`absolute top-2 left-2 text-sm ${
-                    isCurrent ? "opacity-100" : "opacity-40"
-                  }`}
-                >
-                  {label}
-                </div>
+                <div className={`absolute top-2 left-2 text-sm`}>{label}</div>
                 {color && COLOR_IMAGE[color] && (
                   <img
                     src={COLOR_IMAGE[color]}
                     alt=""
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 object-contain pointer-events-none drop-shadow"
-                    draggable={false}
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10"
                   />
                 )}
               </div>
@@ -387,9 +367,12 @@ function Calendar() {
 
       <EmotionModal
         open={isEmotionOpen}
+        initialEmotion={pickedEmotion}
+        initialTags={selectedTags}
         onClose={() => setIsEmotionOpen(false)}
         onPick={handlePickEmotion}
       />
+
       <DiaryModal
         open={isDiaryOpen}
         dateStr={selectedDate ? ymd(selectedDate) : ""}
@@ -399,6 +382,11 @@ function Calendar() {
         onClose={() => setIsDiaryOpen(false)}
         onSave={handleSaveDiary}
         userName={userName}
+        tags={selectedTags}
+        onBack={() => {
+          setIsDiaryOpen(false);
+          setIsEmotionOpen(true);
+        }}
       />
 
       {msg && (
