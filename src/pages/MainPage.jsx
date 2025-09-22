@@ -1,13 +1,20 @@
-import React from 'react'
+import React, { useContext, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CiMenuBurger } from "react-icons/ci";
 import starImg from "../assets/starImg.png"
 import diaryImg from "../assets/diaryImg.png"
 import archiveImg from "../assets/archiveImg.png"
 import { useTranslation } from "react-i18next";
+import Sidebar from '../components/Sidebar';
+import AuthContext from "../contexts/AuthContext";
+
 
 const MainPage = () => {
    const { t, i18n } = useTranslation();
+   const [isOpen, setIsOpen] = useState(false);
+   const { accessToken } = useContext(AuthContext);
+   const isLoggedIn = !!accessToken;
+
 
   const toggleLang = () => {
     const next = i18n.language.startsWith("ko") ? "en" : "ko";
@@ -17,21 +24,50 @@ const MainPage = () => {
   return (
     <>
     <div className='text-white'>
+         <Sidebar isOpen={isOpen} setIsOpen={setIsOpen}/>
+ 
+        {isOpen && (
+          <div
+            className="fixed inset-0 z-40"
+            aria-hidden="true"
+            onClick={() => setIsOpen(false)}
+          />
+        )}
+
       <div className='flex flex-row justify-between'>
-        <div className='ml-[1.81rem] mt-[2.13rem]'><CiMenuBurger size={30}/></div>
-        
-        <div className='flex mt-[1.37rem] gap-[1.37rem] items-center'>
-           <button
-            onClick={toggleLang}
-            className="text-[1.25rem]"
-            aria-label="toggle language"
-            title="toggle language"
-          >
-            {t("lang.toggle")}
-          </button>
-        <Link to='/signin' className='text-[1.25rem]'>{t("menu.login")}</Link>
-        <Link to='/signup' className='text-[1.25rem] mr-[3.06rem]'>{t("menu.signup")}</Link>
-        </div>
+         <button
+          className='ml-[1.81rem] mt-[2.13rem]'
+          onClick={() => setIsOpen(true)}
+          aria-label='open sidebar'
+        >
+          <CiMenuBurger size={30}/>
+        </button>
+       {isLoggedIn ? (
+
+    <div className='flex mt-[1.37rem] gap-[1.37rem] items-center mr-10'>
+     <button onClick={toggleLang} className="text-[1.25rem]" aria-label="toggle language" title="toggle language">
+       {t("lang.toggle")}
+     </button>
+   </div>
+ ) : (
+  
+   <>
+   <div className='flex flex-row justify-center items-center gap-[1.37rem]'> 
+     <button
+       onClick={toggleLang}
+       className="text-[1.25rem]"
+       aria-label="toggle language"
+       title="toggle language"
+     >
+       {t("lang.toggle")}
+     </button>
+     <div className='flex gap-[1.37rem] items-center mr-[3.06rem]'>
+       <Link to='/signin' className='text-[1.25rem]'>{t("menu.login")}</Link>
+       <Link to='/signup' className='text-[1.25rem]'>{t("menu.signup")}</Link>
+     </div>
+     </div>
+   </>
+ )}  
       </div>
        <div className='flex flex-col'>
           <span className="ml-[10.19rem] mt-[7.00rem] text-[1.25rem]"> {/*피그마랑 다르게 수정(mt)*/}
