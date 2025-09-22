@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { CiMenuBurger } from "react-icons/ci";
 import starImg from "../assets/starImg.png"
 import diaryImg from "../assets/diaryImg.png"
@@ -15,6 +15,7 @@ const MainPage = () => {
    const { accessToken } = useContext(AuthContext);
    const isLoggedIn = !!accessToken;
 
+   const navigate = useNavigate();
 
   const toggleLang = () => {
     const next = i18n.language.startsWith("ko") ? "en" : "ko";
@@ -77,7 +78,16 @@ const MainPage = () => {
       <span className='ml-[10.31rem] text-[1.50rem]'>"기억은 흘러가지 않아요.</span>
       <span className='ml-[16.75rem] text-[1.50rem]'>오늘의 감정을 하늘에 남겨두세요."</span> {/*피그마랑 다르게 수정(글자 크기)*/}
       <div className='flex flex-row'>
-        <Link to='/sky'>
+        <Link
+          to='/sky'
+          onClick={(e) => {
+            if (!isLoggedIn) {
+              e.preventDefault();
+              alert("로그인 후 이용해주세요!");
+              navigate("/signin");
+            }
+          }}
+        >
           <div className='border w-[20.00rem] h-[24.94rem] rounded-[35px] bg-[#808080]/50 border-[#808080]/50 mt-[4.94rem] ml-[9.38rem]'> {/*밤하늘 페이지 피그마랑 다르게 수정(mt)*/}
               <img className='flex ml-[5.25rem] mt-[1.94rem] w-[9.50rem] h-[9.50rem]' src={starImg} alt='starImg'/>
               <div className='mt-[2.63rem] text-[1.88rem] flex justify-center'>{t("card.sky.title")}</div>
@@ -86,7 +96,16 @@ const MainPage = () => {
           </div>
          </Link> 
 
-         <Link to='/calendar'>
+        <Link
+            to='/calendar'
+            onClick={(e) => {
+              if (!isLoggedIn) {
+                e.preventDefault();
+                alert("로그인 후 이용해주세요!");
+                navigate("/signin");
+              }
+            }}
+          >
            <div className='border w-[20.00rem] h-[24.94rem] rounded-[35px] bg-[#808080]/50 border-[#808080]/50 mt-[4.94rem] ml-[9.38rem]'> 
               <img className='flex ml-[5.25rem] mt-[1.94rem] w-[9.50rem] h-[9.50rem]' src={diaryImg} alt='diaryImg'/>
               <div className='mt-[2.63rem] text-[1.88rem] flex justify-center'>{t("card.diary.title")}</div>
@@ -95,7 +114,14 @@ const MainPage = () => {
           </div>
          </Link>
 
-         <Link to='/archive'>
+        <Link to='/archive'
+          onClick={(e)=>{
+              if(!isLoggedIn){
+                e.preventDefault()
+                alert("로그인 후 이용해주세요!")
+                navigate("/signin")
+              }
+          }}>
            <div className='border w-[20.00rem] h-[24.94rem] rounded-[35px] bg-[#808080]/50 border-[#808080]/50 mt-[4.94rem] ml-[9.38rem]'> 
               <img className='flex ml-[5.25rem] mt-[1.94rem] w-[9.50rem] h-[9.50rem]' src={archiveImg} alt='archiveImg'/>
               <div className='mt-[2.63rem] text-[1.88rem] flex justify-center'>{t("card.archive.title")}</div>
