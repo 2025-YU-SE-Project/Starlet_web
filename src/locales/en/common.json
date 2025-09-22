@@ -1,0 +1,23 @@
+{
+  "menu.login": "Sign in",
+  "menu.signup": "Sign up",
+
+  "hero.tagline": "One star, one feeling",
+  "hero.title": "STARLET",
+  "hero.line1": "\"Memories don’t simply fade.",
+  "hero.line2": "Leave today’s feelings in the sky.\"",
+
+  "card.sky.title": "Night Sky Page",
+  "card.sky.subtitle1": "Create your own constellation",
+  "card.sky.subtitle2": "Your day remains as a star",
+
+  "card.diary.title": "My Diary",
+  "card.diary.subtitle1": "Record today’s feelings",
+  "card.diary.subtitle2": "Your day remains as a star",
+
+  "card.archive.title": "Constellation Archive",
+  "card.archive.subtitle1": "See the constellations",
+  "card.archive.subtitle2": "you created",
+
+  "lang.toggle": "한"
+}

@@ -46,18 +46,19 @@ const [email, setEmail] = useState("");
       const result = await signInApi(body);
       const token = result.accessToken
 
-      if(remember) {
-        localStorage.setItem("accessToken", token);
-      } else {
-        sessionStorage.setItem("accessToken", token);
-      }
-
+     if (remember) {
+       localStorage.setItem("accessToken", token);
+       localStorage.setItem("email", body.email);     
+     } else {
+       sessionStorage.setItem("accessToken", token);
+       sessionStorage.setItem("email", body.email);   
+     }
       login(result.accessToken);
       alert("로그인이 완료되었습니다!");
 
    
       navigate("/");
-    } catch (err) { //alert창 제거
+    } catch (err) { 
       console.error("로그인 에러:", err);
     }
   };

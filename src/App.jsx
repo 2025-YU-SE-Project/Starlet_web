@@ -3,12 +3,15 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import AuthProvider from "./contexts/AuthProvider";
 import Signup from "./pages/Signup";
 import SignIn from "./pages/SignIn";
+import MainPage from "./pages/MainPage";
 import FoundPassword from "./pages/FoundPassword";
 import Calendar from "./pages/Calendar";
+
 
 const App = () => {
   return (
     <AuthProvider>
+
       <BrowserRouter>
         <div className="bg-cover min-h-screen bg-[url('/src/assets/background.png')] overflow-hidden">
           <Routes>
@@ -16,9 +19,11 @@ const App = () => {
             <Route path="signin" element={<SignIn />} />
             <Route path="/foundpassword" element={<FoundPassword />} />
             <Route path="/calendar" element={<Calendar />} />
+            <Route path='/' element={<MainPage/>}/>
           </Routes>
         </div>
       </BrowserRouter>
+
     </AuthProvider>
   );
 };

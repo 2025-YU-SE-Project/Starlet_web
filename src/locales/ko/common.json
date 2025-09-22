@@ -1,0 +1,23 @@
+{
+  "menu.login": "로그인",
+  "menu.signup": "회원가입",
+
+  "hero.tagline": "별 하나, 감정 하나",
+  "hero.title": "STARLET",
+  "hero.line1": "\"기억은 흘러가지 않아요.",
+  "hero.line2": "오늘의 감정을 하늘에 남겨두세요.\"",
+
+  "card.sky.title": "밤하늘 페이지",
+  "card.sky.subtitle1": "나만의 별자리를 만들어보세요",
+  "card.sky.subtitle2": "당신만의 하루가 별로 남겨집니다",
+
+  "card.diary.title": "나의 일기",
+  "card.diary.subtitle1": "오늘의 감정을 기록해보세요",
+  "card.diary.subtitle2": "당신의 하루가 별로 남겨집니다",
+
+  "card.archive.title": "별자리 아카이브",
+  "card.archive.subtitle1": "당신이 만든 별자리를",
+  "card.archive.subtitle2": "확인해보세요",
+
+  "lang.toggle": "EN"
+}
