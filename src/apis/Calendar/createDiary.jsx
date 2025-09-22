@@ -1,12 +1,17 @@
-import api from "./api";
+import api from "../api";
 
-const signInApi = async (body) => {
+/** 감정 일기 생성 */
+const createDiary = async (payload) => {
   try {
-    const response = await api.post("user/login", body);
+    const response = await api.post("calendar/diary", payload);
     return response.data;
   } catch (err) {
     if (err.response?.data?.message) {
       throw new Error(err.response.data.message);
+    } else if (err.response?.data?.content) {
+      throw new Error(err.response.data.content);
+    } else if (err.response?.data?.emotion) {
+      throw new Error(err.response.data.emotion);
     } else if (err.response) {
       throw new Error(`오류 발생 (status: ${err.response.status})`);
     } else if (err.request) {
@@ -17,4 +22,4 @@ const signInApi = async (body) => {
   }
 };
 
-export default signInApi;
+export default createDiary;
