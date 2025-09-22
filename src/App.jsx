@@ -12,7 +12,7 @@ const App = () => {
     <AuthProvider>
 
      <BrowserRouter>
-      <div className="bg-cover min-h-screen bg-[url('/src/assets/background.png')]">
+      <div className="bg-cover overflow-hidden min-h-screen bg-[url('/src/assets/background.png')]">
    
         <Routes>
           <Route path='signup' element={<Signup/>}/>
