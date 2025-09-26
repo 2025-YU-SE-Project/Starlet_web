@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const LANGS = [
-  { code: "ko", label: "한국어", flag: "🇰🇷" },
-  { code: "en", label: "English", flag: "🇺🇸" },
+  { code: "ko", label: "한국어", flag: "KR" },
+  { code: "en", label: "English", flag: "US" },
 ];
 
 export default function LanguageSelect() {
@@ -14,19 +14,18 @@ export default function LanguageSelect() {
 
   const current = LANGS.find(l => i18n.language?.startsWith(l.code)) || LANGS[0];
 
-  // ✅ 버튼은 메뉴만 열고 닫음. 언어 전환 없음.
+
   const toggleMenu = () => setOpen(v => !v);
 
-  // ✅ 메뉴 항목 클릭 시에만 언어 전환.
+
   const selectLang = (code) => {
     if (!i18n.language?.startsWith(code)) {
       i18n.changeLanguage(code);
-      // 원하면 저장: localStorage.setItem("lang", code);
     }
     setOpen(false);
   };
 
-  // 바깥 클릭 시 닫기
+
   useEffect(() => {
     const onDocClick = (e) => {
       if (!btnRef.current?.contains(e.target) && !menuRef.current?.contains(e.target)) {
