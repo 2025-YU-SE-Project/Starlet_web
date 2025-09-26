@@ -300,8 +300,8 @@ const Signup = () => {
           </button>
         </form>
         <div className="flex mt-4 text-xl cursor-pointer divide-x divide-white">
-        <Link className="underline  px-10" to='/signin'>LOGIN</Link>
-        <Link className=" underline px-10" to='/'>HOME</Link>
+        <Link className="px-10" to='/signin'>LOGIN</Link>
+        <Link className="px-10" to='/'>HOME</Link>
 
         </div>
       </div>
