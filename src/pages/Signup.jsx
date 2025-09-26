@@ -24,7 +24,7 @@ const Signup = () => {
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailInitSent, setEmailInitSent] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
-
+  const [emailChecked, setEmailChecked] = useState(false);
 
   const [nicknameMsg, setNicknameMsg] = useState("");
 
@@ -88,11 +88,13 @@ const Signup = () => {
     
         await emailInitApi(v);
         setEmailInitSent(true);
+        setEmailChecked(true); 
         setEmailMsg("인증 메일을 보냈습니다. 메일함에서 인증을 완료한 뒤, 아래 '인증 완료'를 눌러주세요.");
         setEmailMsgColor("#54C65B");
       } else {
 
         setEmailInitSent(false);
+        setEmailChecked(false);
         setEmailMsg("중복된 이메일입니다.");
         setEmailMsgColor("#FF0000");
       }
@@ -162,6 +164,7 @@ const Signup = () => {
   };
 
   const isPwValid = password.length >= 6 && password.length <= 15;
+  const isNicknameValid = nickname.length >= 2 && nickname.length <= 10
 
   return (
     <div className="text-white">
@@ -182,6 +185,7 @@ const Signup = () => {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
+                  setEmailChecked(false);
                   if (!emailVerified) setEmailMsg("");
                 }}
                 placeholder="이메일 주소"
@@ -192,7 +196,7 @@ const Signup = () => {
                 className="border rounded-[5px] w-[111px] h-[66px] text-[20px] hover:bg-[#3E33DB] hover:text-white disabled:opacity-60"
                 onClick={handleEmailCheck}
                 type="button"
-                disabled={emailLoading || emailVerified}
+                disabled={emailLoading || emailVerified || emailChecked}
               >
                 {emailLoading ? "발송중..." : "중복 확인"}
               </button>
@@ -233,10 +237,18 @@ const Signup = () => {
                 className="border rounded-[5px] hover:bg-[#3E33DB] hover:text-white w-[111px] h-[66px] text-[20px]"
                 onClick={handleNicknameCheck}
                 type="button"
+                 disabled={!isNicknameValid} 
               >
                 중복 확인
               </button>
             </div>
+          <div className="h-[1px] leading-[18px] text-[13px]">
+   {nickname && !isNicknameValid ? (
+     <span className="text-[#FF0000]">닉네임은 2~10글자 이내여야합니다.</span>
+   ) : (
+     "\u00A0"
+   )}
+ </div>
             <div className="h-[18px] leading-[18px] text-[13px]">
               {nicknameMsg ? (
                 <span className={nicknameMsg.includes("사용 가능") ? "text-[#54C65B]" : "text-[#FF0000]"}>{nicknameMsg}</span>

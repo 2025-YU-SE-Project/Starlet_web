@@ -60,6 +60,7 @@ const [email, setEmail] = useState("");
       navigate("/");
     } catch (err) { 
       console.error("로그인 에러:", err);
+       setErrorMessage(err.message);
     }
   };
 
