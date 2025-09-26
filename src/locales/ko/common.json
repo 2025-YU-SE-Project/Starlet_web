@@ -19,5 +19,13 @@
   "card.archive.subtitle1": "당신이 만든 별자리를",
   "card.archive.subtitle2": "확인해보세요",
 
+  "navbar.home": "홈 화면",
+  "navbar.NightSkyPage": "밤하늘 페이지",
+  "navbar.MyDiary": "나의 일기",
+  "navbar.ConstellationArchive": "별자리 아카이브",
+  "navbar.MyPage": "마이페이지",
+
+   "navbar.Logout": "로그아웃",
+
   "lang.toggle": "EN"
 }

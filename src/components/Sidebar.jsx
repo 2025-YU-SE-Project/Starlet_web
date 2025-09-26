@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthContext from "../contexts/AuthContext";
 import userGetApi from "../apis/userGetApi";
 import logoutApi from "../apis/logoutApi"; 
+import { useTranslation } from "react-i18next";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
     const navigate = useNavigate()
@@ -12,6 +13,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   const [nickname, setNickname] = useState("user");
   const [progress] = useState(34);  // 진행도 -> 더미데이터
+   const { t } = useTranslation();
   const isLoggedIn = !!accessToken;
 
   useEffect(() => {
@@ -132,21 +134,21 @@ const handleLogout = async () => {
           <nav className="flex flex-col gap-6 text-xl">
             {isLoggedIn ? (
               <>
-                <Link to="/" onClick={closeAnd()} aria-label="Home">
-                  Home
-                </Link>
-                <Link to="/sky" onClick={closeAnd()} aria-label="My Constellation">
-                  Night Sky Page
-                </Link>
-                <Link to="/calendar" onClick={closeAnd()} aria-label="Star Calendar">
-                  My Diary
-                </Link>
-                <Link to="/archive" onClick={closeAnd()} aria-label="Constellation Repo">
-                  Constellation Archive
-                </Link>
-                <Link to="/mypage" onClick={closeAnd()} aria-label="My Page">
-                  My Page
-                </Link>
+               <Link to="/" onClick={closeAnd()} aria-label={t("navbar.home")}>
+                {t("navbar.home")}
+              </Link>
+              <Link to="/sky" onClick={closeAnd()} aria-label={t("navbar.NightSkyPage")}>
+                {t("navbar.NightSkyPage")}
+              </Link>
+              <Link to="/calendar" onClick={closeAnd()} aria-label={t("navbar.MyDiary")}>
+                {t("navbar.MyDiary")}
+              </Link>
+              <Link to="/archive" onClick={closeAnd()} aria-label={t("navbar.ConstellationArchive")}>
+                {t("navbar.ConstellationArchive")}
+              </Link>
+              <Link to="/mypage" onClick={closeAnd()} aria-label={t("navbar.MyPage")}>
+                {t("navbar.MyPage")}
+              </Link>
               </>
             ) : (
               <>
@@ -157,14 +159,16 @@ const handleLogout = async () => {
         </div>
 
       
-        {isLoggedIn && (
-          <button
-            className="mt-auto text-left  mb-2 text-xl" 
-            onClick={handleLogout}
-          >
-            LOGOUT
-          </button>
-        )}
+      {isLoggedIn && (
+  <button
+    className="mt-auto text-left mb-2 text-xl"
+    onClick={handleLogout}
+    aria-label={t("navbar.Logout")}
+  >
+    {t("navbar.Logout")} 
+  </button>
+)}
+
       </div>
     </aside>
 

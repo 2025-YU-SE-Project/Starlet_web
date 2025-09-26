@@ -19,5 +19,13 @@
   "card.archive.subtitle1": "See the constellations",
   "card.archive.subtitle2": "you created",
 
+  "navbar.home": "Home",
+  "navbar.NightSkyPage": "Night Sky Page",
+  "navbar.MyDiary": "My Diary",
+  "navbar.ConstellationArchive": "Constellation Archive",
+  "navbar.MyPage": "My Page",
+
+  "navbar.Logout": "LOGOUT",
+
   "lang.toggle": "한"
 }
