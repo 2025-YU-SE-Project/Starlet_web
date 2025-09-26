@@ -86,14 +86,6 @@ const [email, setEmail] = useState("");
     <div className="flex items-center mt-[10px]">
  <div className="w-[554px] flex justify-start mt-[10px]">
   <label className="flex items-center gap-[10px] cursor-pointer">
-    
-    <input
-      type="checkbox"
-      checked={remember}
-      onChange={() => setRemember(!remember)}
-      className="w-[20px] h-[20px] accent-blue-400"
-    />
-    <span className='text-[20px]'>로그인 상태 유지</span>
 
   </label>
 
