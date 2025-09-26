@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { GoArrowLeft } from "react-icons/go";
 import signUpApi from "../apis/signUpApi";
 import emailCheckApi from "../apis/emailCheckApi";
@@ -168,13 +168,10 @@ const Signup = () => {
 
   return (
     <div className="text-white">
-      <button className="text-[55px] ml-[25px] mt-[18px]" type="button"
-      onClick={() => navigate(-1)}>
-        <GoArrowLeft />
-      </button>
+  
 
       <div className="flex flex-col items-center">
-        <span className="mt-[77px] text-[23px]">작은 별, 작은 감정의 조각</span>
+        <span className="mt-30 text-[23px]">작은 별, 작은 감정의 조각</span>
         <span className="text-[90px] font-julius mt-[2px]">STARLET</span>
 
         <form className="flex flex-col gap-[12px] text-[20px]" onSubmit={SignUpHandler}>
@@ -302,6 +299,11 @@ const Signup = () => {
             SIGNUP
           </button>
         </form>
+        <div className="flex mt-4 text-xl cursor-pointer divide-x divide-white">
+        <Link className="underline  px-10" to='/signin'>LOGIN</Link>
+        <Link className=" underline px-10" to='/'>HOME</Link>
+
+        </div>
       </div>
     </div>
   );
