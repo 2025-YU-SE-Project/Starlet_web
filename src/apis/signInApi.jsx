@@ -5,10 +5,21 @@ const signInApi = async (body) => {
     const response = await api.post("user/login", body);
     return response.data;
   } catch (err) {
-    if (err.response?.data?.message) {
-      throw new Error(err.response.data.message);
+    if (err.response?.data) {
+      const data = err.response.data;
+
+  
+      if (data.message) {
+        throw new Error(data.message);
+      }
+      const messages = Object.entries(data)
+        .filter(([key]) => key !== "status")
+        .map(([_, value]) => value)
+        .join("  ");
+
+      throw new Error(messages);
     } else if (err.response) {
-      throw new Error(`오류 발생 (status: ${err.response.status})`);
+      throw new Error("요청이 올바르지 않습니다.");
     } else if (err.request) {
       throw new Error("서버로부터 응답이 없습니다.");
     } else {

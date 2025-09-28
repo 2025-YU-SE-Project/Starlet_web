@@ -7,7 +7,7 @@ import archiveImg from "../assets/archiveImg.png"
 import { useTranslation } from "react-i18next";
 import Sidebar from '../components/Sidebar';
 import AuthContext from "../contexts/AuthContext";
-
+import LanguageSelect from '../components/LanguageSelect';
 
 const MainPage = () => {
    const { t, i18n } = useTranslation();
@@ -16,11 +16,6 @@ const MainPage = () => {
    const isLoggedIn = !!accessToken;
 
    const navigate = useNavigate();
-
-  const toggleLang = () => {
-    const next = i18n.language.startsWith("ko") ? "en" : "ko";
-    i18n.changeLanguage(next);
-  };
   
   return (
     <>
@@ -45,23 +40,16 @@ const MainPage = () => {
         </button>
        {isLoggedIn ? (
 
-    <div className='flex mt-[1.37rem] gap-[1.37rem] items-center mr-10'>
-     <button onClick={toggleLang} className="text-[1.25rem]" aria-label="toggle language" title="toggle language">
-       {t("lang.toggle")}
-     </button>
-   </div>
- ) : (
+        <div className='flex mt-[1.37rem] gap-[1.37rem] items-center mr-10'>
+          <LanguageSelect />
+        </div>
+          
+        ) : (
   
    <>
-   <div className='flex flex-row justify-center items-center gap-[1.37rem]'> 
-     <button
-       onClick={toggleLang}
-       className="text-[1.25rem]"
-       aria-label="toggle language"
-       title="toggle language"
-     >
-       {t("lang.toggle")}
-     </button>
+      <div className='flex mt-[1.37rem] gap-[1.37rem] items-center mr-10'>
+        <LanguageSelect />
+
      <div className='flex gap-[1.37rem] items-center mr-[3.06rem]'>
        <Link to='/signin' className='text-[1.25rem]'>{t("menu.login")}</Link>
        <Link to='/signup' className='text-[1.25rem]'>{t("menu.signup")}</Link>
