@@ -1,9 +1,14 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { CiMenuBurger } from "react-icons/ci";
 import Sidebar from "../components/Sidebar";
 import EmotionModal from "../components/EmotionModal";
 import DiaryModal from "../components/DiaryModal";
 import { getAccessToken } from "../apis/api";
+import getStars from "../apis/Calendar/getStars";
+import getDiary from "../apis/Calendar/getDiary";
+import createDiary from "../apis/Calendar/createDiary";
+import editDiary from "../apis/Calendar/editDiary";
 
 import imgBlue from "../assets/emotions/blue.png";
 import imgOrange from "../assets/emotions/orange.png";
@@ -11,11 +16,6 @@ import imgRed from "../assets/emotions/red.png";
 import imgSkyblue from "../assets/emotions/skyblue.png";
 import imgWhite from "../assets/emotions/white.png";
 import imgYellow from "../assets/emotions/yellow.png";
-
-import getStars from "../apis/Calendar/getStars";
-import getDiary from "../apis/Calendar/getDiary";
-import createDiary from "../apis/Calendar/createDiary";
-import editDiary from "../apis/Calendar/editDiary";
 
 const MONTH_NAMES = [
   "January",
@@ -54,9 +54,9 @@ const COLOR_IMAGE = {
 const EMOTION_LOCAL_TO_API = {
   funny: "FUNNY",
   angry: "ANGER",
-  wow: "SURPRISE",
+  wow: "SURPRISING",
   happy: "HAPPINESS",
-  confused: "CONFUSED",
+  neutral: "NEUTRAL",
   crying: "SADNESS",
 };
 
@@ -64,18 +64,21 @@ const EMOTION_API_TO_LOCAL = {
   HAPPINESS: "happy",
   ANGER: "angry",
   SADNESS: "crying",
-  SURPRISE: "wow",
-  CONFUSED: "confused",
+  SURPRISING: "wow",
+  NEUTRAL: "neutral",
   FUNNY: "funny",
 };
 
 const TAG_TO_FACTOR = {
-  가족: "FAMILY",
-  연인: "LOVER",
+  일: "WORK",
+  공부: "EDUCATION",
   친구: "FRIEND",
-  회사: "WORK",
-  공부: "STUDY",
+  여행: "TRIP",
   취미: "HOBBY",
+  연인: "LOVER",
+  가족: "FAMILY",
+  건강: "HEALTH",
+  기타: "ETC",
 };
 
 function addMonths(date, delta) {
@@ -136,7 +139,6 @@ function Calendar() {
         inCurrentMonth: false,
       });
     }
-
     for (let d = 1; d <= thisMonthDays; d++) {
       cells.push({
         key: `c-${d}`,
@@ -144,9 +146,7 @@ function Calendar() {
         inCurrentMonth: true,
       });
     }
-
     let nextDay = 1;
-
     while (cells.length < totalCells) {
       cells.push({
         key: `n-${nextDay}`,
@@ -154,7 +154,6 @@ function Calendar() {
         inCurrentMonth: false,
       });
     }
-
     return cells;
   }, [viewDate]);
 
@@ -164,10 +163,8 @@ function Calendar() {
       navigate("/signin");
       return;
     }
-
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
-
     (async () => {
       try {
         const list = await getStars(year, month + 1);
@@ -184,15 +181,9 @@ function Calendar() {
     })();
   }, [viewDate, navigate]);
 
-  const notify = (t) => {
-    setMsg(t);
-    setTimeout(() => setMsg(""), 1800);
-  };
-
   const openModalFor = async (dateObj) => {
     setSelectedDate(dateObj);
     const k = ymd(dateObj);
-
     try {
       const data = await getDiary(k);
       if (!data) {
@@ -202,7 +193,6 @@ function Calendar() {
         setIsEmotionOpen(true);
         return;
       }
-
       const localEmotion = EMOTION_API_TO_LOCAL[data.emotion] || "";
       setPickedEmotion(localEmotion);
       setSelectedTags(
@@ -221,7 +211,6 @@ function Calendar() {
         navigate("/signin");
         return;
       }
-      notify(e.message || "오류");
     }
   };
 
@@ -236,7 +225,6 @@ function Calendar() {
   const refreshStars = async () => {
     const y = viewDate.getFullYear();
     const mth = viewDate.getMonth() + 1;
-
     try {
       const list = await getStars(y, mth);
       const m = {};
@@ -248,7 +236,6 @@ function Calendar() {
   const handleSaveDiary = async (text) => {
     if (!selectedDate) return;
     const k = ymd(selectedDate);
-
     if (!isEdit) {
       try {
         const factors = selectedTags
@@ -269,7 +256,6 @@ function Calendar() {
             color: data.color,
           },
         }));
-
         setStars((prev) => ({ ...prev, [k]: data.color }));
         setIsDiaryOpen(false);
         await refreshStars();
@@ -278,7 +264,6 @@ function Calendar() {
           navigate("/signin");
           return;
         }
-        notify(e.message || "입력 오류");
       }
     } else {
       try {
@@ -291,7 +276,6 @@ function Calendar() {
           navigate("/signin");
           return;
         }
-        notify(e.message || "입력 오류");
       }
     }
   };
@@ -301,20 +285,39 @@ function Calendar() {
 
   return (
     <div className="min-h-screen text-white">
-      <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} showAuthLinks={false} />
+      <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          aria-hidden="true"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+      <button
+        className="ml-[1.81rem] mt-[2.13rem]"
+        onClick={() => setIsOpen(true)}
+        aria-label="open sidebar"
+      >
+        <CiMenuBurger size={30} />
+      </button>
 
-      <div className="w-[90%] max-w-5xl mx-auto mt-12 mb-5 flex flex-col items-center gap-6">
+      <div className="w-[90%] max-w-5xl mx-auto mt-10 mb-5 flex flex-col items-center gap-6">
         <span className="text-[50px] font-julius">STAR CALENDAR</span>
-
         <span className="text-[30px] font-julius flex items-center gap-8">
-          <button onClick={() => setViewDate((d) => addMonths(d, -1))}>
+          <button
+            onClick={() => setViewDate((d) => addMonths(d, -1))}
+            className="cursor-pointer"
+          >
             {"<"}
           </button>
           <span className="min-w-[12rem] text-[30px] text-center flex justify-center gap-6">
             <span>{year}</span>
             <span>{MONTH_NAMES[month].toUpperCase()}</span>
           </span>
-          <button onClick={() => setViewDate((d) => addMonths(d, 1))}>
+          <button
+            onClick={() => setViewDate((d) => addMonths(d, 1))}
+            className="cursor-pointer"
+          >
             {">"}
           </button>
         </span>
@@ -336,7 +339,6 @@ function Calendar() {
             const color = stars[k];
             const isLastCol = (idx + 1) % 7 === 0;
             const isLastRow = idx >= grid.length - 7;
-
             return (
               <div
                 key={cell.key}
@@ -345,12 +347,22 @@ function Calendar() {
                   ${isLastCol ? "" : "border-r border-white"}
                   ${isLastRow ? "" : "border-b border-white"}`}
               >
-                <div className={`absolute top-2 left-2 text-sm`}>{label}</div>
+                <div
+                  className={`absolute top-2 left-2 text-sm ${
+                    cell.inCurrentMonth ? "" : "opacity-40"
+                  }`}
+                >
+                  {label}
+                </div>
                 {color && COLOR_IMAGE[color] && (
                   <img
                     src={COLOR_IMAGE[color]}
                     alt=""
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10"
+                    className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
+                                w-8 h-8 md:w-10 md:h-10 ${
+                                  cell.inCurrentMonth ? "" : "opacity-40"
+                                }`}
+                    draggable={false}
                   />
                 )}
               </div>
