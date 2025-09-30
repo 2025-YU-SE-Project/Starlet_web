@@ -16,7 +16,7 @@ const EMOTIONS = [
   {
     id: "angry",
     title: "화나요",
-    desc: "짜증나고 속상한 일이 많았어요",
+    desc: "짜증나고 속상한 일이 \n 많았어요",
     icon: iconAngry,
   },
   {
@@ -32,7 +32,7 @@ const EMOTIONS = [
     icon: iconHappy,
   },
   {
-    id: "confused",
+    id: "neutral",
     title: "잘 모르겠어요",
     desc: "감정이 복잡하고 알 수 없는 하루였어요",
     icon: iconConfused,
@@ -45,7 +45,20 @@ const EMOTIONS = [
   },
 ];
 
-const TAGS = ["가족", "연인", "친구", "여행", "공부", "취미"];
+const TAGS = [
+  "가족",
+  "친구",
+  "연인",
+  "일",
+  "취미",
+  "공부",
+  "여행",
+  "건강",
+  "기타",
+];
+
+const ROW1 = TAGS.slice(0, 5);
+const ROW2 = TAGS.slice(5);
 
 function EmotionModal({
   open,
@@ -94,21 +107,23 @@ function EmotionModal({
       <button
         type="button"
         onClick={() => setEmotion(item.id)}
-        className={`w-full rounded-xl px-6 py-5 transition flex items-center gap-5 ${
+        className={`w-full rounded-xl px-6 py-5 transition flex items-center gap-4 ${
           active ? "bg-gray-300" : "bg-[#F4F4F4] hover:bg-gray-200"
         } text-black`}
       >
         <img
           src={item.icon}
           alt={item.title}
-          className="w-16 h-16 object-contain shrink-0"
+          className="w-16 h-16 object-contain"
           draggable={false}
         />
         <div className="text-left">
           <div className="text-[18px] font-extrabold text-gray-800">
             {item.title}
           </div>
-          <div className="text-[14px] text-[#808080] mt-1">{item.desc}</div>
+          <div className="text-[14px] text-[#808080] mt-1 whitespace-pre-line">
+            {item.desc}
+          </div>
         </div>
       </button>
     );
@@ -127,7 +142,7 @@ function EmotionModal({
           className="w-full max-w-5xl max-h-[90vh] overflow-auto rounded-[10px] bg-[#F4F4F4]"
           onMouseDown={(e) => e.stopPropagation()}
         >
-          <div className="relative px-12 pt-14 pb-6">
+          <div className="relative px-12 pt-12 pb-6">
             <button
               onClick={handleNext}
               disabled={!canSubmit}
@@ -153,27 +168,49 @@ function EmotionModal({
             </div>
           </div>
 
-          <div className="px-8 pt-12 pb-10">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 justify-items-center">
-              {TAGS.map((t) => {
-                const active = tags.includes(t);
-                return (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => toggleTag(t)}
-                    className={`w-fit px-7 py-1 rounded-[10px] border text-[15px] transition ${
-                      active
-                        ? "bg-[#BCBCBC] border-[#BCBCBC] text-black"
-                        : "bg-[#D9D9D9] border-[#D9D9D9] text-black hover:bg-[#CFCFCF]"
-                    }`}
-                    title={`#${t}`}
-                  >
-                    #{t}
-                  </button>
-                );
-              })}
+          <div className="px-8 pt-12 pb-4">
+            <div className="max-w-[900px] mx-auto space-y-4">
+              <div className="grid grid-cols-5 gap-4 justify-items-center">
+                {ROW1.map((t) => {
+                  const active = tags.includes(t);
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => toggleTag(t)}
+                      className={`w-[90px] py-2 rounded-[10px] border text-[15px] transition text-center ${
+                        active
+                          ? "bg-[#BCBCBC] border-[#BCBCBC] text-black"
+                          : "bg-[#D9D9D9] border-[#D9D9D9] text-black hover:bg-[#CFCFCF]"
+                      }`}
+                    >
+                      #{t}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-center gap-25">
+                {ROW2.map((t) => {
+                  const active = tags.includes(t);
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => toggleTag(t)}
+                      className={`w-[90px] py-2 rounded-[10px] border text-[15px] transition text-center ${
+                        active
+                          ? "bg-[#BCBCBC] border-[#BCBCBC] text-black"
+                          : "bg-[#D9D9D9] border-[#D9D9D9] text-black hover:bg-[#CFCFCF]"
+                      }`}
+                    >
+                      #{t}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+
             <div className="mt-7 text-right text-sm text-[#808080]">
               태그를 1개 이상 선택해주세요.
             </div>
