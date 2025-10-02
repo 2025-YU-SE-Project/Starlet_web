@@ -36,7 +36,7 @@ const MainPage = () => {
           onClick={() => setIsOpen(true)}
           aria-label='open sidebar'
         >
-          <CiMenuBurger size={30}/>
+          <CiMenuBurger className='cursor-pointer' size={30}/>
         </button>
        {isLoggedIn ? (
 
@@ -68,6 +68,7 @@ const MainPage = () => {
       <div className='flex flex-row'>
         <Link
           to='/sky'
+           className="inline-block mt-[4.94rem] ml-[9.38rem] w-[20.00rem] h-[24.94rem]"
           onClick={(e) => {
             if (!isLoggedIn) {
               e.preventDefault();
@@ -76,7 +77,7 @@ const MainPage = () => {
             }
           }}
         >
-          <div className='border w-[20.00rem] h-[24.94rem] rounded-[35px] bg-[#808080]/50 border-[#808080]/50 mt-[4.94rem] ml-[9.38rem]'> {/*밤하늘 페이지 피그마랑 다르게 수정(mt)*/}
+          <div className='border w-full h-full rounded-[35px] bg-[#808080]/50 border-[#808080]/50'> {/*밤하늘 페이지 피그마랑 다르게 수정(mt)*/}
               <img className='flex ml-[5.25rem] mt-[1.94rem] w-[9.50rem] h-[9.50rem]' src={starImg} alt='starImg'/>
               <div className='mt-[2.63rem] text-[1.88rem] flex justify-center'>{t("card.sky.title")}</div>
               <div className='mt-[1.69rem] flex justify-center'>나만의 별자리를 만들어보세요</div>
@@ -86,6 +87,7 @@ const MainPage = () => {
 
         <Link
             to='/calendar'
+             className="inline-block mt-[4.94rem] ml-[9.38rem] w-[20.00rem] h-[24.94rem]"
             onClick={(e) => {
               if (!isLoggedIn) {
                 e.preventDefault();
@@ -94,7 +96,7 @@ const MainPage = () => {
               }
             }}
           >
-           <div className='border w-[20.00rem] h-[24.94rem] rounded-[35px] bg-[#808080]/50 border-[#808080]/50 mt-[4.94rem] ml-[9.38rem]'> 
+           <div className='border w-full h-full rounded-[35px] bg-[#808080]/50 border-[#808080]/50'> 
               <img className='flex ml-[5.25rem] mt-[1.94rem] w-[9.50rem] h-[9.50rem]' src={diaryImg} alt='diaryImg'/>
               <div className='mt-[2.63rem] text-[1.88rem] flex justify-center'>{t("card.diary.title")}</div>
               <div className='mt-[1.69rem] flex justify-center'>오늘의 감정을 기록해보세요</div>
@@ -103,6 +105,7 @@ const MainPage = () => {
          </Link>
 
         <Link to='/archive'
+         className="inline-block mt-[4.94rem] ml-[9.38rem] w-[20.00rem] h-[24.94rem]"
           onClick={(e)=>{
               if(!isLoggedIn){
                 e.preventDefault()
@@ -110,7 +113,7 @@ const MainPage = () => {
                 navigate("/signin")
               }
           }}>
-           <div className='border w-[20.00rem] h-[24.94rem] rounded-[35px] bg-[#808080]/50 border-[#808080]/50 mt-[4.94rem] ml-[9.38rem]'> 
+           <div className='border  w-full h-full rounded-[35px] bg-[#808080]/50 border-[#808080]/50'> 
               <img className='flex ml-[5.25rem] mt-[1.94rem] w-[9.50rem] h-[9.50rem]' src={archiveImg} alt='archiveImg'/>
               <div className='mt-[2.63rem] text-[1.88rem] flex justify-center'>{t("card.archive.title")}</div>
               <div className='mt-[1.69rem] flex justify-center'>당신이 만든 별자리를</div>
