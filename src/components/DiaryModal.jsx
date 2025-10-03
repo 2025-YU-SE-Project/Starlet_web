@@ -12,7 +12,7 @@ const STICKER = {
   angry: imgRed,
   wow: imgSkyblue,
   happy: imgYellow,
-  confused: imgWhite,
+  neutral: imgWhite,
   crying: imgBlue,
 };
 
@@ -120,13 +120,15 @@ function DiaryModal({
           aria-modal="true"
         >
           <div className="relative px-12 pt-7 pb-4">
-            <button onClick={onBack} className="absolute left-6 top-7">
-              <img
-                src={backIcon}
-                alt="뒤로가기"
-                className="w-6 h-6 cursor-pointer"
-              />
-            </button>
+            {!isEdit && (
+              <button onClick={onBack} className="absolute left-6 top-7">
+                <img
+                  src={backIcon}
+                  alt="뒤로가기"
+                  className="w-6 h-6 cursor-pointer"
+                />
+              </button>
+            )}
 
             <button
               onClick={handleClickDone}
