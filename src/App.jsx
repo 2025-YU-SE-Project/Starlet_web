@@ -6,7 +6,7 @@ import SignIn from "./pages/SignIn";
 import MainPage from "./pages/MainPage";
 import FoundPassword from "./pages/FoundPassword";
 import Calendar from "./pages/Calendar";
-
+import StarArchive from "./pages/StarArchive"
 
 const App = () => {
   return (
@@ -20,6 +20,7 @@ const App = () => {
             <Route path="/foundpassword" element={<FoundPassword />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path='/' element={<MainPage/>}/>
+             <Route path='/archive' element={<StarArchive/>}/>
           </Routes>
         </div>
       </BrowserRouter>
