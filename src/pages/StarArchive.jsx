@@ -3,6 +3,8 @@ import { CiMenuBurger } from "react-icons/ci";
 import Sidebar from "../components/Sidebar";
 import AuthContext from "../contexts/AuthContext";
 import userGetApi from "../apis/userGetApi";
+import StarArchiveCard from "../components/ArchiveCard/StarArchiveCard";
+import { useConstellationArchive } from "../hooks/useConstellationArchive";
 
 const StarArchive = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,6 +12,9 @@ const StarArchive = () => {
   const isLoggedIn = !!accessToken;
 
   const [nickname, setNickname] = useState("");
+
+ 
+  const { data: archives, loading, error } = useConstellationArchive();
 
   useEffect(() => {
     let cancelled = false;
@@ -29,7 +34,6 @@ const StarArchive = () => {
         return;
       }
 
-  
       const emailFromToken = getEmailFromToken(accessToken);
       const myEmail =
         emailFromToken ||
@@ -38,7 +42,6 @@ const StarArchive = () => {
         "";
 
       try {
-    
         const data = await userGetApi(accessToken);
 
         let me = data;
@@ -74,7 +77,6 @@ const StarArchive = () => {
   return (
     <div className="text-white">
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
-
       {isOpen && (
         <div
           className="fixed inset-0 z-40"
@@ -94,15 +96,30 @@ const StarArchive = () => {
       </div>
 
       <div className="flex flex-col items-center">
-   
         <span className="font-julius mt-16 text-7xl">STARLET ARCHIVE</span>
-
         {nickname && (
           <span className="mt-4 text-2xl text-center">
             {nickname}님의 별자리를 확인해보세요
           </span>
         )}
+      </div>
 
+      <div className="p-12 pl-32">
+        {loading && <div className="text-white/80">불러오는 중…</div>}
+        {error && (
+          <div className="text-red-300">데이터를 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>
+        )}
+        {!loading && !error && (!archives || archives.length === 0) && (
+          <div className="text-white/70">아카이브가 비어 있어요.</div>
+        )}
+
+        {!!archives && archives.length > 0 && (
+          <div className="grid gap-16 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-2">
+            {archives.map((item) => (
+              <StarArchiveCard key={item.constellationId} item={item} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
