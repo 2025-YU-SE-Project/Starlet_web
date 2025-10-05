@@ -8,11 +8,12 @@ import whiteIcon from "../assets/emotions/white.png";
 import skyblueIcon from "../assets/emotions/skyblue.png";
 
 export default function ConstellationMini({
-  stars,
-  connections = [], 
-  width = 200,
-  height = 140,
-}) {
+   stars,
+   connections = [],
+   width = 200,
+   height = 140,
+   hideBackground = false,   
+ }) {
   const ns = useMemo(
     () => normalizeStars(stars, { w: width, h: height, pad: 10 }),
     [stars, width, height]
@@ -65,14 +66,17 @@ const colorMap = {
         </filter>
       </defs>
 
-      <rect
-        x="0"
-        y="0"
-        width={width}
-        height={height}
-        rx="12"
-        className="fill-[#333333]/40 stroke-[#333333]/60"
-      />
+    
+      {!hideBackground && (
+        <rect
+          x="0"
+          y="0"
+          width={width}
+          height={height}
+          rx="12"
+          className="fill-[#333333]/40 stroke-[#333333]/60"
+        />
+      )}
       {ns.map((s) => (
     <circle
       key={`halo-${s.starId}`}
