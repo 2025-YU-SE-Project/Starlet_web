@@ -12,7 +12,7 @@ export default function StarArchiveCard({ item }) {
 
   return (
     <div className="relative flex flex-row text-white border w-[600px] h-[250px]
-                    bg-white/10 border-white/10 rounded-[15px]">
+                    bg-white/10 border-white/10 rounded-[15px] cursor-pointer">
    
       <div className="ml-5 my-4 rounded-[12px]">
         <ConstellationMini
