@@ -6,6 +6,10 @@ import userGetApi from "../apis/userGetApi";
 import StarArchiveCard from "../components/ArchiveCard/StarArchiveCard";
 import { useConstellationArchive } from "../hooks/useConstellationArchive";
 
+
+import ConstellationDetailModal from "../components/ArchiveCard/ConstellationDetailModal";
+import { useConstellationDetail } from "../hooks/useConstellationDetail";
+
 const StarArchive = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { accessToken } = useContext(AuthContext);
@@ -13,8 +17,16 @@ const StarArchive = () => {
 
   const [nickname, setNickname] = useState("");
 
- 
+
   const { data: archives, loading, error } = useConstellationArchive();
+
+
+  const [selected, setSelected] = useState(null); 
+  const open = !!selected;
+  const selectedId = selected?.constellationId;
+
+
+  const { data: detail } = useConstellationDetail(selectedId, open);
 
   useEffect(() => {
     let cancelled = false;
@@ -107,7 +119,9 @@ const StarArchive = () => {
       <div className="p-12 pl-32">
         {loading && <div className="text-white/80">불러오는 중…</div>}
         {error && (
-          <div className="text-red-300">데이터를 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>
+          <div className="text-red-300">
+            데이터를 불러오지 못했어요. 잠시 후 다시 시도해주세요.
+          </div>
         )}
         {!loading && !error && (!archives || archives.length === 0) && (
           <div className="text-white/70">아카이브가 비어 있어요.</div>
@@ -116,11 +130,24 @@ const StarArchive = () => {
         {!!archives && archives.length > 0 && (
           <div className="grid gap-16 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-2">
             {archives.map((item) => (
-              <StarArchiveCard key={item.constellationId} item={item} />
+              <div
+                key={item.constellationId}
+                onClick={() => setSelected(item)}
+              >
+                <StarArchiveCard item={item} />
+              </div>
             ))}
           </div>
         )}
       </div>
+
+
+      <ConstellationDetailModal
+        open={open}
+        onClose={() => setSelected(null)}
+        initial={selected}
+        detail={detail}
+      />
     </div>
   );
 };
