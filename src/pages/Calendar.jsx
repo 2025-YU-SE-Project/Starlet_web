@@ -31,7 +31,6 @@ const MONTH_NAMES = [
   "November",
   "December",
 ];
-
 const WEEKDAY_NAMES = [
   "Sunday",
   "Monday",
@@ -59,7 +58,6 @@ const EMOTION_LOCAL_TO_API = {
   neutral: "NEUTRAL",
   crying: "SADNESS",
 };
-
 const EMOTION_API_TO_LOCAL = {
   HAPPINESS: "happy",
   ANGER: "angry",
@@ -68,7 +66,6 @@ const EMOTION_API_TO_LOCAL = {
   NEUTRAL: "neutral",
   FUNNY: "funny",
 };
-
 const TAG_TO_FACTOR = {
   일: "WORK",
   공부: "EDUCATION",
@@ -86,8 +83,8 @@ function addMonths(date, delta) {
   d.setMonth(d.getMonth() + delta);
   return d;
 }
-function daysInMonth(year, monthIndex) {
-  return new Date(year, monthIndex + 1, 0).getDate();
+function daysInMonth(y, mIdx) {
+  return new Date(y, mIdx + 1, 0).getDate();
 }
 function ymd(date) {
   const y = date.getFullYear();
@@ -103,7 +100,7 @@ function Calendar() {
   );
   const [isOpen, setIsOpen] = useState(false);
 
-  const [stars, setStars] = useState({});
+  const [stars, setStars] = useState({}); // { 'YYYY-MM-DD': 'YELLOW' }
   const [entries, setEntries] = useState({});
   const [msg, setMsg] = useState("");
 
@@ -130,7 +127,6 @@ function Calendar() {
     const lastDayOfPrev = new Date(year, month, 0).getDate();
     const prevStart = lastDayOfPrev - firstWeekday + 1;
     const cells = [];
-
     for (let i = 0; i < firstWeekday; i++) {
       const day = prevStart + i;
       cells.push({
@@ -165,14 +161,16 @@ function Calendar() {
     }
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
+
     (async () => {
       try {
-        const list = await getStars(year, month + 1);
-        const m = {};
-        for (const it of list) m[it.date] = it.color;
-        setStars(m);
+        const list = await getStars(year, month + 1); // [{date,color}]
+        const map = {};
+        for (const it of list) map[it.date] = it.color;
+        setStars(map);
       } catch (e) {
-        if (e.status === 401 || e.message?.includes("토큰")) {
+        const status = e?.response?.status || e?.status;
+        if (status === 401 || e?.message?.includes("토큰")) {
           navigate("/signin");
           return;
         }
@@ -197,7 +195,7 @@ function Calendar() {
       setPickedEmotion(localEmotion);
       setSelectedTags(
         data.factors?.map((f) =>
-          Object.keys(TAG_TO_FACTOR).find((k) => TAG_TO_FACTOR[k] === f)
+          Object.keys(TAG_TO_FACTOR).find((kk) => TAG_TO_FACTOR[kk] === f)
         ) || []
       );
       setEntries((prev) => ({
@@ -207,7 +205,8 @@ function Calendar() {
       setIsEdit(true);
       setIsDiaryOpen(true);
     } catch (e) {
-      if (e.status === 401 || e.message?.includes("토큰")) {
+      const status = e?.response?.status || e?.status;
+      if (status === 401 || e?.message?.includes("토큰")) {
         navigate("/signin");
         return;
       }
@@ -224,13 +223,15 @@ function Calendar() {
 
   const refreshStars = async () => {
     const y = viewDate.getFullYear();
-    const mth = viewDate.getMonth() + 1;
+    const m = viewDate.getMonth() + 1;
     try {
-      const list = await getStars(y, mth);
-      const m = {};
-      for (const it of list) m[it.date] = it.color;
-      setStars(m);
-    } catch {}
+      const list = await getStars(y, m);
+      const map = {};
+      for (const it of list) map[it.date] = it.color;
+      setStars(map);
+    } catch {
+      // ignore
+    }
   };
 
   const handleSaveDiary = async (text) => {
@@ -259,8 +260,10 @@ function Calendar() {
         setStars((prev) => ({ ...prev, [k]: data.color }));
         setIsDiaryOpen(false);
         await refreshStars();
+        window.dispatchEvent(new Event("stars-updated")); // 밤하늘 새로고침 트리거
       } catch (e) {
-        if (e.status === 401 || e.message?.includes("토큰")) {
+        const status = e?.response?.status || e?.status;
+        if (status === 401 || e?.message?.includes("토큰")) {
           navigate("/signin");
           return;
         }
@@ -271,8 +274,10 @@ function Calendar() {
         setEntries((prev) => ({ ...prev, [k]: { ...(prev[k] || {}), text } }));
         setIsDiaryOpen(false);
         await refreshStars();
+        window.dispatchEvent(new Event("stars-updated"));
       } catch (e) {
-        if (e.status === 401 || e.message?.includes("토큰")) {
+        const status = e?.response?.status || e?.status;
+        if (status === 401 || e?.message?.includes("토큰")) {
           navigate("/signin");
           return;
         }
@@ -343,9 +348,9 @@ function Calendar() {
               <div
                 key={cell.key}
                 onClick={() => openModalFor(cell.date)}
-                className={`h-24 sm:h-28 md:h-32 relative bg-black/30 cursor-pointer
-                  ${isLastCol ? "" : "border-r border-white"}
-                  ${isLastRow ? "" : "border-b border-white"}`}
+                className={`h-24 sm:h-28 md:h-32 relative bg-black/30 cursor-pointer ${
+                  isLastCol ? "" : "border-r border-white"
+                } ${isLastRow ? "" : "border-b border-white"}`}
               >
                 <div
                   className={`absolute top-2 left-2 text-sm ${
