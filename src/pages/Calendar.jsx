@@ -12,10 +12,10 @@ import imgSkyblue from "../assets/emotions/skyblue.png";
 import imgWhite from "../assets/emotions/white.png";
 import imgYellow from "../assets/emotions/yellow.png";
 
-import getStars from "../apis/Calendar/getStars";
-import getDiary from "../apis/Calendar/getDiary";
-import createDiary from "../apis/Calendar/createDiary";
-import editDiary from "../apis/Calendar/editDiary";
+import getStars from "../apis/Calendar/getStars"; // GET /api/v1/calendar/star
+import getDiary from "../apis/Calendar/getDiary"; // GET /api/v1/calendar/diary/{date}
+import createDiary from "../apis/Calendar/createDiary"; // POST /api/v1/calendar/diary
+import editDiary from "../apis/Calendar/editDiary"; // PATCH /api/v1/calendar/diary
 
 const MONTH_NAMES = [
   "January",
@@ -31,7 +31,6 @@ const MONTH_NAMES = [
   "November",
   "December",
 ];
-
 const WEEKDAY_NAMES = [
   "Sunday",
   "Monday",
@@ -59,7 +58,6 @@ const EMOTION_LOCAL_TO_API = {
   confused: "CONFUSED",
   crying: "SADNESS",
 };
-
 const EMOTION_API_TO_LOCAL = {
   HAPPINESS: "happy",
   ANGER: "angry",
@@ -68,7 +66,6 @@ const EMOTION_API_TO_LOCAL = {
   CONFUSED: "confused",
   FUNNY: "funny",
 };
-
 const TAG_TO_FACTOR = {
   가족: "FAMILY",
   연인: "LOVER",
@@ -83,8 +80,8 @@ function addMonths(date, delta) {
   d.setMonth(d.getMonth() + delta);
   return d;
 }
-function daysInMonth(year, monthIndex) {
-  return new Date(year, monthIndex + 1, 0).getDate();
+function daysInMonth(y, mIdx) {
+  return new Date(y, mIdx + 1, 0).getDate();
 }
 function ymd(date) {
   const y = date.getFullYear();
@@ -100,7 +97,7 @@ function Calendar() {
   );
   const [isOpen, setIsOpen] = useState(false);
 
-  const [stars, setStars] = useState({});
+  const [stars, setStars] = useState({}); // { 'YYYY-MM-DD': 'YELLOW' }
   const [entries, setEntries] = useState({});
   const [msg, setMsg] = useState("");
 
@@ -117,8 +114,8 @@ function Calendar() {
     "";
 
   const grid = useMemo(() => {
-    const year = viewDate.getFullYear();
-    const month = viewDate.getMonth();
+    const year = viewDate.getFullYear(),
+      month = viewDate.getMonth();
     const first = new Date(year, month, 1);
     const firstWeekday = first.getDay();
     const thisMonthDays = daysInMonth(year, month);
@@ -127,7 +124,6 @@ function Calendar() {
     const lastDayOfPrev = new Date(year, month, 0).getDate();
     const prevStart = lastDayOfPrev - firstWeekday + 1;
     const cells = [];
-
     for (let i = 0; i < firstWeekday; i++) {
       const day = prevStart + i;
       cells.push({
@@ -136,7 +132,6 @@ function Calendar() {
         inCurrentMonth: false,
       });
     }
-
     for (let d = 1; d <= thisMonthDays; d++) {
       cells.push({
         key: `c-${d}`,
@@ -144,9 +139,7 @@ function Calendar() {
         inCurrentMonth: true,
       });
     }
-
     let nextDay = 1;
-
     while (cells.length < totalCells) {
       cells.push({
         key: `n-${nextDay}`,
@@ -154,7 +147,6 @@ function Calendar() {
         inCurrentMonth: false,
       });
     }
-
     return cells;
   }, [viewDate]);
 
@@ -164,18 +156,17 @@ function Calendar() {
       navigate("/signin");
       return;
     }
-
-    const year = viewDate.getFullYear();
-    const month = viewDate.getMonth();
-
+    const year = viewDate.getFullYear(),
+      month = viewDate.getMonth();
     (async () => {
       try {
-        const list = await getStars(year, month + 1);
-        const m = {};
-        for (const it of list) m[it.date] = it.color;
-        setStars(m);
+        const list = await getStars(year, month + 1); // [{date,color}]
+        const map = {};
+        for (const it of list) map[it.date] = it.color;
+        setStars(map);
       } catch (e) {
-        if (e.status === 401 || e.message?.includes("토큰")) {
+        const status = e?.response?.status || e?.status;
+        if (status === 401 || e?.message?.includes("토큰")) {
           navigate("/signin");
           return;
         }
@@ -192,7 +183,6 @@ function Calendar() {
   const openModalFor = async (dateObj) => {
     setSelectedDate(dateObj);
     const k = ymd(dateObj);
-
     try {
       const data = await getDiary(k);
       if (!data) {
@@ -202,12 +192,11 @@ function Calendar() {
         setIsEmotionOpen(true);
         return;
       }
-
       const localEmotion = EMOTION_API_TO_LOCAL[data.emotion] || "";
       setPickedEmotion(localEmotion);
       setSelectedTags(
         data.factors?.map((f) =>
-          Object.keys(TAG_TO_FACTOR).find((k) => TAG_TO_FACTOR[k] === f)
+          Object.keys(TAG_TO_FACTOR).find((kk) => TAG_TO_FACTOR[kk] === f)
         ) || []
       );
       setEntries((prev) => ({
@@ -217,7 +206,8 @@ function Calendar() {
       setIsEdit(true);
       setIsDiaryOpen(true);
     } catch (e) {
-      if (e.status === 401 || e.message?.includes("토큰")) {
+      const status = e?.response?.status || e?.status;
+      if (status === 401 || e?.message?.includes("토큰")) {
         navigate("/signin");
         return;
       }
@@ -234,14 +224,13 @@ function Calendar() {
   };
 
   const refreshStars = async () => {
-    const y = viewDate.getFullYear();
-    const mth = viewDate.getMonth() + 1;
-
+    const y = viewDate.getFullYear(),
+      m = viewDate.getMonth() + 1;
     try {
-      const list = await getStars(y, mth);
-      const m = {};
-      for (const it of list) m[it.date] = it.color;
-      setStars(m);
+      const list = await getStars(y, m);
+      const map = {};
+      for (const it of list) map[it.date] = it.color;
+      setStars(map);
     } catch {}
   };
 
@@ -269,12 +258,13 @@ function Calendar() {
             color: data.color,
           },
         }));
-
         setStars((prev) => ({ ...prev, [k]: data.color }));
         setIsDiaryOpen(false);
         await refreshStars();
+        window.dispatchEvent(new Event("stars-updated")); // 밤하늘 새로고침 트리거
       } catch (e) {
-        if (e.status === 401 || e.message?.includes("토큰")) {
+        const status = e?.response?.status || e?.status;
+        if (status === 401 || e?.message?.includes("토큰")) {
           navigate("/signin");
           return;
         }
@@ -286,8 +276,10 @@ function Calendar() {
         setEntries((prev) => ({ ...prev, [k]: { ...(prev[k] || {}), text } }));
         setIsDiaryOpen(false);
         await refreshStars();
+        window.dispatchEvent(new Event("stars-updated"));
       } catch (e) {
-        if (e.status === 401 || e.message?.includes("토큰")) {
+        const status = e?.response?.status || e?.status;
+        if (status === 401 || e?.message?.includes("토큰")) {
           navigate("/signin");
           return;
         }
@@ -296,8 +288,8 @@ function Calendar() {
     }
   };
 
-  const year = viewDate.getFullYear();
-  const month = viewDate.getMonth();
+  const year = viewDate.getFullYear(),
+    month = viewDate.getMonth();
 
   return (
     <div className="min-h-screen text-white">
@@ -305,7 +297,6 @@ function Calendar() {
 
       <div className="w-[90%] max-w-5xl mx-auto mt-12 mb-5 flex flex-col items-center gap-6">
         <span className="text-[50px] font-julius">STAR CALENDAR</span>
-
         <span className="text-[30px] font-julius flex items-center gap-8">
           <button onClick={() => setViewDate((d) => addMonths(d, -1))}>
             {"<"}
@@ -336,21 +327,20 @@ function Calendar() {
             const color = stars[k];
             const isLastCol = (idx + 1) % 7 === 0;
             const isLastRow = idx >= grid.length - 7;
-
             return (
               <div
                 key={cell.key}
                 onClick={() => openModalFor(cell.date)}
-                className={`h-24 sm:h-28 md:h-32 relative bg-black/30 cursor-pointer
-                  ${isLastCol ? "" : "border-r border-white"}
-                  ${isLastRow ? "" : "border-b border-white"}`}
+                className={`h-24 sm:h-28 md:h-32 relative bg-black/30 cursor-pointer ${
+                  isLastCol ? "" : "border-r border-white"
+                } ${isLastRow ? "" : "border-b border-white"}`}
               >
-                <div className={`absolute top-2 left-2 text-sm`}>{label}</div>
+                <div className="absolute top-2 left-2 text-sm">{label}</div>
                 {color && COLOR_IMAGE[color] && (
                   <img
                     src={COLOR_IMAGE[color]}
                     alt=""
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 md:w-10 h-8 md:h-10"
                   />
                 )}
               </div>

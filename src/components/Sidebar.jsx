@@ -1,17 +1,16 @@
-
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthContext from "../contexts/AuthContext";
 import userGetApi from "../apis/userGetApi";
-import logoutApi from "../apis/logoutApi"; 
+import logoutApi from "../apis/logoutApi";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
-    const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const { accessToken, logout } = useContext(AuthContext);
 
   const [nickname, setNickname] = useState("user");
-  const [progress] = useState(34);  // 진행도 -> 더미데이터
+  const [progress] = useState(34); // 진행도 -> 더미데이터
   const isLoggedIn = !!accessToken;
 
   useEffect(() => {
@@ -69,15 +68,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     };
   }, [accessToken, isLoggedIn, logout]);
 
-const handleLogout = async () => {
+  const handleLogout = async () => {
     try {
-      await logoutApi(accessToken);   
+      await logoutApi(accessToken);
     } catch (err) {
       console.error("로그아웃 실패:", err);
     } finally {
-      logout();                      
+      logout();
       setIsOpen(false);
-      navigate("/");                 
+      navigate("/");
     }
   };
 
@@ -89,12 +88,12 @@ const handleLogout = async () => {
   return (
     <aside
       className={`fixed top-0 left-0 h-screen w-[280px] bg-black/40 backdrop-blur-md text-white transition-transform duration-300
-                  ${isOpen ? "translate-x-0" : "-translate-x-full"} rounded-[24px] z-50`}
+                  ${
+                    isOpen ? "translate-x-0" : "-translate-x-full"
+                  } rounded-[24px] z-50`}
       aria-hidden={!isOpen}
     >
- 
       <div className="flex flex-col h-full  p-5">
-
         {/* 프로필 */}
         <div>
           <div className="flex items-center gap-3 mt-2">
@@ -117,9 +116,8 @@ const handleLogout = async () => {
                   className="h-full bg-green-500"
                   style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
                 />
-                
               </div>
-                <div className="flex items-center justify-between text-xs text-gray-300 mt-1">
+              <div className="flex items-center justify-between text-xs text-gray-300 mt-1">
                 <span>0</span>
                 <span>100</span>
               </div>
@@ -128,20 +126,31 @@ const handleLogout = async () => {
 
           <hr className="my-4 border-white/40" />
 
-
           <nav className="flex flex-col gap-6 text-xl">
             {isLoggedIn ? (
               <>
                 <Link to="/" onClick={closeAnd()} aria-label="Home">
                   Home
                 </Link>
-                <Link to="/sky" onClick={closeAnd()} aria-label="My Constellation">
+                <Link
+                  to="/starsky"
+                  onClick={closeAnd()}
+                  aria-label="My Constellation"
+                >
                   Night Sky Page
                 </Link>
-                <Link to="/calendar" onClick={closeAnd()} aria-label="Star Calendar">
+                <Link
+                  to="/calendar"
+                  onClick={closeAnd()}
+                  aria-label="Star Calendar"
+                >
                   My Diary
                 </Link>
-                <Link to="/archive" onClick={closeAnd()} aria-label="Constellation Repo">
+                <Link
+                  to="/archive"
+                  onClick={closeAnd()}
+                  aria-label="Constellation Repo"
+                >
                   Constellation Archive
                 </Link>
                 <Link to="/mypage" onClick={closeAnd()} aria-label="My Page">
@@ -149,17 +158,14 @@ const handleLogout = async () => {
                 </Link>
               </>
             ) : (
-              <>
-                
-              </>
+              <></>
             )}
           </nav>
         </div>
 
-      
         {isLoggedIn && (
           <button
-            className="mt-auto text-left  mb-2 text-xl" 
+            className="mt-auto text-left  mb-2 text-xl"
             onClick={handleLogout}
           >
             LOGOUT
@@ -167,7 +173,6 @@ const handleLogout = async () => {
         )}
       </div>
     </aside>
-
   );
 };
 
