@@ -29,7 +29,7 @@ export default function StarArchiveCard({ item, onStarClick }) {
         <div className="text-white mt-4">{item.description}</div>
       </div>
 
-      <div className="absolute right-3 top-3">
+      <div className="absolute right-3 top-3 ">
         <button
           aria-label={item.isRepresentative ? "대표 별자리" : "대표로 지정"}
           onClick={(e) => {
@@ -40,7 +40,7 @@ export default function StarArchiveCard({ item, onStarClick }) {
         >
           <IoIosStar
             size={38}
-            className={item.isRepresentative ? "text-[#FFD12B]" : "text-white/30"}
+            className={item.isRepresentative ? "cursor-pointer text-[#FFD12B]" : "text-white/30 cursor-pointer"}
           />
         </button>
       </div>
