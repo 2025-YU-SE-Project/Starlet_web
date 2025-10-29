@@ -5,10 +5,10 @@ import AuthContext from "../contexts/AuthContext";
 import userGetApi from "../apis/userGetApi";
 import StarArchiveCard from "../components/ArchiveCard/StarArchiveCard";
 import { useConstellationArchive } from "../hooks/useConstellationArchive";
-
-
 import ConstellationDetailModal from "../components/ArchiveCard/ConstellationDetailModal";
 import { useConstellationDetail } from "../hooks/useConstellationDetail";
+import { setRepresentative } from "../apis/constellationArchiveApi";
+import RepresentativeConfirmModal from "../components/ArchiveCard/RepresentativeConfirmModal";
 
 const StarArchive = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,16 +17,29 @@ const StarArchive = () => {
 
   const [nickname, setNickname] = useState("");
 
-
+ 
   const { data: archives, loading, error } = useConstellationArchive();
 
 
-  const [selected, setSelected] = useState(null); 
-  const open = !!selected;
+  const [archivesState, setArchivesState] = useState(null);
+
+
+  const [selected, setSelected] = useState(null);
+  const openDetail = !!selected;
   const selectedId = selected?.constellationId;
 
 
-  const { data: detail } = useConstellationDetail(selectedId, open);
+  const [repTarget, setRepTarget] = useState(null);
+  const openRepModal = !!repTarget;
+
+
+  const { data: detail } = useConstellationDetail(selectedId, openDetail);
+
+ 
+  useEffect(() => {
+    if (archives) setArchivesState(archives);
+  }, [archives]);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -86,6 +99,43 @@ const StarArchive = () => {
     };
   }, [isLoggedIn, accessToken]);
 
+
+  const confirmRepresentative = async () => {
+    if (!repTarget?.constellationId) return;
+    const id = repTarget.constellationId;
+
+    try {
+      await setRepresentative(id);
+
+   
+      setArchivesState((prev) =>
+        (prev || []).map((it) => ({
+          ...it,
+          isRepresentative: it.constellationId === id,
+        }))
+      );
+
+    
+      setSelected((prev) =>
+        prev && prev.constellationId === id
+          ? { ...prev, isRepresentative: true }
+          : prev
+      );
+
+      setRepTarget(null);
+  
+      alert("대표 별자리가 설정되었습니다.");
+    } catch (e) {
+      console.error(e);
+      alert("대표 별자리 설정에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    }
+  };
+
+
+  const handleBurgerClick = () => {
+    setIsOpen(true);
+  };
+
   return (
     <div className="text-white">
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
@@ -100,7 +150,7 @@ const StarArchive = () => {
       <div className="flex flex-row justify-between">
         <button
           className="ml-[1.81rem] mt-[2.13rem]"
-          onClick={() => setIsOpen(true)}
+          onClick={handleBurgerClick}
           aria-label="open sidebar"
         >
           <CiMenuBurger size={30} />
@@ -123,30 +173,42 @@ const StarArchive = () => {
             데이터를 불러오지 못했어요. 잠시 후 다시 시도해주세요.
           </div>
         )}
-        {!loading && !error && (!archives || archives.length === 0) && (
+        {!loading && !error && (!archivesState || archivesState.length === 0) && (
           <div className="text-white/70">아카이브가 비어 있어요.</div>
         )}
 
-        {!!archives && archives.length > 0 && (
+        {!!archivesState && archivesState.length > 0 && (
           <div className="grid gap-16 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-2">
-            {archives.map((item) => (
+            {archivesState.map((item) => (
               <div
                 key={item.constellationId}
                 onClick={() => setSelected(item)}
               >
-                <StarArchiveCard item={item} />
+                <StarArchiveCard
+                  item={item}
+                  onStarClick={(e) => {
+                    e.stopPropagation(); 
+                    setRepTarget(item);
+                  }}
+                />
               </div>
             ))}
           </div>
         )}
       </div>
 
-
       <ConstellationDetailModal
-        open={open}
+        open={openDetail}
         onClose={() => setSelected(null)}
         initial={selected}
         detail={detail}
+      />
+
+      <RepresentativeConfirmModal
+        open={openRepModal}
+        onClose={() => setRepTarget(null)}
+        onConfirm={confirmRepresentative}
+        item={repTarget}
       />
     </div>
   );

@@ -15,7 +15,7 @@ export default function ConstellationMini({
    hideBackground = false,   
  }) {
   const ns = useMemo(
-    () => normalizeStars(stars, { w: width, h: height, pad: 10 }),
+    () => normalizeStars(stars, { w: width, h: height, pad: 20 }),
     [stars, width, height]
   );
 
