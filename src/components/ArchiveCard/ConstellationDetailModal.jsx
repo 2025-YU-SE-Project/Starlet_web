@@ -148,7 +148,7 @@ export default function ConstellationDetailModal({
      connections={connections}
      width={280}
      height={280}
-     hideBackground={true}   // ✅ ConstellationMini 내부 회색 배경 숨기기
+     hideBackground={true}   
    />
  </div>
 
@@ -177,22 +177,17 @@ export default function ConstellationDetailModal({
               {emotionChip.map(ch => (
                 <div key={ch.key} className="flex items-center gap-3">
                   <span className="w-24 text-xl flex">{ch.label}</span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center">
                
                     {Array.from({ length: Math.min(6, counts[ch.key] || 0) }).map((_, idx) => (
                       <img
                         key={idx}
                         src={ch.icon}
                         alt={ch.label}
-                        className="w-5 h-5"
+                        className="w-8 h-8"
                       />
                     ))}
-                    {/* 6개 초과 시 +N 뱃지 */}
-                    {(counts[ch.key] || 0) > 6 && (
-                      <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-neutral-200">
-                        +{(counts[ch.key] || 0) - 6}
-                      </span>
-                    )}
+                   
                   </div>
                 </div>
               ))}
@@ -221,10 +216,9 @@ export default function ConstellationDetailModal({
                const e = resolveEmotionFromStar(s);
                 return (
                   <div key={s.starId} className="grid grid-cols-3 items-center px-6 py-3 bg-[#EBEBEB]/50">
-                    <div className="flex items-center gap-3">
-                      <img src={icon} alt={s.color} className="w-5 h-5" />
-                      <span className="text-neutral-800">{s.color || "-"}</span>
-                    </div>
+                   
+                      <img src={icon} alt={s.color} className="w-8 h-8 ml-4" />
+                    
                     <div>{emotionLabel(e)}</div>
                     <div>{formatKDate(s.date)}</div>
                   </div>
