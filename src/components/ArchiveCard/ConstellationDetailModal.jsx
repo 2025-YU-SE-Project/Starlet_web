@@ -17,10 +17,10 @@ const COLOR_TO_EMOTION = {
   RED: "ANGRY",
   ORANGE: "FUNNY",
   SKYBLUE: "SAD",
-  WHITE: null,   // 화이트는 특정 감정 없음 (원하면 다른 값으로 설정)
+  WHITE: null,   
 };
 
-const colorIconMap = {
+const colorIconMap = { //수정사항
   YELLOW: yellowIcon,
   BLUE: blueIcon,
   RED: redColorIcon,
