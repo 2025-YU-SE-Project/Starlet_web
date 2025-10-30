@@ -134,7 +134,7 @@ export default function ConstellationDetailModal({
         <div className="flex gap-6 p-8">
           {/* 별 썸네일 */}
           <div
-   className="rounded-2xl overflow-hidden"
+   className="rounded-2xl overflow-hidden mt-5" // 아카이브 상세조회 안에 있는 별자리 카드
    style={{
      width: 280,
      height: 280,
