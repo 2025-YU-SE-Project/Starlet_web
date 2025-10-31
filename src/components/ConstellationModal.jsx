@@ -1,3 +1,4 @@
+// src/components/ConstellationModal.jsx
 import React, { useEffect, useRef, useState } from "react";
 
 const MIN_NODES = 7;
@@ -13,7 +14,6 @@ const ConstellationModal = ({
 }) => {
   const [name, setName] = useState(initial?.name ?? "");
   const [desc, setDesc] = useState(initial?.desc ?? "");
-
   const [starPositions, setStarPositions] = useState({});
   const [edges, setEdges] = useState([]);
   const [selectedStar, setSelectedStar] = useState(null);
@@ -38,14 +38,14 @@ const ConstellationModal = ({
     setDesc(initial?.desc ?? "");
     setWarn("");
 
-    const initPos = {};
+    const init = {};
     (stars || []).forEach((s) => {
-      initPos[s.id] = {
+      init[s.id] = {
         x: typeof s.x === "number" ? clamp01(s.x) : 0.5,
         y: typeof s.y === "number" ? clamp01(s.y) : 0.5,
       };
     });
-    setStarPositions(initPos);
+    setStarPositions(init);
     setEdges([]);
     setSelectedStar(null);
 
@@ -60,6 +60,7 @@ const ConstellationModal = ({
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onPointerDownStar = (e, id) => {
@@ -113,7 +114,7 @@ const ConstellationModal = ({
     if (exists) return;
 
     if (willFormCycle(a, b, edges)) {
-      setWarn("선이 순환되면 안 돼요. 다른 별을 이어주세요.");
+      setWarn("선이 순환(사이클)되면 안 돼요. 다른 별을 선택해보세요.");
       return;
     }
 
@@ -132,6 +133,7 @@ const ConstellationModal = ({
   const onClickStar = (id) => {
     if (!selectedStar) {
       setSelectedStar(id);
+      setWarn("");
       return;
     }
     if (selectedStar === id) {
@@ -153,16 +155,14 @@ const ConstellationModal = ({
   };
 
   const submit = () => {
-    const connectedNodeSet = new Set(edges.flat());
-    const connectedCount = connectedNodeSet.size;
-
-    if (connectedCount < MIN_NODES || connectedCount > MAX_NODES) {
+    const nodeSet = new Set(edges.flat());
+    const cnt = nodeSet.size;
+    if (cnt < MIN_NODES || cnt > MAX_NODES) {
       setWarn(
-        `별자리는 연결된 별이 ${MIN_NODES}~${MAX_NODES}개여야 해요. (현재 ${connectedCount}개)`
+        `별자리는 연결된 별이 ${MIN_NODES}~${MAX_NODES}개여야 해요. (현재: ${cnt}개)`
       );
       return;
     }
-
     onSubmit?.({
       name: name.trim(),
       desc: desc.trim(),
@@ -263,7 +263,7 @@ const ConstellationModal = ({
 
             <div className="mt-3 flex items-center justify-between">
               <p className="text-sm text-black/70">
-                별을 끌어 이동하고, 서로 클릭해서 선을 이어보세요.
+                별을 끌어 이동하고, 서로 클릭해 선을 이어보세요.
               </p>
               <div className="flex gap-2">
                 <button

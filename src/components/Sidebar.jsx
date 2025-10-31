@@ -1,9 +1,10 @@
+// src/components/Sidebar.jsx
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import AuthContext from "../contexts/AuthContext";
 import userGetApi from "../apis/userGetApi";
 import logoutApi from "../apis/logoutApi";
-import { useTranslation } from "react-i18next";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const { t } = useTranslation();
 
   const [nickname, setNickname] = useState("user");
-  const [progress] = useState(34); // 진행도 -> 더미데이터
+  const [progress] = useState(34);
   const isLoggedIn = !!accessToken;
 
   useEffect(() => {
@@ -106,7 +107,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         aria-hidden={!isOpen}
       >
         <div className="flex flex-col h-full p-5">
-          {/* 프로필 */}
           <div>
             <div className="flex items-center gap-3 mt-2">
               <div className="w-12 h-12 rounded-full bg-gray-300" />
@@ -178,9 +178,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     {t("navbar.MyPage")}
                   </Link>
                 </>
-              ) : (
-                <></>
-              )}
+              ) : null}
             </nav>
           </div>
 

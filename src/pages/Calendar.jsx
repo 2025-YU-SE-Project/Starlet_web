@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { CiMenuBurger } from "react-icons/ci";
 import Sidebar from "../components/Sidebar";
 import EmotionModal from "../components/EmotionModal";
@@ -100,7 +100,7 @@ function Calendar() {
   );
   const [isOpen, setIsOpen] = useState(false);
 
-  const [stars, setStars] = useState({}); // { 'YYYY-MM-DD': 'YELLOW' }
+  const [stars, setStars] = useState({});
   const [entries, setEntries] = useState({});
   const [msg, setMsg] = useState("");
 
@@ -161,10 +161,9 @@ function Calendar() {
     }
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
-
     (async () => {
       try {
-        const list = await getStars(year, month + 1); // [{date,color}]
+        const list = await getStars(year, month + 1);
         const map = {};
         for (const it of list) map[it.date] = it.color;
         setStars(map);
@@ -229,9 +228,7 @@ function Calendar() {
       const map = {};
       for (const it of list) map[it.date] = it.color;
       setStars(map);
-    } catch {
-      // ignore
-    }
+    } catch {}
   };
 
   const handleSaveDiary = async (text) => {
@@ -260,7 +257,7 @@ function Calendar() {
         setStars((prev) => ({ ...prev, [k]: data.color }));
         setIsDiaryOpen(false);
         await refreshStars();
-        window.dispatchEvent(new Event("stars-updated")); // 밤하늘 새로고침 트리거
+        window.dispatchEvent(new Event("stars-updated"));
       } catch (e) {
         const status = e?.response?.status || e?.status;
         if (status === 401 || e?.message?.includes("토큰")) {

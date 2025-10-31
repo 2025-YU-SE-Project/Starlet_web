@@ -49,11 +49,9 @@ export default function StarSkyDate({
   monthPairIndex,
   onPrev,
   onNext,
-
   stars = [],
   edges = [],
   constellationGroups = null,
-
   colorImageMap = {},
   onMove,
   locked = false,
@@ -404,6 +402,7 @@ export default function StarSkyDate({
     setHover({ show: true, x: e.clientX - r.left, y: e.clientY - r.top });
   };
   const hideTooltip = () => setHover({ show: false, x: 0, y: 0 });
+
   const multipleMode =
     Array.isArray(filteredConstellationGroups) &&
     filteredConstellationGroups.length > 0;
@@ -417,8 +416,6 @@ export default function StarSkyDate({
     locked &&
     (hover.show || isSelected || !!groupDragRef.current) &&
     liveBBox;
-  const labelLeft = liveBBox ? `${liveBBox.cx * 100}%` : "0%";
-  const labelTop = liveBBox ? `${liveBBox.minY * 100}%` : "0%";
 
   return (
     <div className="fixed inset-0 select-none">
@@ -666,8 +663,8 @@ export default function StarSkyDate({
           <div
             className="absolute z-20 bg-black/75 text-white text-[11px] px-2 py-1 rounded"
             style={{
-              left: labelLeft,
-              top: labelTop,
+              left: liveBBox ? `${liveBBox.cx * 100}%` : "0%",
+              top: liveBBox ? `${liveBBox.minY * 100}%` : "0%",
               transform: "translate(-50%, -120%)",
               pointerEvents: "none",
               whiteSpace: "nowrap",
@@ -768,7 +765,7 @@ export default function StarSkyDate({
                 (selected.stars || []).map((s) => ({ x: s.x, y: s.y }))
               );
               if (!bbox) return;
-              const { cx, cy, w, h } = bbox;
+              const { cx, cy } = bbox;
               const map = {};
               (selected.stars || []).forEach((s) => {
                 const dx = s.x - cx;

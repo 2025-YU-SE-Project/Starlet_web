@@ -16,14 +16,14 @@ const App = () => {
       <BrowserRouter>
         <div className="bg-cover min-h-screen bg-[url('/src/assets/background.png')] overflow-hidden">
           <Routes>
-            <Route path="signup" element={<Signup />} />
-            <Route path="signin" element={<SignIn />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/signin" element={<SignIn />} />
             <Route path="/foundpassword" element={<FoundPassword />} />
             <Route path="/calendar" element={<Calendar />} />
-            <Route path="/" element={<MainPage />} />
             <Route path="/archive" element={<StarArchive />} />
-            <Route path="*" element={<NotFound />} />
             <Route path="/starsky" element={<StarSky />} />
+            <Route path="/" element={<MainPage />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
       </BrowserRouter>
