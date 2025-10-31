@@ -13,8 +13,8 @@ import editDiary from "../apis/Calendar/editDiary";
 import imgBlue from "../assets/emotions/blue.png";
 import imgOrange from "../assets/emotions/orange.png";
 import imgRed from "../assets/emotions/red.png";
-import imgSkyblue from "../assets/emotions/skyblue.png";
-import imgWhite from "../assets/emotions/white.png";
+import imgGreen from "../assets/emotions/green.png";
+import imgPurple from "../assets/emotions/purple.png";
 import imgYellow from "../assets/emotions/yellow.png";
 
 const MONTH_NAMES = [
@@ -47,8 +47,8 @@ const COLOR_IMAGE = {
   BLUE: imgBlue,
   ORANGE: imgOrange,
   RED: imgRed,
-  SKYBLUE: imgSkyblue,
-  WHITE: imgWhite,
+  PURPLE: imgPurple,
+  GREEN: imgGreen,
 };
 
 const EMOTION_LOCAL_TO_API = {
@@ -298,7 +298,7 @@ function Calendar() {
         onClick={() => setIsOpen(true)}
         aria-label="open sidebar"
       >
-        <CiMenuBurger size={30} />
+        <CiMenuBurger className="cursor-pointer" size={30} />
       </button>
 
       <div className="w-[90%] max-w-5xl mx-auto mt-10 mb-5 flex flex-col items-center gap-6">
@@ -310,7 +310,7 @@ function Calendar() {
           >
             {"<"}
           </button>
-          <span className="min-w-[12rem] text-[30px] text-center flex justify-center gap-6">
+          <span className="min-w-48 text-[30px] text-center flex justify-center gap-6">
             <span>{year}</span>
             <span>{MONTH_NAMES[month].toUpperCase()}</span>
           </span>
@@ -371,10 +371,13 @@ function Calendar() {
         </div>
       </div>
 
-      <div className="w-[90%] max-w-5xl mx-auto flex justify-start mt-4">
-        <Link to="/" className="text-[20px]">
+      <div className="w-[90%] max-w-5xl mx-auto flex justify-start mt-4 mb-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-[20px] hover:underline hover:underline-offset-4 cursor-pointer ml-[0.6rem]"
+        >
           {"<"} Back
-        </Link>
+        </button>
       </div>
 
       <EmotionModal
