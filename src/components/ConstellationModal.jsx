@@ -1,4 +1,3 @@
-// src/components/ConstellationModal.jsx
 import React, { useEffect, useRef, useState } from "react";
 
 const MIN_NODES = 7;
