@@ -23,7 +23,7 @@ const App = () => {
             <Route path="/" element={<MainPage />} />
             <Route path="/archive" element={<StarArchive />} />
             <Route path="*" element={<NotFound />} />
-            <Route path="/" element={<StarSky />} />
+            <Route path="/starsky" element={<StarSky />} />
           </Routes>
         </div>
       </BrowserRouter>
