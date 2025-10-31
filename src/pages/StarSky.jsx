@@ -1,4 +1,3 @@
-// src/pages/StarSky.jsx
 import React, {
   useEffect,
   useMemo,
@@ -18,8 +17,6 @@ import repositionStar from "../apis/Star/repositionStar";
 import getConstellation from "../apis/Constellation/getConstellation";
 import createConstellation from "../apis/Constellation/createConstellation";
 import repositionConstellation from "../apis/Constellation/repositionConstellation";
-// updateConstellationInfo는 지금 안 써도 됨
-// import updateConstellationInfo from "../apis/Constellation/updateConstellationInfo";
 
 import imgBlue from "../assets/emotions/blue.png";
 import imgOrange from "../assets/emotions/orange.png";
@@ -66,7 +63,6 @@ const StarSky = () => {
 
   const [m1, m2] = useMemo(() => monthsForPair(pair), [pair]);
 
-  // 달력 별 표준화
   const normalizeStars = (list = []) =>
     list
       .map((it) => ({
@@ -78,7 +74,6 @@ const StarSky = () => {
       }))
       .filter((s) => s.id && s.color && s.date);
 
-  // ⭐ 백엔드 별자리 표준화 (여기가 오늘 핵심)
   const normalizeConstellations = (rawList = []) => {
     if (!Array.isArray(rawList)) return [];
     return rawList.map((c) => {
@@ -88,11 +83,9 @@ const StarSky = () => {
         c.date ||
         new Date().toISOString().slice(0, 10);
 
-      // 백엔드가 starts 라고 보내는 경우를 전부 stars 로 맞춘다
       const rawStars = c.stars || c.starts || [];
 
       return {
-        // StarSkyDate가 쓰는 키는 id / stars / connections 이거 3개면 끝
         id: c.constellationId ?? c.id,
         constellationId: c.constellationId ?? c.id,
         name: c.name || "",
@@ -102,9 +95,8 @@ const StarSky = () => {
           id: s.starId ?? s.id,
           starId: s.starId ?? s.id,
           color: String(s.color || "").toUpperCase(),
-          x: typeof s.x === "number" ? clamp01(s.x) : rand01(), // 좌표 없으면 랜덤
+          x: typeof s.x === "number" ? clamp01(s.x) : rand01(),
           y: typeof s.y === "number" ? clamp01(s.y) : rand01(),
-          // ★★★ 여기: s.date 가 null 이면 별자리의 날짜를 강제로 넣는다
           date: s.date || cDate,
         })),
         connections: (c.connections || c.connectionList || []).map((conn) => {
@@ -129,7 +121,6 @@ const StarSky = () => {
     });
   };
 
-  // 1) 달력 별 가져오기
   const fetchNight = useCallback(async () => {
     setLoading(true);
     try {
@@ -149,7 +140,6 @@ const StarSky = () => {
     }
   }, [year, pair, navigate]);
 
-  // 2) 별자리 가져오기
   const fetchConstellations = useCallback(async () => {
     try {
       const raw = await getConstellation();
@@ -165,13 +155,11 @@ const StarSky = () => {
     }
   }, []);
 
-  // 최초 + 페어 바뀔 때
   useEffect(() => {
     fetchNight();
     fetchConstellations();
   }, [fetchNight, fetchConstellations]);
 
-  // 캘린더에서 별 찍었을 때
   useEffect(() => {
     const onUpdated = () => {
       fetchNight();
@@ -181,7 +169,6 @@ const StarSky = () => {
     return () => window.removeEventListener("stars-updated", onUpdated);
   }, [fetchNight, fetchConstellations]);
 
-  // 달력 별 → 화면용 별
   useEffect(() => {
     const cache = coordsCacheRef.current;
     const baseStars = rawStars.map((s) => {
@@ -194,7 +181,6 @@ const StarSky = () => {
     setStars(baseStars);
   }, [rawStars]);
 
-  // 개별 별 이동
   const handleMove = async (id, x, y) => {
     const nx = clamp01(x);
     const ny = clamp01(y);
@@ -214,7 +200,6 @@ const StarSky = () => {
     }
   };
 
-  // 별자리 전체 이동
   const handleConstellationMove = async (constellationId, movedStarsMap) => {
     setConstellations((prev) =>
       prev.map((c) => {
@@ -255,7 +240,6 @@ const StarSky = () => {
     }
   };
 
-  // 월 이동
   const handlePrev = () =>
     setCal(({ year, pair }) =>
       pair === 0 ? { year: year - 1, pair: 5 } : { year, pair: pair - 1 }
@@ -265,7 +249,6 @@ const StarSky = () => {
       pair === 5 ? { year: year + 1, pair: 0 } : { year, pair: pair + 1 }
     );
 
-  // Generate
   const handleGenerate = () => {
     if (!locked) {
       const cnt = selectedStarIds.length;
@@ -277,14 +260,12 @@ const StarSky = () => {
     setOpen(true);
   };
 
-  // 모달 → POST
   const handleSubmit = async ({
     name,
     desc,
     lines = [],
     starPositions = {},
   }) => {
-    // 화면에도 먼저 반영
     if (starPositions && Object.keys(starPositions).length > 0) {
       const cache = coordsCacheRef.current;
       setStars((prev) =>
@@ -307,7 +288,6 @@ const StarSky = () => {
           starId: Number(id),
           x: pos.x,
           y: pos.y,
-          // 여기서도 date를 안 주면 백엔드가 null 줄 수 있으니까 한 번 채워주자
           date: new Date().toISOString().slice(0, 10),
         })),
         connections: (lines || []).map(([a, b]) => ({
@@ -362,7 +342,7 @@ const StarSky = () => {
         onPrev={handlePrev}
         onNext={handleNext}
         stars={stars}
-        constellationGroups={constellations} // 이 이름으로 넘겨야 여러 개 모드
+        constellationGroups={constellations}
         colorImageMap={COLOR_IMAGE}
         onMove={locked ? undefined : handleMove}
         onConstellationMove={handleConstellationMove}

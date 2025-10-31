@@ -1,4 +1,3 @@
-// src/components/StarSkyDate.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 const MONTH_ABBR = [
@@ -19,7 +18,6 @@ const MONTH_ABBR = [
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 const DRAG_SELECT_THRESHOLD_PX = 6;
 
-// 공통: 점들로부터 bbox 구하기
 function computeBBoxFromPoints(points) {
   if (!points || points.length === 0) return null;
   let minX = 1,
@@ -46,64 +44,32 @@ function computeBBoxFromPoints(points) {
   };
 }
 
-/**
- * ✅ 이 컴포넌트는 2가지 모드를 모두 지원한다.
- *
- * 1) (기존) 한 덩어리 별자리 모드
- *    - props: stars, edges, locked, constellationMeta, onTransformEnd …
- *    - StarSky가 지금 이렇게 주고 있으니까 이건 절대 깨면 안 됨
- *
- * 2) (신규) 여러 개 별자리 모드
- *    - props: constellationGroups=[
- *        {
- *          id: 10,
- *          name: "9월 감정",
- *          createdAt: "2025-09-08",
- *          stars: [{id:"14", color:"YELLOW", x:0.3, y:0.4, date:"2025-09-08"}, ...],
- *          connections: [["14","15"], ...]
- *        },
- *        ...
- *      ]
- *    - 백엔드가 “별은 이미 달력에 있고 별자리도 여러 개 저장돼 있다” 라고 줄 때 이걸로 온다고 보면 됨
- *
- * 👉 StarSky.jsx 가 아직 constellationGroups 안 넘겨도 되게 방어해둠.
- */
 export default function StarSkyDate({
   year,
   monthPairIndex,
   onPrev,
   onNext,
 
-  // (기존) 그냥 평평한 별 리스트
-  stars = [], // [{id,color,x,y,date:'YYYY-MM-DD'}]
-
-  // (기존) 선 (한 덩어리 모드)
+  stars = [],
   edges = [],
-
-  // (신규) 여러 개 별자리로도 받을 수 있게
-  // StarSky.jsx 에서 차후에 넘겨주면 이쪽으로 렌더링함
   constellationGroups = null,
 
   colorImageMap = {},
-  onMove, // 개별 별 이동 (!locked)
+  onMove,
   locked = false,
-  onTransform, // 그룹 이동 중 미리보기
-  onTransformEnd, // 그룹 이동 끝났을 때
-  onApply, // 우측 패널에서 "적용" 눌렀을 때
+  onTransform,
+  onTransformEnd,
+  onApply,
   initialScaleOnLock = 0.5,
-  constellationMeta = { name: "", createdAt: "" }, // (기존) 한 덩어리 메타
+  constellationMeta = { name: "", createdAt: "" },
   selectedIds = [],
   onSelectChange,
 }) {
   const containerRef = useRef(null);
 
-  // 현재 페어(두 달)
-  const firstMonth = monthPairIndex * 2; // 0→1월, 1→3월 이런 게 아니라 0→1,2 1→3,4 라고 생각
+  const firstMonth = monthPairIndex * 2;
   const secondMonth = firstMonth + 1;
 
-  // ===============================
-  // 0. 공통: 현재 달(페어)에 속하는지 체크
-  // ===============================
   const inCurrentPair = (dateStr) => {
     if (!dateStr) return false;
     const d = new Date(dateStr);
@@ -113,17 +79,10 @@ export default function StarSkyDate({
     return y === year && (m === firstMonth || m === secondMonth);
   };
 
-  // ===============================
-  // 1. (기존) 평평한 별 리스트 모드
-  // ===============================
   const filteredStars = useMemo(() => {
     return stars.filter((s) => inCurrentPair(s.date));
   }, [stars, year, firstMonth, secondMonth]);
 
-  // ===============================
-  // 2. (신규) 여러 개 별자리 모드일 때
-  //    → 현재 달에 해당하는 별들만 남긴 그룹을 만든다
-  // ===============================
   const filteredConstellationGroups = useMemo(() => {
     if (!Array.isArray(constellationGroups) || !constellationGroups.length) {
       return [];
@@ -142,30 +101,22 @@ export default function StarSkyDate({
       .filter(Boolean);
   }, [constellationGroups, year, firstMonth, secondMonth]);
 
-  // ===============================
-  // 상태들 (공통)
-  // ===============================
-  const [previewMap, setPreviewMap] = useState(null); // 미리보기 좌표
-  const [isSelected, setIsSelected] = useState(false); // (기존) 한 덩어리 선택 여부
-  const groupDragRef = useRef(null); // 그룹 드래그 정보
-  const [starDrag, setStarDrag] = useState(null); // 개별 별 드래그
+  const [previewMap, setPreviewMap] = useState(null);
+  const [isSelected, setIsSelected] = useState(false);
+  const groupDragRef = useRef(null);
+  const [starDrag, setStarDrag] = useState(null);
   const [hover, setHover] = useState({ show: false, x: 0, y: 0 });
 
-  // (기존) 한 덩어리용 스케일
   const [scaleUI, setScaleUI] = useState(0.5);
   const scaleRef = useRef(1);
   const didInitialScaleRef = useRef(false);
   const committedMapRef = useRef(null);
 
-  // (신규) 여러 개 별자리 중 "선택된 별자리"
   const [activeConstellationId, setActiveConstellationId] = useState(null);
-  // (신규) 별자리별 개별 스케일 값
-  const [scaleUIMap, setScaleUIMap] = useState({}); // { [constellationId]: 1.0 }
+  const [scaleUIMap, setScaleUIMap] = useState({});
 
-  // 위치 얻기 (기존)
   const positionOf = (s) => previewMap?.[s.id] ?? { x: s.x, y: s.y };
 
-  // (기존) 한 덩어리 bbox
   const livePoints = useMemo(
     () => filteredStars.map((s) => positionOf(s)),
     [filteredStars, previewMap]
@@ -175,23 +126,17 @@ export default function StarSkyDate({
     [livePoints]
   );
 
-  // ===============================
-  // locked 진입 시 (기존: 한 덩어리) 자동 스케일 1회
-  // ※ 여러 개 모드일 땐 여기 안 태운다
-  // ===============================
   useEffect(() => {
     const multipleMode =
       Array.isArray(filteredConstellationGroups) &&
       filteredConstellationGroups.length > 0;
 
     if (multipleMode) {
-      // 여러 개 모드: 기존 초기 스케일은 안 건드림
       didInitialScaleRef.current = false;
       committedMapRef.current = null;
       return;
     }
 
-    // 단일 모드일 때만 ↓
     if (locked && !didInitialScaleRef.current) {
       didInitialScaleRef.current = true;
       committedMapRef.current = Object.fromEntries(
@@ -213,12 +158,8 @@ export default function StarSkyDate({
       setScaleUI(0.5);
       scaleRef.current = 1;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locked, filteredStars, initialScaleOnLock, filteredConstellationGroups]);
 
-  // ===============================
-  // 좌표계 변환
-  // ===============================
   const toRel = (clientX, clientY) => {
     const r = containerRef.current.getBoundingClientRect();
     return {
@@ -227,9 +168,6 @@ export default function StarSkyDate({
     };
   };
 
-  // ===============================
-  // 3-A. (기존) 단일 그룹 드래그
-  // ===============================
   const startMoveDragSingle = (e) => {
     if (!locked || !liveBBox) return;
     e.preventDefault();
@@ -252,9 +190,6 @@ export default function StarSkyDate({
     setIsSelected(true);
   };
 
-  // ===============================
-  // 3-B. (신규) 여러 개 별자리 중 하나 드래그 시작
-  // ===============================
   const startMoveDragConstellation = (e, constellation) => {
     if (!locked) return;
     e.preventDefault();
@@ -264,7 +199,6 @@ export default function StarSkyDate({
     } catch {}
     const startRel = toRel(e.clientX, e.clientY);
 
-    // 이 별자리의 원본 좌표 맵
     const originMap = {};
     (constellation.stars || []).forEach((s) => {
       originMap[s.id || s.starId] = { x: s.x, y: s.y };
@@ -283,9 +217,6 @@ export default function StarSkyDate({
     setActiveConstellationId(constellation.id);
   };
 
-  // ===============================
-  // 공통 그룹 이동
-  // ===============================
   const onGroupPointerMove = (e) => {
     const drag = groupDragRef.current;
     if (!drag) return;
@@ -326,14 +257,12 @@ export default function StarSkyDate({
       e.currentTarget?.releasePointerCapture?.(drag.pointerId);
     } catch {}
     if (previewMap) {
-      // 단일모드/멀티모드 모두 여기로 옴
       onTransformEnd?.(previewMap);
       committedMapRef.current = { ...previewMap };
     }
     groupDragRef.current = null;
   };
 
-  // 배경 클릭 → 선택 해제
   const onBackgroundPointerDown = (e) => {
     if (!locked) return;
     e.preventDefault();
@@ -343,12 +272,8 @@ export default function StarSkyDate({
     setHover({ show: false, x: 0, y: 0 });
   };
 
-  // ===============================
-  // 개별 별 드래그 (!locked)
-  // ===============================
   const onStarPointerDown = (e, star) => {
     if (locked) {
-      // 단일 모드일 때만 이걸로 이동
       if (
         !Array.isArray(filteredConstellationGroups) ||
         filteredConstellationGroups.length === 0
@@ -404,7 +329,6 @@ export default function StarSkyDate({
     } catch {}
     if (!starDrag.moved) {
       if (!locked) {
-        // 선택 토글
         if (!onSelectChange) return;
         if (selectedIds.includes(star.id))
           onSelectChange(selectedIds.filter((x) => x !== star.id));
@@ -414,9 +338,6 @@ export default function StarSkyDate({
     setStarDrag(null);
   };
 
-  // ===============================
-  // (기존) 단일 스케일 적용
-  // ===============================
   const applyScalePreviewSingle = (
     newScale,
     { commit = false, forceFromScale } = {}
@@ -478,28 +399,19 @@ export default function StarSkyDate({
     }
   };
 
-  // ===============================
-  // 툴팁
-  // ===============================
   const showTooltip = (e) => {
     const r = containerRef.current.getBoundingClientRect();
     setHover({ show: true, x: e.clientX - r.left, y: e.clientY - r.top });
   };
   const hideTooltip = () => setHover({ show: false, x: 0, y: 0 });
-
-  // ===============================
-  // 렌더링
-  // ===============================
   const multipleMode =
     Array.isArray(filteredConstellationGroups) &&
     filteredConstellationGroups.length > 0;
 
-  // 현재 선택된 별자리
   const activeConst = multipleMode
     ? filteredConstellationGroups.find((g) => g.id === activeConstellationId)
     : null;
 
-  // 라벨 위치 (단일 모드)
   const showLabelSingle =
     !multipleMode &&
     locked &&
@@ -518,9 +430,7 @@ export default function StarSkyDate({
         onPointerMove={onGroupPointerMove}
         onPointerUp={onGroupPointerUp}
       >
-        {/* ====================== 선 / 간선 ====================== */}
         <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 2 }}>
-          {/* 단일 모드: 기존처럼 edges 사용 */}
           {!multipleMode &&
             edges.map(([a, b], idx) => {
               const pa = filteredStars.find((s) => s.id === a);
@@ -563,7 +473,6 @@ export default function StarSkyDate({
               );
             })}
 
-          {/* 여러 개 모드: 각 그룹의 connections 렌더 */}
           {multipleMode &&
             filteredConstellationGroups.map((g) => {
               return (g.connections || []).map((conn, idx) => {
@@ -617,9 +526,6 @@ export default function StarSkyDate({
             })}
         </svg>
 
-        {/* ====================== 별 ====================== */}
-
-        {/* 단일 모드: 기존대로 filteredStars */}
         {!multipleMode &&
           filteredStars.map((s) => {
             const p = positionOf(s);
@@ -698,7 +604,6 @@ export default function StarSkyDate({
             );
           })}
 
-        {/* 여러 개 모드: 각 그룹의 별 */}
         {multipleMode &&
           filteredConstellationGroups.map((g) =>
             (g.stars || []).map((s) => {
@@ -757,7 +662,6 @@ export default function StarSkyDate({
             })
           )}
 
-        {/* 단일 모드 라벨 */}
         {showLabelSingle && (
           <div
             className="absolute z-20 bg-black/75 text-white text-[11px] px-2 py-1 rounded"
@@ -776,7 +680,6 @@ export default function StarSkyDate({
           </div>
         )}
 
-        {/* 여러 개 모드일 때 라벨: 선택된 별자리만 표시 */}
         {multipleMode && activeConst && (
           <div
             className="absolute z-20 bg-black/75 text-white text-[11px] px-2 py-1 rounded"
@@ -796,9 +699,6 @@ export default function StarSkyDate({
         )}
       </div>
 
-      {/* ====================== 우측 스케일 패널 ====================== */}
-
-      {/* 1) 단일 모드: 기존 그대로 */}
       {!multipleMode && locked && isSelected && (
         <div
           className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-black/35 backdrop-blur px-4 py-3 rounded-xl flex flex-col gap-3 min-w-[220px]"
@@ -839,7 +739,6 @@ export default function StarSkyDate({
         </div>
       )}
 
-      {/* 2) 여러 개 모드: 선택된 별자리만 패널 표시 */}
       {multipleMode && locked && activeConstellationId && (
         <div
           className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-black/35 backdrop-blur px-4 py-3 rounded-xl flex flex-col gap-3 min-w-[220px]"
@@ -861,7 +760,6 @@ export default function StarSkyDate({
                 [activeConstellationId]: v,
               }));
 
-              // 프리뷰 좌표 만들기
               const selected = filteredConstellationGroups.find(
                 (g) => g.id === activeConstellationId
               );
@@ -902,7 +800,6 @@ export default function StarSkyDate({
         </div>
       )}
 
-      {/* 월 네비 */}
       <div
         className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10
                    bg-black/30 backdrop-blur px-6 py-2 flex items-center gap-6 select-none"

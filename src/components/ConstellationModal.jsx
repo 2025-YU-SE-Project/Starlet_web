@@ -1,4 +1,3 @@
-// src/components/ConstellationModal.jsx
 import React, { useEffect, useRef, useState } from "react";
 
 const MIN_NODES = 7;
@@ -15,13 +14,9 @@ const ConstellationModal = ({
   const [name, setName] = useState(initial?.name ?? "");
   const [desc, setDesc] = useState(initial?.desc ?? "");
 
-  // 모달 안에서 편집 중인 좌표
   const [starPositions, setStarPositions] = useState({});
-  // 연결선
   const [edges, setEdges] = useState([]);
-  // 선 잇기용 선택 스타
   const [selectedStar, setSelectedStar] = useState(null);
-  // 안내/경고
   const [warn, setWarn] = useState("");
 
   const panelRef = useRef(null);
@@ -36,7 +31,6 @@ const ConstellationModal = ({
     };
   };
 
-  // 열릴 때마다 리셋
   useEffect(() => {
     if (!open) return;
 
@@ -44,7 +38,6 @@ const ConstellationModal = ({
     setDesc(initial?.desc ?? "");
     setWarn("");
 
-    // 부모에서 넘어온 별들을 모달 좌표로 복사
     const initPos = {};
     (stars || []).forEach((s) => {
       initPos[s.id] = {
@@ -56,23 +49,19 @@ const ConstellationModal = ({
     setEdges([]);
     setSelectedStar(null);
 
-    // 바디 스크롤 잠금
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
     };
   }, [open, initial, stars]);
 
-  // 포인터 정리
   useEffect(() => {
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ================== 드래그 ==================
   const onPointerDownStar = (e, id) => {
     e.preventDefault();
     e.stopPropagation();
@@ -96,7 +85,6 @@ const ConstellationModal = ({
     window.removeEventListener("pointerup", onPointerUp);
   };
 
-  // ================== 간선/사이클 ==================
   const willFormCycle = (a, b, currentEdges) => {
     const parent = {};
     const find = (x) => {
@@ -119,19 +107,16 @@ const ConstellationModal = ({
   const addEdgeIfValid = (a, b) => {
     if (a === b) return;
 
-    // 이미 있는지
     const exists = edges.some(
       ([u, v]) => (u === a && v === b) || (u === b && v === a)
     );
     if (exists) return;
 
-    // 사이클 체크
     if (willFormCycle(a, b, edges)) {
       setWarn("선이 순환되면 안 돼요. 다른 별을 이어주세요.");
       return;
     }
 
-    // 연결된 노드 수 제한
     const nodeSet = new Set(edges.flat());
     nodeSet.add(a);
     nodeSet.add(b);
@@ -167,13 +152,10 @@ const ConstellationModal = ({
     setEdges([]);
   };
 
-  // ================== 제출 ==================
   const submit = () => {
-    // 현재 그려진 선에서 실제로 "연결된" 별 개수만 따짐
     const connectedNodeSet = new Set(edges.flat());
     const connectedCount = connectedNodeSet.size;
 
-    // 조건(7~14) 만족 체크
     if (connectedCount < MIN_NODES || connectedCount > MAX_NODES) {
       setWarn(
         `별자리는 연결된 별이 ${MIN_NODES}~${MAX_NODES}개여야 해요. (현재 ${connectedCount}개)`
@@ -181,13 +163,11 @@ const ConstellationModal = ({
       return;
     }
 
-    // ★ 여기서 부모로 "좌표 + 선 + 이름/설명"을 한 번에 올림
-    // 부모(StarSky.jsx)가 이걸 그대로 POST 하면 됨
     onSubmit?.({
       name: name.trim(),
       desc: desc.trim(),
-      lines: edges, // [[1,2],[2,3],...]
-      starPositions, // { '1': {x:..,y:..}, '2': {...} }  ← 모달에서 편집한 좌표 전부
+      lines: edges,
+      starPositions,
     });
   };
 
@@ -199,14 +179,12 @@ const ConstellationModal = ({
       role="dialog"
       aria-modal="true"
     >
-      {/* 배경 */}
       <div
         className="absolute inset-0 bg-black/30"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* 카드 */}
       <div
         className="
           relative w-full max-w-6xl rounded-3xl border border-white/35
@@ -223,14 +201,12 @@ const ConstellationModal = ({
         </button>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-          {/* 왼쪽: 별/선 편집 */}
           <div className="rounded-[18px] border border-black/15 bg-white/30 backdrop-blur-sm p-3">
             <div
               ref={panelRef}
               className="relative w-full aspect-[4/3] bg-white/55 rounded-[14px] border border-black/15 overflow-hidden"
               style={{ touchAction: "none" }}
             >
-              {/* 선 */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none">
                 {edges.map(([a, b], idx) => {
                   const pa = starPositions[a];
@@ -252,7 +228,6 @@ const ConstellationModal = ({
                 })}
               </svg>
 
-              {/* 별 */}
               {stars.map((s) => {
                 const p = starPositions[s.id];
                 if (!p) return null;
@@ -315,7 +290,6 @@ const ConstellationModal = ({
             )}
           </div>
 
-          {/* 오른쪽: 입력 */}
           <div className="flex flex-col items-center justify-center text-center h-full">
             <h2 className="text-2xl md:text-3xl font-extrabold text-black">
               별자리 이름을 지정해주세요
