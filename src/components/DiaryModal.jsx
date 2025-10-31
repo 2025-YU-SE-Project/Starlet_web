@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import backIcon from "../assets/back.png";
 import imgBlue from "../assets/emotions/blue.png";
 import imgOrange from "../assets/emotions/orange.png";
@@ -57,6 +58,7 @@ function DiaryModal({
   tags = [],
 }) {
   const [text, setText] = useState(initialText);
+  const navigate = useNavigate();
   const [showConfirm, setShowConfirm] = useState(false);
   const parsed = parseDate(dateStr);
 
