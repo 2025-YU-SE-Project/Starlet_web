@@ -21,8 +21,8 @@ import repositionConstellation from "../apis/Constellation/repositionConstellati
 import imgBlue from "../assets/emotions/blue.png";
 import imgOrange from "../assets/emotions/orange.png";
 import imgRed from "../assets/emotions/red.png";
-import imgSkyblue from "../assets/emotions/skyblue.png";
-import imgWhite from "../assets/emotions/white.png";
+import imgSkyblue from "../assets/emotions/purple.png";
+import imgWhite from "../assets/emotions/green.png";
 import imgYellow from "../assets/emotions/yellow.png";
 
 const COLOR_IMAGE = {
