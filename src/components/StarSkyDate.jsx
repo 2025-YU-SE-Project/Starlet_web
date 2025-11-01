@@ -120,7 +120,6 @@ export default function StarSkyDate({
   onConstellationMove,
 }) {
   const containerRef = useRef(null);
-
   const firstMonth = monthPairIndex * 2;
   const secondMonth = firstMonth + 1;
 
