@@ -1,4 +1,3 @@
-// src/components/StarSkyDate.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 const MONTH_ABBR = [
@@ -134,12 +133,10 @@ export default function StarSkyDate({
     return y === year && (m === firstMonth || m === secondMonth);
   };
 
-  // ✅ 캘린더에서 온 별
   const filteredStars = useMemo(() => {
     return stars.filter((s) => inCurrentPair(s.date));
   }, [stars, year, firstMonth, secondMonth]);
 
-  // ✅ 서버에서 온 별자리
   const filteredConstellationGroups = useMemo(() => {
     if (!Array.isArray(constellationGroups) || !constellationGroups.length) {
       return [];
@@ -155,38 +152,31 @@ export default function StarSkyDate({
     }));
   }, [constellationGroups]);
 
-  // ⭐️ “서버 원본(x1)” 박제: 다중 모드에서만 사용
   const baseConstShapesRef = useRef({});
 
-  // 상태들
   const [previewMap, setPreviewMap] = useState(null);
   const [isSelected, setIsSelected] = useState(false);
   const groupDragRef = useRef(null);
   const [starDrag, setStarDrag] = useState(null);
   const [hover, setHover] = useState({ show: false, x: 0, y: 0 });
 
-  // 단일 모드 스케일
   const [scaleUI, setScaleUI] = useState(0.5);
   const scaleRef = useRef(1);
   const didInitialScaleRef = useRef(false);
   const committedMapRef = useRef(null);
   const singleScaleOriginRef = useRef(null);
 
-  // 다중 모드
   const [activeConstellationId, setActiveConstellationId] = useState(null);
   const [scaleUIMap, setScaleUIMap] = useState({});
   const committedConstMapRef = useRef({});
   const multiScaleOriginRef = useRef({});
 
-  // 드래그 전 위치
   const originalPositionRef = useRef(null);
   const [pendingApply, setPendingApply] = useState(false);
 
-  // 실제 적용된 것들
   const appliedMapRef = useRef({});
   const [appliedVersion, setAppliedVersion] = useState(0);
 
-  // hover 라벨용
   const [hoveredEdgeSingle, setHoveredEdgeSingle] = useState(false);
   const [hoveredConstellationId, setHoveredConstellationId] = useState(null);
 
@@ -194,7 +184,6 @@ export default function StarSkyDate({
     Array.isArray(filteredConstellationGroups) &&
     filteredConstellationGroups.length > 0;
 
-  // ✅ 다중 모드일 때 처음 들어온 별자리 좌표를 x1로 박제해 둔다
   useEffect(() => {
     if (!multipleMode) return;
     filteredConstellationGroups.forEach((g) => {
@@ -206,13 +195,11 @@ export default function StarSkyDate({
           const realId = s.id ?? s.starId;
           base[realId] = { x: s.x, y: s.y };
         });
-        // 최소 크기 한 번만 맞춰주고 x1 기준으로 저장
         baseConstShapesRef.current[id] = ensureMinSize(base, 0.12);
       }
     });
   }, [multipleMode, filteredConstellationGroups]);
 
-  // 단일 모드에서 실제 좌표 얻기
   const positionOf = (s) => {
     const appliedSingle = appliedMapRef.current["single"];
     if (appliedSingle && appliedSingle[s.id]) {
@@ -224,7 +211,6 @@ export default function StarSkyDate({
     return { x: s.x, y: s.y };
   };
 
-  // bbox
   const livePoints = useMemo(
     () => filteredStars.map((s) => positionOf(s)),
     [filteredStars, previewMap, appliedVersion]
@@ -234,10 +220,8 @@ export default function StarSkyDate({
     [livePoints]
   );
 
-  // 잠금 상태 변화
   useEffect(() => {
     if (multipleMode) {
-      // 다중 모드에서는 단일 모드 스케일 초기화 안 함
       didInitialScaleRef.current = false;
       committedMapRef.current = null;
       return;
@@ -295,7 +279,6 @@ export default function StarSkyDate({
     };
   };
 
-  // ───────── 단일 모드 드래그 시작 ─────────
   const startMoveDragSingle = (e) => {
     if (!locked || !liveBBox) return;
     e.preventDefault();
@@ -322,11 +305,9 @@ export default function StarSkyDate({
     setIsSelected(true);
     setPendingApply(true);
     originalPositionRef.current = deepClone(baseMap);
-    // 이후 스케일 기준도 이걸로
     singleScaleOriginRef.current = deepClone(baseMap);
   };
 
-  // ───────── 다중 모드 드래그 시작 ─────────
   const startMoveDragConstellation = (e, constellation) => {
     if (!locked) return;
     e.preventDefault();
@@ -337,7 +318,6 @@ export default function StarSkyDate({
     const startRel = toRel(e.clientX, e.clientY);
     const constId = constellation.id;
 
-    // 🔥 지금 보이는 게 우선
     const previewForThis =
       previewMap && constId === activeConstellationId ? previewMap : null;
     const appliedForThis = appliedMapRef.current[constId];
@@ -355,7 +335,6 @@ export default function StarSkyDate({
     } else if (committedConstMapRef.current[constId]) {
       originMap = deepClone(committedConstMapRef.current[constId]);
     } else {
-      // 서버 원본
       (constellation.stars || []).forEach((s) => {
         const realId = s.id || s.starId;
         originMap[realId] = {
@@ -366,7 +345,6 @@ export default function StarSkyDate({
       originMap = ensureMinSize(originMap, 0.12);
     }
 
-    // 이걸 드래그 기준 + 커밋 기준으로
     committedConstMapRef.current[constId] = deepClone(originMap);
 
     const bbox0 = computeBBoxFromPoints(Object.values(originMap));
@@ -384,11 +362,9 @@ export default function StarSkyDate({
     setIsSelected(true);
     setPendingApply(true);
     originalPositionRef.current = deepClone(originMap);
-    // 스케일 기준도 지금 모양으로
     multiScaleOriginRef.current[constId] = deepClone(originMap);
   };
 
-  // ───────── 그룹 드래그 중 ─────────
   const onGroupPointerMove = (e) => {
     const drag = groupDragRef.current;
     if (!drag) return;
@@ -424,7 +400,6 @@ export default function StarSkyDate({
     onTransform?.(map);
   };
 
-  // ───────── 그룹 드래그 끝 ─────────
   const onGroupPointerUp = (e) => {
     const drag = groupDragRef.current;
     if (!drag) return;
@@ -458,7 +433,6 @@ export default function StarSkyDate({
     }
   };
 
-  // ───────── 배경 클릭 ─────────
   const onBackgroundPointerDown = (e) => {
     if (!locked) return;
     e.preventDefault();
@@ -478,7 +452,6 @@ export default function StarSkyDate({
     }
   };
 
-  // ───────── 개별 별 드래그 시작 ─────────
   const onStarPointerDown = (e, star) => {
     e.preventDefault();
     e.stopPropagation();
@@ -495,7 +468,6 @@ export default function StarSkyDate({
     });
   };
 
-  // ───────── 개별 별 드래그 중 ─────────
   const onStarPointerMove = (e, star) => {
     if (!starDrag || starDrag.id !== star.id) return;
     e.preventDefault();
@@ -518,14 +490,12 @@ export default function StarSkyDate({
     setStarDrag((s) => (s ? { ...s, moved } : s));
     setPreviewMap(next);
 
-    // ✅ 캘린더별은 바로 저장
     const isCalendarStar = filteredStars.some((fs) => fs.id === star.id);
     if (isCalendarStar) {
       onMove?.(star.id, nx, ny);
     }
   };
 
-  // ───────── 개별 별 드래그 끝 ─────────
   const onStarPointerUp = (e, star) => {
     if (!starDrag || starDrag.id !== star.id) return;
     e.preventDefault();
@@ -534,7 +504,6 @@ export default function StarSkyDate({
     } catch {}
 
     if (!starDrag.moved) {
-      // 클릭 → 선택 토글
       const isCalendarStar = filteredStars.some((fs) => fs.id === star.id);
       if (isCalendarStar && typeof onSelectChange === "function") {
         if (selectedIds.includes(star.id)) {
@@ -544,7 +513,6 @@ export default function StarSkyDate({
         }
       }
     } else {
-      // 실제 이동 → 적용맵에도 반영
       if (previewMap) {
         appliedMapRef.current["single"] = deepClone(previewMap);
         committedMapRef.current = deepClone(previewMap);
@@ -556,7 +524,6 @@ export default function StarSkyDate({
     setStarDrag(null);
   };
 
-  // ───────── 단일 모드 스케일 프리뷰 ─────────
   const applyScalePreviewSingle = (
     newScale,
     { commit = false, forceFromScale } = {}
@@ -653,7 +620,6 @@ export default function StarSkyDate({
         onPointerMove={onGroupPointerMove}
         onPointerUp={onGroupPointerUp}
       >
-        {/* 단일 모드 선 */}
         <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 2 }}>
           {!multipleMode &&
             edges.map(([a, b], idx) => {
@@ -703,7 +669,6 @@ export default function StarSkyDate({
               );
             })}
 
-          {/* 다중 모드 선 */}
           {multipleMode &&
             filteredConstellationGroups.map((g) => {
               const appliedForThis = appliedMapRef.current[g.id] || null;
@@ -787,7 +752,6 @@ export default function StarSkyDate({
             })}
         </svg>
 
-        {/* 달력 별 */}
         {filteredStars.map((s) => {
           const p = positionOf(s);
           const img = colorImageMap[(s.color || "").toUpperCase()];
@@ -871,7 +835,6 @@ export default function StarSkyDate({
           );
         })}
 
-        {/* 다중 모드 별 */}
         {multipleMode &&
           filteredConstellationGroups.map((g) => {
             const appliedForThis = appliedMapRef.current[g.id] || null;
@@ -942,7 +905,6 @@ export default function StarSkyDate({
             });
           })}
 
-        {/* 단일 라벨 */}
         {showLabelSingle && (
           <div
             className="absolute z-20 bg-black/75 text-white text-[11px] px-2 py-1 rounded"
@@ -961,7 +923,6 @@ export default function StarSkyDate({
           </div>
         )}
 
-        {/* 다중 라벨 */}
         {multipleMode && activeConst && activeConstBBox && (
           <div
             className="absolute z-20 bg-black/75 text-white text-[11px] px-2 py-1 rounded"
@@ -981,13 +942,17 @@ export default function StarSkyDate({
         )}
       </div>
 
-      {/* 단일 모드 패널 */}
       {!multipleMode && locked && isSelected && (
         <div
           className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-black/35 backdrop-blur px-4 py-3 rounded-xl flex flex-col gap-3 min-w-[220px]"
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <div className="text-white/85 text-sm">크기 조절 (0.2x ~ 1.0x)</div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-white/85 text-sm">크기 조절 (0.2x ~ 1.0x)</div>
+            <div className="text-white/85 text-xs font-mono">
+              x{scaleUI.toFixed(2)}
+            </div>
+          </div>
           <input
             type="range"
             min={0.2}
@@ -1039,14 +1004,21 @@ export default function StarSkyDate({
         </div>
       )}
 
-      {/* 다중 모드 패널 */}
       {multipleMode && locked && activeConstellationId && isSelected && (
         <div
           className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-black/35 backdrop-blur px-4 py-3 rounded-xl flex flex-col gap-3 min-w-[220px]"
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <div className="text-white/85 text-sm">
-            이 별자리 크기 조절 (0.2x ~ 1.0x)
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-white/85 text-sm">별자리 크기 조절</div>
+            <div className="text-white/85 text-xs font-mono">
+              x
+              {(
+                scaleUIMap[activeConstellationId] ??
+                appliedMapRef.current[activeConstellationId + "__scale"] ??
+                1
+              ).toFixed(2)}
+            </div>
           </div>
           <input
             type="range"
@@ -1070,11 +1042,9 @@ export default function StarSkyDate({
               );
               if (!selected) return;
 
-              // 1) 원본(처음 서버에서 온) 모양 - x1
               const base = baseConstShapesRef.current[activeConstellationId];
               if (!base) return;
 
-              // 2) 지금 커밋돼있는 모양(=드래그로 옮긴 상태)
               const committed =
                 committedConstMapRef.current[activeConstellationId] ||
                 appliedMapRef.current[activeConstellationId] ||
@@ -1085,13 +1055,11 @@ export default function StarSkyDate({
                 Object.values(committed)
               );
 
-              // 원본과 현재모양의 위치 차이 = 번역량
               const tx =
                 committedBox && baseBox ? committedBox.cx - baseBox.cx : 0;
               const ty =
                 committedBox && baseBox ? committedBox.cy - baseBox.cy : 0;
 
-              // 3) 원본 기준으로 스케일 + 번역 덧셈
               const scaled = {};
               Object.entries(base).forEach(([id, p]) => {
                 const dx = p.x - baseBox.cx;
@@ -1102,7 +1070,6 @@ export default function StarSkyDate({
                 };
               });
 
-              // ⭐ 드래그 위치가 밀리지 않도록 fitMapIntoView 하지 않는다
               setPreviewMap(scaled);
               onTransform?.(scaled);
               setPendingApply(true);
@@ -1175,7 +1142,6 @@ export default function StarSkyDate({
         </div>
       )}
 
-      {/* Month nav */}
       <div
         className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10
                    bg-black/30 backdrop-blur px-6 py-2 flex items-center gap-6 select-none"
