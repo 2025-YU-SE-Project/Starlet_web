@@ -17,8 +17,16 @@ const MONTH_ABBR = [
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 const DRAG_SELECT_THRESHOLD_PX = 6;
-const clampToView = (v, pad = 0) => Math.max(pad, Math.min(1 - pad, v));
+const clampToView = (v, pad = 0.02) => Math.max(pad, Math.min(1 - pad, v));
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+
+function getTodayLocal() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 function computeBBoxFromPoints(points) {
   if (!points || points.length === 0) return null;
@@ -120,6 +128,7 @@ export default function StarSkyDate({
   onConstellationMove,
 }) {
   const containerRef = useRef(null);
+
   const firstMonth = monthPairIndex * 2;
   const secondMonth = firstMonth + 1;
 
@@ -136,6 +145,12 @@ export default function StarSkyDate({
     return stars.filter((s) => inCurrentPair(s.date));
   }, [stars, year, firstMonth, secondMonth]);
 
+  const currentPairIdSet = useMemo(() => {
+    const set = new Set();
+    filteredStars.forEach((s) => set.add(String(s.id)));
+    return set;
+  }, [filteredStars]);
+
   const filteredConstellationGroups = useMemo(() => {
     if (!Array.isArray(constellationGroups) || !constellationGroups.length) {
       return [];
@@ -146,10 +161,38 @@ export default function StarSkyDate({
         ...s,
         x: typeof s.x === "number" ? clamp01(s.x) : 0.5,
         y: typeof s.y === "number" ? clamp01(s.y) : 0.5,
-        date: s.date || g.createdAt || new Date().toISOString().slice(0, 10),
+        date: s.date || getTodayLocal(),
       })),
     }));
   }, [constellationGroups]);
+
+  const constellationCreatedAtRef = useRef({});
+
+  useEffect(() => {
+    if (!filteredConstellationGroups.length) return;
+    const store = constellationCreatedAtRef.current;
+    const today = getTodayLocal();
+
+    filteredConstellationGroups.forEach((g) => {
+      const id = g.id;
+      if (!id) return;
+
+      const modalPickedDate =
+        g.constellationDate || g.selectedDate || g.dateFromModal || null;
+
+      if (!store[id]) {
+        if (modalPickedDate) {
+          store[id] = String(modalPickedDate).slice(0, 10);
+        } else {
+          store[id] = today;
+        }
+      } else {
+        if (modalPickedDate) {
+          store[id] = String(modalPickedDate).slice(0, 10);
+        }
+      }
+    });
+  }, [filteredConstellationGroups]);
 
   const baseConstShapesRef = useRef({});
 
@@ -182,6 +225,21 @@ export default function StarSkyDate({
   const multipleMode =
     Array.isArray(filteredConstellationGroups) &&
     filteredConstellationGroups.length > 0;
+
+  const prevMultipleRef = useRef(false);
+  useEffect(() => {
+    const wasMulti = prevMultipleRef.current;
+    if (!wasMulti && multipleMode) {
+      setPreviewMap(null);
+      setIsSelected(false);
+      setActiveConstellationId(null);
+      setPendingApply(false);
+      appliedMapRef.current = {};
+      committedMapRef.current = null;
+      singleScaleOriginRef.current = null;
+    }
+    prevMultipleRef.current = multipleMode;
+  }, [multipleMode]);
 
   useEffect(() => {
     if (!multipleMode) return;
@@ -505,6 +563,15 @@ export default function StarSkyDate({
     if (!starDrag.moved) {
       const isCalendarStar = filteredStars.some((fs) => fs.id === star.id);
       if (isCalendarStar && typeof onSelectChange === "function") {
+        const hasFromOtherPair = selectedIds.some(
+          (id) => !currentPairIdSet.has(String(id))
+        );
+        if (hasFromOtherPair) {
+          window.alert("서로 다른 달의 별은 함께 별자리를 만들 수 없습니다.");
+          setStarDrag(null);
+          return;
+        }
+
         if (selectedIds.includes(star.id)) {
           onSelectChange(selectedIds.filter((x) => x !== star.id));
         } else {
@@ -608,6 +675,18 @@ export default function StarSkyDate({
 
   const showLabelSingle =
     !multipleMode && locked && hoveredEdgeSingle && liveBBox;
+
+  const constellationStarIdSet = useMemo(() => {
+    if (!multipleMode) return null;
+    const set = new Set();
+    filteredConstellationGroups.forEach((g) => {
+      (g.stars || []).forEach((s) => {
+        const realId = String(s.id ?? s.starId);
+        set.add(realId);
+      });
+    });
+    return set;
+  }, [multipleMode, filteredConstellationGroups]);
 
   return (
     <div className="fixed inset-0 select-none">
@@ -752,6 +831,14 @@ export default function StarSkyDate({
         </svg>
 
         {filteredStars.map((s) => {
+          if (
+            multipleMode &&
+            constellationStarIdSet &&
+            constellationStarIdSet.has(String(s.id))
+          ) {
+            return null;
+          }
+
           const p = positionOf(s);
           const img = colorImageMap[(s.color || "").toUpperCase()];
           if (!img) return null;
@@ -767,69 +854,74 @@ export default function StarSkyDate({
                 zIndex: 3,
               }}
             >
-              {selectedForEdit && (
-                <div
-                  className="absolute pointer-events-none"
+              <div style={{ position: "relative", width: 22, height: 22 }}>
+                {selectedForEdit && (
+                  <div
+                    className="absolute pointer-events-none"
+                    style={{
+                      left: "50%",
+                      top: "50%",
+                      transform: "translate(-50%, -50%)",
+                      width: 36,
+                      height: 36,
+                      borderRadius: "9999px",
+                      background:
+                        "radial-gradient(circle, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.12) 45%, rgba(255,255,255,0) 70%)",
+                      filter: "blur(1.2px)",
+                      animation: "twinkle 1.4s ease-in-out infinite",
+                      zIndex: 0,
+                    }}
+                  />
+                )}
+
+                {locked && isSelected && !multipleMode && !selectedForEdit && (
+                  <div
+                    className="absolute pointer-events-none"
+                    style={{
+                      left: "50%",
+                      top: "50%",
+                      transform: "translate(-50%, -50%)",
+                      width: 28,
+                      height: 28,
+                      borderRadius: "9999px",
+                      background:
+                        "radial-gradient(circle, rgba(124,245,255,0.28) 0%, rgba(124,245,255,0.14) 40%, rgba(124,245,255,0) 75%)",
+                      filter: "blur(2px)",
+                      animation: "pulseSoft 2.2s ease-in-out infinite",
+                      zIndex: 0,
+                    }}
+                  />
+                )}
+
+                <img
+                  src={img}
+                  alt={s.color}
+                  draggable={false}
                   style={{
+                    width: 22,
+                    height: 22,
+                    userSelect: "none",
+                    touchAction: "none",
+                    cursor: locked ? "pointer" : "grab",
+                    position: "absolute",
                     left: "50%",
                     top: "50%",
                     transform: "translate(-50%, -50%)",
-                    width: 36,
-                    height: 36,
-                    borderRadius: "9999px",
-                    background:
-                      "radial-gradient(circle, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 45%, rgba(255,255,255,0) 75%)",
-                    filter: "blur(2px)",
-                    animation: "twinkle 1.4s ease-in-out infinite",
-                    zIndex: 0,
+                    zIndex: 1,
+                    transition: "transform 0.12s ease-out",
+                    ...(selectedForEdit
+                      ? { transform: "translate(-50%, -50%) scale(1.08)" }
+                      : {}),
+                  }}
+                  onPointerDown={(e) => onStarPointerDown(e, s)}
+                  onPointerMove={(e) => onStarPointerMove(e, s)}
+                  onPointerUp={(e) => onStarPointerUp(e, s)}
+                  onMouseEnter={showTooltip}
+                  onMouseLeave={() => {
+                    if (!isSelected) hideTooltip();
                   }}
                 />
-              )}
-
-              {locked && isSelected && !multipleMode && !selectedForEdit && (
-                <div
-                  className="absolute pointer-events-none"
-                  style={{
-                    left: "50%",
-                    top: "50%",
-                    transform: "translate(-50%, -50%)",
-                    width: 28,
-                    height: 28,
-                    borderRadius: "9999px",
-                    background:
-                      "radial-gradient(circle, rgba(124,245,255,0.28) 0%, rgba(124,245,255,0.14) 40%, rgba(124,245,255,0) 75%)",
-                    filter: "blur(2px)",
-                    animation: "pulseSoft 2.2s ease-in-out infinite",
-                    zIndex: 0,
-                  }}
-                />
-              )}
-
-              <img
-                src={img}
-                alt={s.color}
-                draggable={false}
-                style={{
-                  width: 22,
-                  height: 22,
-                  userSelect: "none",
-                  touchAction: "none",
-                  cursor: locked ? "pointer" : "grab",
-                  position: "relative",
-                  zIndex: 1,
-                  transition: "transform 0.12s ease-out",
-                  transform: selectedForEdit
-                    ? "translate(-50%, -50%) scale(1.08)"
-                    : "translate(-50%, -50%)",
-                }}
-                onPointerDown={(e) => onStarPointerDown(e, s)}
-                onPointerMove={(e) => onStarPointerMove(e, s)}
-                onPointerUp={(e) => onStarPointerUp(e, s)}
-                onMouseEnter={showTooltip}
-                onMouseLeave={() => {
-                  if (!isSelected) hideTooltip();
-                }}
-              />
+              </div>
             </div>
           );
         })}
@@ -847,6 +939,12 @@ export default function StarSkyDate({
                 previewMap[id]) ||
                 (appliedForThis && appliedForThis[id]) || { x: s.x, y: s.y };
 
+              const showPulse =
+                locked &&
+                (g.id === activeConstellationId ||
+                  g.id === hoveredConstellationId) &&
+                isSelected;
+
               return (
                 <div
                   key={`${g.id}-${id}`}
@@ -858,10 +956,8 @@ export default function StarSkyDate({
                     zIndex: 4,
                   }}
                 >
-                  {locked &&
-                    (g.id === activeConstellationId ||
-                      g.id === hoveredConstellationId) &&
-                    isSelected && (
+                  <div style={{ position: "relative", width: 22, height: 22 }}>
+                    {showPulse && (
                       <div
                         className="absolute pointer-events-none"
                         style={{
@@ -880,25 +976,29 @@ export default function StarSkyDate({
                       />
                     )}
 
-                  <img
-                    src={img}
-                    alt={s.color}
-                    draggable={false}
-                    style={{
-                      width: 22,
-                      height: 22,
-                      userSelect: "none",
-                      touchAction: "none",
-                      cursor: locked ? "pointer" : "grab",
-                      position: "relative",
-                      zIndex: 1,
-                    }}
-                    onPointerDown={(e) => startMoveDragConstellation(e, g)}
-                    onMouseEnter={showTooltip}
-                    onMouseLeave={() => {
-                      if (!isSelected) hideTooltip();
-                    }}
-                  />
+                    <img
+                      src={img}
+                      alt={s.color}
+                      draggable={false}
+                      style={{
+                        width: 22,
+                        height: 22,
+                        userSelect: "none",
+                        touchAction: "none",
+                        cursor: locked ? "pointer" : "grab",
+                        position: "absolute",
+                        left: "50%",
+                        top: "50%",
+                        transform: "translate(-50%, -50%)",
+                        zIndex: 1,
+                      }}
+                      onPointerDown={(e) => startMoveDragConstellation(e, g)}
+                      onMouseEnter={showTooltip}
+                      onMouseLeave={() => {
+                        if (!isSelected) hideTooltip();
+                      }}
+                    />
+                  </div>
                 </div>
               );
             });
@@ -917,7 +1017,9 @@ export default function StarSkyDate({
           >
             <div>{(constellationMeta?.name || "").trim() || "(미지정)"}</div>
             {constellationMeta?.createdAt ? (
-              <div className="opacity-80">{constellationMeta.createdAt}</div>
+              <div className="opacity-80">
+                {String(constellationMeta.createdAt).slice(0, 10)}
+              </div>
             ) : null}
           </div>
         )}
@@ -934,9 +1036,10 @@ export default function StarSkyDate({
             }}
           >
             <div>{activeConst.name || "(미지정 별자리)"}</div>
-            {activeConst.createdAt ? (
-              <div className="opacity-80">{activeConst.createdAt}</div>
-            ) : null}
+            <div className="opacity-80">
+              {constellationCreatedAtRef.current[activeConst.id] ||
+                getTodayLocal()}
+            </div>
           </div>
         )}
       </div>
@@ -946,11 +1049,9 @@ export default function StarSkyDate({
           className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-black/35 backdrop-blur px-4 py-3 rounded-xl flex flex-col gap-3 min-w-[220px]"
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between">
             <div className="text-white/85 text-sm">크기 조절 (0.2x ~ 1.0x)</div>
-            <div className="text-white/85 text-xs font-mono">
-              x{scaleUI.toFixed(2)}
-            </div>
+            <div className="text-white/70 text-xs">x{scaleUI.toFixed(2)}</div>
           </div>
           <input
             type="range"
@@ -1008,9 +1109,9 @@ export default function StarSkyDate({
           className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-black/35 backdrop-blur px-4 py-3 rounded-xl flex flex-col gap-3 min-w-[220px]"
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between">
             <div className="text-white/85 text-sm">별자리 크기 조절</div>
-            <div className="text-white/85 text-xs font-mono">
+            <div className="text-white/70 text-xs">
               x
               {(
                 scaleUIMap[activeConstellationId] ??

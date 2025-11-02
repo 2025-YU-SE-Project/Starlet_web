@@ -94,7 +94,7 @@ function DiaryModal({
       await onSave?.(text, tags);
       setShowConfirm(false);
       onClose?.();
-      navigate("/sky");
+      navigate("/starsky");
     } catch (e) {
       console.error(e);
     }
