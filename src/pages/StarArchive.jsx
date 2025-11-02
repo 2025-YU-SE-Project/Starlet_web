@@ -137,7 +137,7 @@ const StarArchive = () => {
   };
 
   return (
-    <div className="text-white bg-[url('/src/assets/background.png')]">
+    <div className="text-white">
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       {isOpen && (
         <div

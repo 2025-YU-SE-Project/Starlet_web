@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { IoClose } from "react-icons/io5";
 import ConstellationMini from "../ConstellationMini";
 import bgImage from "../../assets/background.png";
-
+import { FaPencil } from "react-icons/fa6";
 
 import yellowIcon from "../../assets/emotions/yellow.png";
 import blueIcon from "../../assets/emotions/blue.png";
@@ -197,10 +197,13 @@ export default function ConstellationDetailModal({
 
 
         <div className=" bg-neutral-50" />
-
-    
+        <div className="flex flex-row justify-end pr-6 gap-2">
+          <span className="text-xl text-[#808080]">수정</span>
+          <FaPencil className="mt-1" color="#808080" size={22} />
+        </div>
+        
         <div className="p-6">
-          <div className="font-semibold mb-3 text-[#4F4F4F]/80">내가 남긴 기록 보기</div>
+          <div className="font-semibold mb-3 text-[#4F4F4F]/80 text-xl">내가 남긴 기록 보기</div>
 
           <div className="border border-[#F4F4F4] rounded-xl overflow-hidden">
       
