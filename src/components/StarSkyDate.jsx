@@ -20,6 +20,9 @@ const DRAG_SELECT_THRESHOLD_PX = 6;
 const clampToView = (v, pad = 0.02) => Math.max(pad, Math.min(1 - pad, v));
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 
+const EDGE_PAD = 0.02;
+const LABEL_TOP_FLIP_Y = 0.1;
+
 function getTodayLocal() {
   const d = new Date();
   const y = d.getFullYear();
@@ -428,29 +431,22 @@ export default function StarSkyDate({
     e.preventDefault();
 
     const curRel = toRel(e.clientX, e.clientY);
+    const dxRelRaw = curRel.x - drag.startRel.x;
+    const dyRelRaw = curRel.y - drag.startRel.y;
+
     const { minX, minY, maxX, maxY } = drag.bbox0;
-    const w0 = Math.max(0.001, maxX - minX);
-    const h0 = Math.max(0.001, maxY - minY);
 
-    const dxRel = curRel.x - drag.startRel.x;
-    const dyRel = curRel.y - drag.startRel.y;
+    const dxMin = EDGE_PAD - minX;
+    const dxMax = 1 - EDGE_PAD - maxX;
+    const dyMin = EDGE_PAD - minY;
+    const dyMax = 1 - EDGE_PAD - maxY;
 
-    const nMinX = clamp01(minX + dxRel);
-    const nMinY = clamp01(minY + dyRel);
-    const nMaxX = clamp01(maxX + dxRel);
-    const nMaxY = clamp01(maxY + dyRel);
-
-    const nw = nMaxX - nMinX;
-    const nh = nMaxY - nMinY;
+    const dxRel = Math.max(dxMin, Math.min(dxMax, dxRelRaw));
+    const dyRel = Math.max(dyMin, Math.min(dyMax, dyRelRaw));
 
     const map = {};
-    Object.entries(drag.originMap).forEach(([id, b]) => {
-      const tx = (b.x - minX) / w0;
-      const ty = (b.y - minY) / h0;
-      map[id] = {
-        x: clampToView(nMinX + tx * nw),
-        y: clampToView(nMinY + ty * nh),
-      };
+    Object.entries(drag.originMap).forEach(([id, p]) => {
+      map[id] = { x: p.x + dxRel, y: p.y + dyRel };
     });
 
     setPreviewMap(map);
@@ -687,6 +683,38 @@ export default function StarSkyDate({
     });
     return set;
   }, [multipleMode, filteredConstellationGroups]);
+
+  const labelStyleSingle = (() => {
+    if (!showLabelSingle || !liveBBox) return null;
+    const placeAbove = liveBBox.minY > LABEL_TOP_FLIP_Y;
+    return placeAbove
+      ? {
+          left: `${liveBBox.cx * 100}%`,
+          top: `${liveBBox.minY * 100}%`,
+          transform: "translate(-50%, -120%)",
+        }
+      : {
+          left: `${liveBBox.cx * 100}%`,
+          top: `${liveBBox.maxY * 100}%`,
+          transform: "translate(-50%, 8px)",
+        };
+  })();
+
+  const labelStyleMulti = (() => {
+    if (!multipleMode || !activeConstBBox) return null;
+    const placeAbove = activeConstBBox.minY > LABEL_TOP_FLIP_Y;
+    return placeAbove
+      ? {
+          left: `${activeConstBBox.cx * 100}%`,
+          top: `${activeConstBBox.minY * 100}%`,
+          transform: "translate(-50%, -120%)",
+        }
+      : {
+          left: `${activeConstBBox.cx * 100}%`,
+          top: `${activeConstBBox.maxY * 100}%`,
+          transform: "translate(-50%, 8px)",
+        };
+  })();
 
   return (
     <div className="fixed inset-0 select-none">
@@ -1004,13 +1032,11 @@ export default function StarSkyDate({
             });
           })}
 
-        {showLabelSingle && (
+        {showLabelSingle && labelStyleSingle && (
           <div
             className="absolute z-20 bg-black/75 text-white text-[11px] px-2 py-1 rounded"
             style={{
-              left: liveBBox ? `${liveBBox.cx * 100}%` : "0%",
-              top: liveBBox ? `${liveBBox.minY * 100}%` : "0%",
-              transform: "translate(-50%, -120%)",
+              ...labelStyleSingle,
               pointerEvents: "none",
               whiteSpace: "nowrap",
             }}
@@ -1024,13 +1050,11 @@ export default function StarSkyDate({
           </div>
         )}
 
-        {multipleMode && activeConst && activeConstBBox && (
+        {multipleMode && activeConst && activeConstBBox && labelStyleMulti && (
           <div
             className="absolute z-20 bg-black/75 text-white text-[11px] px-2 py-1 rounded"
             style={{
-              left: `${activeConstBBox.cx * 100}%`,
-              top: `${activeConstBBox.minY * 100}%`,
-              transform: "translate(-50%, -120%)",
+              ...labelStyleMulti,
               pointerEvents: "none",
               whiteSpace: "nowrap",
             }}
