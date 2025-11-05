@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { CiMenuBurger } from "react-icons/ci";
 import Sidebar from "../components/Sidebar";
 import EmotionModal from "../components/EmotionModal";
@@ -13,8 +13,8 @@ import editDiary from "../apis/Calendar/editDiary";
 import imgBlue from "../assets/emotions/blue.png";
 import imgOrange from "../assets/emotions/orange.png";
 import imgRed from "../assets/emotions/red.png";
-import imgSkyblue from "../assets/emotions/skyblue.png";
-import imgWhite from "../assets/emotions/white.png";
+import imgGreen from "../assets/emotions/green.png";
+import imgPurple from "../assets/emotions/purple.png";
 import imgYellow from "../assets/emotions/yellow.png";
 
 const MONTH_NAMES = [
@@ -31,7 +31,6 @@ const MONTH_NAMES = [
   "November",
   "December",
 ];
-
 const WEEKDAY_NAMES = [
   "Sunday",
   "Monday",
@@ -47,8 +46,8 @@ const COLOR_IMAGE = {
   BLUE: imgBlue,
   ORANGE: imgOrange,
   RED: imgRed,
-  SKYBLUE: imgSkyblue,
-  WHITE: imgWhite,
+  PURPLE: imgPurple,
+  GREEN: imgGreen,
 };
 
 const EMOTION_LOCAL_TO_API = {
@@ -59,7 +58,6 @@ const EMOTION_LOCAL_TO_API = {
   neutral: "NEUTRAL",
   crying: "SADNESS",
 };
-
 const EMOTION_API_TO_LOCAL = {
   HAPPINESS: "happy",
   ANGER: "angry",
@@ -68,7 +66,6 @@ const EMOTION_API_TO_LOCAL = {
   NEUTRAL: "neutral",
   FUNNY: "funny",
 };
-
 const TAG_TO_FACTOR = {
   일: "WORK",
   공부: "EDUCATION",
@@ -86,8 +83,8 @@ function addMonths(date, delta) {
   d.setMonth(d.getMonth() + delta);
   return d;
 }
-function daysInMonth(year, monthIndex) {
-  return new Date(year, monthIndex + 1, 0).getDate();
+function daysInMonth(y, mIdx) {
+  return new Date(y, mIdx + 1, 0).getDate();
 }
 function ymd(date) {
   const y = date.getFullYear();
@@ -130,7 +127,6 @@ function Calendar() {
     const lastDayOfPrev = new Date(year, month, 0).getDate();
     const prevStart = lastDayOfPrev - firstWeekday + 1;
     const cells = [];
-
     for (let i = 0; i < firstWeekday; i++) {
       const day = prevStart + i;
       cells.push({
@@ -168,11 +164,12 @@ function Calendar() {
     (async () => {
       try {
         const list = await getStars(year, month + 1);
-        const m = {};
-        for (const it of list) m[it.date] = it.color;
-        setStars(m);
+        const map = {};
+        for (const it of list) map[it.date] = it.color;
+        setStars(map);
       } catch (e) {
-        if (e.status === 401 || e.message?.includes("토큰")) {
+        const status = e?.response?.status || e?.status;
+        if (status === 401 || e?.message?.includes("토큰")) {
           navigate("/signin");
           return;
         }
@@ -197,7 +194,7 @@ function Calendar() {
       setPickedEmotion(localEmotion);
       setSelectedTags(
         data.factors?.map((f) =>
-          Object.keys(TAG_TO_FACTOR).find((k) => TAG_TO_FACTOR[k] === f)
+          Object.keys(TAG_TO_FACTOR).find((kk) => TAG_TO_FACTOR[kk] === f)
         ) || []
       );
       setEntries((prev) => ({
@@ -207,7 +204,8 @@ function Calendar() {
       setIsEdit(true);
       setIsDiaryOpen(true);
     } catch (e) {
-      if (e.status === 401 || e.message?.includes("토큰")) {
+      const status = e?.response?.status || e?.status;
+      if (status === 401 || e?.message?.includes("토큰")) {
         navigate("/signin");
         return;
       }
@@ -224,12 +222,12 @@ function Calendar() {
 
   const refreshStars = async () => {
     const y = viewDate.getFullYear();
-    const mth = viewDate.getMonth() + 1;
+    const m = viewDate.getMonth() + 1;
     try {
-      const list = await getStars(y, mth);
-      const m = {};
-      for (const it of list) m[it.date] = it.color;
-      setStars(m);
+      const list = await getStars(y, m);
+      const map = {};
+      for (const it of list) map[it.date] = it.color;
+      setStars(map);
     } catch {}
   };
 
@@ -259,8 +257,10 @@ function Calendar() {
         setStars((prev) => ({ ...prev, [k]: data.color }));
         setIsDiaryOpen(false);
         await refreshStars();
+        window.dispatchEvent(new Event("stars-updated"));
       } catch (e) {
-        if (e.status === 401 || e.message?.includes("토큰")) {
+        const status = e?.response?.status || e?.status;
+        if (status === 401 || e?.message?.includes("토큰")) {
           navigate("/signin");
           return;
         }
@@ -271,8 +271,10 @@ function Calendar() {
         setEntries((prev) => ({ ...prev, [k]: { ...(prev[k] || {}), text } }));
         setIsDiaryOpen(false);
         await refreshStars();
+        window.dispatchEvent(new Event("stars-updated"));
       } catch (e) {
-        if (e.status === 401 || e.message?.includes("토큰")) {
+        const status = e?.response?.status || e?.status;
+        if (status === 401 || e?.message?.includes("토큰")) {
           navigate("/signin");
           return;
         }
@@ -298,7 +300,7 @@ function Calendar() {
         onClick={() => setIsOpen(true)}
         aria-label="open sidebar"
       >
-        <CiMenuBurger size={30} />
+        <CiMenuBurger className="cursor-pointer" size={30} />
       </button>
 
       <div className="w-[90%] max-w-5xl mx-auto mt-10 mb-5 flex flex-col items-center gap-6">
@@ -310,7 +312,7 @@ function Calendar() {
           >
             {"<"}
           </button>
-          <span className="min-w-[12rem] text-[30px] text-center flex justify-center gap-6">
+          <span className="min-w-48 text-[30px] text-center flex justify-center gap-6">
             <span>{year}</span>
             <span>{MONTH_NAMES[month].toUpperCase()}</span>
           </span>
@@ -343,9 +345,9 @@ function Calendar() {
               <div
                 key={cell.key}
                 onClick={() => openModalFor(cell.date)}
-                className={`h-24 sm:h-28 md:h-32 relative bg-black/30 cursor-pointer
-                  ${isLastCol ? "" : "border-r border-white"}
-                  ${isLastRow ? "" : "border-b border-white"}`}
+                className={`h-24 sm:h-28 md:h-32 relative bg-black/30 cursor-pointer ${
+                  isLastCol ? "" : "border-r border-white"
+                } ${isLastRow ? "" : "border-b border-white"}`}
               >
                 <div
                   className={`absolute top-2 left-2 text-sm ${
@@ -371,10 +373,13 @@ function Calendar() {
         </div>
       </div>
 
-      <div className="w-[90%] max-w-5xl mx-auto flex justify-start mt-4">
-        <Link to="/" className="text-[20px]">
+      <div className="w-[90%] max-w-5xl mx-auto flex justify-start mt-4 mb-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-[20px] hover:underline hover:underline-offset-4 cursor-pointer ml-[0.6rem]"
+        >
           {"<"} Back
-        </Link>
+        </button>
       </div>
 
       <EmotionModal

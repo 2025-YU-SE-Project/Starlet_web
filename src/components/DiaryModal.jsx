@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import backIcon from "../assets/back.png";
 import imgBlue from "../assets/emotions/blue.png";
 import imgOrange from "../assets/emotions/orange.png";
 import imgRed from "../assets/emotions/red.png";
-import imgSkyblue from "../assets/emotions/skyblue.png";
-import imgWhite from "../assets/emotions/white.png";
+import imgGreen from "../assets/emotions/green.png";
+import imgPurple from "../assets/emotions/purple.png";
 import imgYellow from "../assets/emotions/yellow.png";
 
 const STICKER = {
   funny: imgOrange,
   angry: imgRed,
-  wow: imgSkyblue,
+  wow: imgPurple,
   happy: imgYellow,
-  neutral: imgWhite,
+  neutral: imgGreen,
   crying: imgBlue,
 };
 
@@ -57,6 +58,7 @@ function DiaryModal({
   tags = [],
 }) {
   const [text, setText] = useState(initialText);
+  const navigate = useNavigate();
   const [showConfirm, setShowConfirm] = useState(false);
   const parsed = parseDate(dateStr);
 
@@ -92,7 +94,7 @@ function DiaryModal({
       await onSave?.(text, tags);
       setShowConfirm(false);
       onClose?.();
-      navigate("/sky");
+      navigate("/starsky");
     } catch (e) {
       console.error(e);
     }
@@ -204,7 +206,7 @@ function DiaryModal({
       </div>
 
       {showConfirm && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50">
           <div className="bg-[#D9D9D9] rounded-[10px] p-14 w-[500px] h-[170px] text-center">
             <p className="text-[18px] text-black font-semibold mb-4">
               별이 생성되었습니다. 밤하늘로 이동하시겠습니까?
