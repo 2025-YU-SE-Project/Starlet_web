@@ -10,6 +10,7 @@ import StarArchive from "./pages/StarArchive";
 import NotFound from "./pages/NotFound";
 import StarSky from "./pages/StarSky";
 
+
 const App = () => {
   return (
     <AuthProvider>
@@ -24,6 +25,7 @@ const App = () => {
             <Route path="/starsky" element={<StarSky />} />
             <Route path="/" element={<MainPage />} />
             <Route path="*" element={<NotFound />} />
+
           </Routes>
         </div>
       </BrowserRouter>
