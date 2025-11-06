@@ -3,48 +3,32 @@ import React, { useEffect, useRef, useState } from "react";
 import backgroundImg from "../assets/background.png";
 
 const MIN_NODES = 7;
-
 const MAX_NODES = 14;
-
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
 const ConstellationModal = ({
   open,
-
   onClose,
-
   onSubmit,
-
   initial,
-
   stars = [],
-
   colorImageMap = {},
 }) => {
-  const [step, setStep] = useState(1); // 1: 선 잇기, 2: 이름/소개
-
+  const [step, setStep] = useState(1);
   const [name, setName] = useState(initial?.name ?? "");
-
   const [desc, setDesc] = useState(initial?.desc ?? "");
-
   const [starPositions, setStarPositions] = useState({});
-
   const [edges, setEdges] = useState([]);
-
   const [selectedStar, setSelectedStar] = useState(null);
-
   const [warn, setWarn] = useState("");
 
   const panelRef = useRef(null);
-
   const dragIdRef = useRef(null);
 
   const toRel = (clientX, clientY) => {
     const r = panelRef.current.getBoundingClientRect();
-
     return {
       x: clamp01((clientX - r.left) / r.width),
-
       y: clamp01((clientY - r.top) / r.height),
     };
   };
@@ -53,31 +37,23 @@ const ConstellationModal = ({
     if (!open) return;
 
     setStep(1);
-
     setName(initial?.name ?? "");
-
     setDesc(initial?.desc ?? "");
-
     setWarn("");
 
     const init = {};
-
     (stars || []).forEach((s) => {
       init[s.id] = {
         x: typeof s.x === "number" ? clamp01(s.x) : 0.5,
-
         y: typeof s.y === "number" ? clamp01(s.y) : 0.5,
       };
     });
 
     setStarPositions(init);
-
     setEdges(initial?.lines ?? []);
-
     setSelectedStar(null);
 
     document.body.style.overflow = "hidden";
-
     return () => {
       document.body.style.overflow = "";
     };
@@ -86,34 +62,26 @@ const ConstellationModal = ({
   useEffect(() => {
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
-
       window.removeEventListener("pointerup", onPointerUp);
     };
   }, []);
 
   const onPointerDownStar = (e, id) => {
     if (step !== 1) return;
-
     e.preventDefault();
-
     e.stopPropagation();
-
     setWarn("");
 
     dragIdRef.current = id;
-
     window.addEventListener("pointermove", onPointerMove, { passive: false });
-
     window.addEventListener("pointerup", onPointerUp, { passive: true });
   };
 
   const onPointerMove = (e) => {
     if (!dragIdRef.current || !panelRef.current || step !== 1) return;
-
     e.preventDefault();
 
     const { x, y } = toRel(e.clientX, e.clientY);
-
     const id = dragIdRef.current;
 
     setStarPositions((prev) => ({ ...prev, [id]: { x, y } }));
@@ -121,13 +89,9 @@ const ConstellationModal = ({
 
   const onPointerUp = () => {
     dragIdRef.current = null;
-
     window.removeEventListener("pointermove", onPointerMove);
-
     window.removeEventListener("pointerup", onPointerUp);
   };
-
-  // 사이클 허용
 
   const addEdgeIfValid = (a, b) => {
     if (a === b) return;
@@ -135,26 +99,20 @@ const ConstellationModal = ({
     const exists = edges.some(
       ([u, v]) => (u === a && v === b) || (u === b && v === a)
     );
-
     if (exists) return;
 
     const nodeSet = new Set(edges.flat());
-
     nodeSet.add(a);
-
     nodeSet.add(b);
 
     if (nodeSet.size > MAX_NODES) {
       setWarn(`연결된 별은 최대 ${MAX_NODES}개까지예요.`);
-
       return;
     }
 
     setEdges((prev) => [...prev, [a, b]]);
-
     setWarn("");
-
-    setSelectedStar(null); // 선 추가 후 선택 해제
+    setSelectedStar(null);
   };
 
   const onClickStar = (id) => {
@@ -162,15 +120,12 @@ const ConstellationModal = ({
 
     if (!selectedStar) {
       setSelectedStar(id);
-
       setWarn("");
-
       return;
     }
 
     if (selectedStar === id) {
       setSelectedStar(null);
-
       return;
     }
 
@@ -179,13 +134,11 @@ const ConstellationModal = ({
 
   const removeLastLine = () => {
     setWarn("");
-
     setEdges((prev) => prev.slice(0, -1));
   };
 
   const clearLines = () => {
     setWarn("");
-
     setEdges([]);
   };
 
@@ -196,14 +149,11 @@ const ConstellationModal = ({
       setWarn(
         `별자리는 연결된 별이 ${MIN_NODES}~${MAX_NODES}개여야 해요. (현재: ${nodeCount}개)`
       );
-
       return;
     }
 
     setWarn("");
-
     setSelectedStar(null);
-
     setStep(2);
   };
 
@@ -212,14 +162,15 @@ const ConstellationModal = ({
   const finish = () => {
     if (!canFinish) return;
 
+    const createdAt =
+      initial?.constellationCreatedAt || new Date().toISOString();
+
     onSubmit?.({
       name: name.trim(),
-
       desc: desc.trim(),
-
       lines: edges,
-
       starPositions,
+      constellationCreatedAt: createdAt,
     });
   };
 
@@ -232,7 +183,6 @@ const ConstellationModal = ({
       aria-modal="true"
       style={{
         background: "rgba(0,0,0,0.28)",
-
         backdropFilter: "blur(2px)",
       }}
     >
@@ -242,18 +192,14 @@ const ConstellationModal = ({
         className="relative w-[950px] max-w-[96vw] rounded-[26px] flex flex-col"
         style={{
           backgroundColor: "#f3f4f6",
-
           boxShadow: "0 14px 40px rgba(0,0,0,0.35)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 상단 헤더 */}
-
         <div
           className="flex items-center justify-between px-7 h-[64px] rounded-t-[26px]"
           style={{
             backgroundColor: "#e4e5e7",
-
             borderBottom: "1px solid rgba(0,0,0,0.08)",
           }}
         >
@@ -262,9 +208,7 @@ const ConstellationModal = ({
               if (step === 1) onClose?.();
               else {
                 setStep(1);
-
                 setWarn("");
-
                 setSelectedStar(null);
               }
             }}
@@ -300,8 +244,6 @@ const ConstellationModal = ({
         </div>
 
         <div className="flex flex-col items-center px-10 py-6 gap-4">
-          {/* 안내문구: 1단계만 표시 */}
-
           {step === 1 && (
             <p className="text-[13px] text-black/60">
               *별을 끌어 이동하고, 서로 연결하여 별자리를 완성해보세요
@@ -309,27 +251,20 @@ const ConstellationModal = ({
           )}
 
           <div className="flex flex-col items-center gap-5">
-            {/* 별자리 패널 */}
-
             <div
               ref={panelRef}
               className="relative w-[440px] max-w-full aspect-square rounded-[26px] overflow-hidden"
               style={{
                 backgroundImage: `url(${backgroundImg})`,
-
                 backgroundSize: "cover",
-
                 backgroundPosition: "center",
-
                 border: "1px solid rgba(0,0,0,0.12)",
               }}
             >
               <svg className="absolute inset-0 w-full h-full pointer-events-none">
                 {edges.map(([a, b], idx) => {
                   const pa = starPositions[a];
-
                   const pb = starPositions[b];
-
                   if (!pa || !pb) return null;
 
                   return (
@@ -350,11 +285,9 @@ const ConstellationModal = ({
 
               {stars.map((s) => {
                 const p = starPositions[s.id];
-
                 if (!p) return null;
 
                 const imgSrc = colorImageMap[s.color];
-
                 if (!imgSrc) return null;
 
                 const isSelected = step === 1 && selectedStar === s.id;
@@ -369,39 +302,26 @@ const ConstellationModal = ({
                     onClick={() => onClickStar(s.id)}
                     style={{
                       position: "absolute",
-
                       left: `${p.x * 100}%`,
-
                       top: `${p.y * 100}%`,
-
                       transform: "translate(-50%, -50%)",
-
                       width: 22,
-
                       height: 22,
-
                       userSelect: "none",
-
                       touchAction: "none",
-
                       cursor: step === 1 ? "grab" : "default",
-
                       filter: isSelected
                         ? "drop-shadow(0 0 8px rgba(255,255,255,0.9))"
                         : "none",
-
                       animation: isSelected
                         ? "twinkleStar 0.9s ease-in-out infinite alternate"
                         : "none",
-
                       pointerEvents: step === 1 ? "auto" : "none",
                     }}
                   />
                 );
               })}
             </div>
-
-            {/* 1단계 버튼 */}
 
             {step === 1 && (
               <div className="flex gap-3">
@@ -430,8 +350,6 @@ const ConstellationModal = ({
                 </button>
               </div>
             )}
-
-            {/* 2단계 입력 */}
 
             {step === 2 && (
               <div className="flex flex-col items-center w-full gap-4">
@@ -468,16 +386,11 @@ const ConstellationModal = ({
         </div>
 
         <style>{`
-
-@keyframes twinkleStar {
-
-0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-
-100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.6; }
-
-}
-
-`}</style>
+          @keyframes twinkleStar {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.6; }
+          }
+        `}</style>
       </div>
     </div>
   );
