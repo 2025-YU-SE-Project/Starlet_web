@@ -23,20 +23,15 @@ const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const EDGE_PAD = 0.02;
 const LABEL_TOP_FLIP_Y = 0.1;
 
-// 별이 UI 버튼/아이콘 영역 안으로 못 들어가게 하기 위한 헬퍼
 function avoidUiZones(nx, ny, rect) {
   if (!rect) return { x: nx, y: ny };
   let px = nx * rect.width;
   let py = ny * rect.height;
 
   const zones = [
-    // 좌측 상단 햄버거 메뉴 – 살짝 더 작은 영역
     { x1: 0, y1: 0, x2: 60, y2: 65 },
-
-    // 우측 상단 GENERATE 버튼 – 좌우/세로 조금 줄이기
     { x1: rect.width - 115, y1: 0, x2: rect.width, y2: 50 },
 
-    // 하단 월 이동 바 – 좌우/위쪽 약간 줄이기
     {
       x1: rect.width / 2 - 160,
       y1: rect.height - 80,
@@ -45,11 +40,10 @@ function avoidUiZones(nx, ny, rect) {
     },
   ];
 
-  const margin = 4; // 바깥으로 살짝 밀어낼 여유
+  const margin = 4;
 
   zones.forEach((z) => {
     if (px >= z.x1 && px <= z.x2 && py >= z.y1 && py <= z.y2) {
-      // 네 변까지의 거리 계산
       const dLeft = px - z.x1;
       const dRight = z.x2 - px;
       const dTop = py - z.y1;
@@ -58,16 +52,12 @@ function avoidUiZones(nx, ny, rect) {
       const minD = Math.min(dLeft, dRight, dTop, dBottom);
 
       if (minD === dLeft) {
-        // 왼쪽 벽이 제일 가까우면 왼쪽으로 밀기
         px = z.x1 - margin;
       } else if (minD === dRight) {
-        // 오른쪽 벽이 제일 가까우면 오른쪽으로 밀기
         px = z.x2 + margin;
       } else if (minD === dTop) {
-        // 위쪽이 제일 가까우면 위로 밀기
         py = z.y1 - margin;
       } else {
-        // 아래쪽이 제일 가까우면 아래로 밀기
         py = z.y2 + margin;
       }
     }
@@ -226,7 +216,6 @@ export default function StarSkyDate({
 
   const constellationCreatedAtRef = useRef({});
 
-  // 라벨 날짜: 모달에서 생성 완료한 날짜만 사용, 없으면 새로 오늘로 채우지 않음
   useEffect(() => {
     if (!filteredConstellationGroups.length) return;
     const store = constellationCreatedAtRef.current;
@@ -247,7 +236,6 @@ export default function StarSkyDate({
       if (modalPickedDate) {
         store[id] = String(modalPickedDate).slice(0, 10);
       }
-      // modalPickedDate가 없으면 아무것도 하지 않음 (기존 값 유지, 없으면 undefined)
     });
   }, [filteredConstellationGroups]);
 
@@ -298,11 +286,9 @@ export default function StarSkyDate({
     prevMultipleRef.current = multipleMode;
   }, [multipleMode]);
 
-  // 여러 별자리 기본 크기 통일을 위한 기준 크기 / 정규화 여부
-  const multiBaseSizeRef = useRef(null); // 기준 별자리(최고자리)의 크기
-  const multiNormalizedRef = useRef({}); // id -> boolean
+  const multiBaseSizeRef = useRef(null);
+  const multiNormalizedRef = useRef({});
 
-  // 여러 별자리(그룹) 기본 크기 통일 + 초기 위치 세팅
   useEffect(() => {
     if (!multipleMode) return;
 
@@ -314,7 +300,6 @@ export default function StarSkyDate({
       const id = g.id;
       if (!id) return;
 
-      // 1) id별 base shape 없으면 한 번 만들기
       if (!baseStore[id]) {
         const base = {};
         (g.stars || []).forEach((s) => {
@@ -330,7 +315,6 @@ export default function StarSkyDate({
       const box = computeBBoxFromPoints(Object.values(base));
       if (!box) return;
 
-      // 2) 기준 크기(targetSize) 없으면 첫 번째 별자리 크기로 설정
       if (multiBaseSizeRef.current == null) {
         multiBaseSizeRef.current = Math.max(box.w, box.h);
       }
@@ -339,7 +323,6 @@ export default function StarSkyDate({
       const curSize = Math.max(box.w, box.h) || 0.0001;
       const factor = targetSize / curSize;
 
-      // 3) 아직 이 id는 기준 크기로 정규화 안 했으면, 기준 크기에 맞게 스케일
       if (!normalized[id]) {
         let scaled = base;
         if (Math.abs(factor - 1) > 1e-3) {
@@ -370,7 +353,6 @@ export default function StarSkyDate({
     }
   }, [multipleMode, filteredConstellationGroups]);
 
-  // 현재 별의 실제 위치 얻기 (단일 별자리용)
   const positionOf = (s) => {
     if (previewMap && previewMap[s.id]) {
       return previewMap[s.id];
@@ -391,7 +373,6 @@ export default function StarSkyDate({
     [livePoints]
   );
 
-  // locked 되었을 때, 단일 별자리 기본 스케일 적용 (항상 x1.0)
   useEffect(() => {
     if (multipleMode) {
       didInitialScaleRef.current = false;
@@ -408,7 +389,7 @@ export default function StarSkyDate({
       const base = ensureMinSize(baseRaw, 0.12);
 
       singleScaleOriginRef.current = base;
-      const clampedInit = 1.0; // 항상 x1.0을 기본으로
+      const clampedInit = 1.0;
       scaleRef.current = clampedInit;
       setScaleUI(clampedInit);
 
@@ -470,7 +451,6 @@ export default function StarSkyDate({
     };
   };
 
-  // 멀티 모드에서 "현재 화면에 보이는" 별자리 맵을 얻기 위한 헬퍼
   const getConstellationMapForDrag = (constellation) => {
     const constId = constellation.id;
     const appliedForThis = appliedMapRef.current[constId];
@@ -498,7 +478,6 @@ export default function StarSkyDate({
     return map;
   };
 
-  // 단일 별자리 드래그 시작
   const startMoveDragSingle = (e) => {
     if (!locked || !liveBBox) return;
     e.preventDefault();
@@ -671,7 +650,6 @@ export default function StarSkyDate({
     let nx = clampToView(starDrag.originPos.x + dxPx / r.width);
     let ny = clampToView(starDrag.originPos.y + dyPx / r.height);
 
-    // UI 버튼/아이콘 영역 안으로 못 들어가게 조정
     const adjusted = avoidUiZones(nx, ny, r);
     nx = adjusted.x;
     ny = adjusted.y;
@@ -726,7 +704,6 @@ export default function StarSkyDate({
     setStarDrag(null);
   };
 
-  // 단일 별자리 크기 조절 (현재 상태 기준으로 스케일링)
   const applyScalePreviewSingle = (newScale, { commit = false } = {}) => {
     const sAbs = Math.max(0.5, Math.min(1.5, newScale));
 
@@ -1217,7 +1194,6 @@ export default function StarSkyDate({
         )}
       </div>
 
-      {/* 단일 별자리 스케일 조절 패널 */}
       {!multipleMode && locked && isSelected && (
         <div
           className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-black/35 backdrop-blur px-4 py-3 rounded-xl flex flex-col gap-3 min-w-[220px]"
@@ -1277,7 +1253,6 @@ export default function StarSkyDate({
         </div>
       )}
 
-      {/* 여러 별자리 스케일 조절 패널 */}
       {multipleMode && locked && activeConstellationId && isSelected && (
         <div
           className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-black/35 backdrop-blur px-4 py-3 rounded-xl flex flex-col gap-3 min-w-[220px]"
