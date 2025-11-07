@@ -2,8 +2,8 @@ import React from "react";
 import { IoIosStar } from "react-icons/io";
 import ConstellationMini from "../ConstellationMini";
 
-export default function StarArchiveCard({ item, onStarClick }) {
-  const date = new Date(item.date);
+export default function StarArchiveCard({ item, onStarClick, onOpen }) {
+  const date = new Date(item.date || item.createdAt || item.constellationCreatedAt);
   const dateStr =
     `${date.getFullYear()}.` +
     `${String(date.getMonth() + 1).padStart(2, "0")}.` +
@@ -13,6 +13,12 @@ export default function StarArchiveCard({ item, onStarClick }) {
     <div
       className="relative flex flex-row text-white border w-[600px] h-[250px]
                  bg-white/10 border-white/10 rounded-[15px] cursor-pointer"
+      onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onOpen?.();
+      }}
     >
       <div className="ml-5 my-4 rounded-[12px]">
         <ConstellationMini
@@ -26,7 +32,7 @@ export default function StarArchiveCard({ item, onStarClick }) {
       <div className="flex flex-col px-5 w-full">
         <div className="text-sm text-white/70 mt-18">{dateStr}</div>
         <div className="text-2xl font-semibold">{item.name}</div>
-        <div className="text-white mt-4">{item.description}</div>
+        <div className="text-white mt-4 line-clamp-3">{item.description}</div>
       </div>
 
       <div className="absolute right-3 top-3 ">
@@ -40,7 +46,11 @@ export default function StarArchiveCard({ item, onStarClick }) {
         >
           <IoIosStar
             size={38}
-            className={item.isRepresentative ? "cursor-pointer text-[#FFD12B]" : "text-white/30 cursor-pointer"}
+            className={
+              item.isRepresentative
+                ? "cursor-pointer text-[#FFD12B]"
+                : "text-white/30 cursor-pointer"
+            }
           />
         </button>
       </div>
