@@ -113,12 +113,6 @@ const StarSky = () => {
     if (!Array.isArray(rawList)) return [];
 
     return rawList.map((c) => {
-      const baseDate =
-        c.createdAt ||
-        c.createdDate ||
-        c.date ||
-        (c.stars?.[0]?.date ?? new Date().toISOString().slice(0, 10));
-
       const rawStars =
         c.stars || c.starts || c.starList || c.star || c.starEntities || [];
 
@@ -139,12 +133,20 @@ const StarSky = () => {
           ? c.description
           : cached?.desc || "";
 
+      const baseDate =
+        cached?.createdAt ||
+        c.createdAt ||
+        c.createdDate ||
+        c.date ||
+        (rawStars[0]?.date ?? new Date().toISOString().slice(0, 10));
+
       return {
         id: c.constellationId ?? c.id,
         constellationId: c.constellationId ?? c.id,
         name: finalName,
         description: finalDesc,
         createdAt: baseDate,
+        constellationCreatedAt: baseDate,
         x: typeof c.x === "number" ? clamp01(c.x) : 0.5,
         y: typeof c.y === "number" ? clamp01(c.y) : 0.5,
         stars: rawStars.map((s) => ({
@@ -361,6 +363,7 @@ const StarSky = () => {
         [key]: {
           name: trimmedName || "미지정 별자리",
           desc: trimmedDesc || "",
+          createdAt: createdAtStr,
         },
       };
       saveNameCache(nameCacheRef.current);
