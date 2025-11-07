@@ -2,12 +2,29 @@ import React from "react";
 import { IoIosStar } from "react-icons/io";
 import ConstellationMini from "../ConstellationMini";
 
+function formatCardDate(input) {
+  if (!input) return "-";
+  const s = typeof input === "string" ? input.replace(/[./]/g, "-").slice(0, 10) : input;
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return "-";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}.${m}.${day}`;
+}
+
 export default function StarArchiveCard({ item, onStarClick, onOpen }) {
-  const date = new Date(item.date || item.createdAt || item.constellationCreatedAt);
-  const dateStr =
-    `${date.getFullYear()}.` +
-    `${String(date.getMonth() + 1).padStart(2, "0")}.` +
-    `${String(date.getDate()).padStart(2, "0")}`;
+  if (!item) return null;
+
+
+  const rawDate =
+    item.date ||
+    item.createdAt ||
+    item.constellationCreatedAt ||
+    item.constellation?.date ||
+    item.constellation?.createdAt;
+
+  const dateStr = formatCardDate(rawDate);
 
   return (
     <div

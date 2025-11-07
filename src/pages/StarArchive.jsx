@@ -195,16 +195,19 @@ const StarArchive = () => {
         </div>
       )}
 
-      <ConstellationDetailModal
-        open={openDetail}
-        onClose={() => setSelected(null)}
-        initial={selected}
-        detail={detail}
-        items={archivesState || []}
-        index={selectedIndex ?? 0}
-        onChangeIndex={setSelectedIndex}
-        loop={true}
-      />
+    <ConstellationDetailModal
+  open={openDetail}
+  onClose={() => setSelected(null)}
+  initial={selected}
+  detail={selectedId === detail?.constellationId ? detail : null}  
+  items={archivesState || []}
+  index={selectedIndex ?? 0}
+  onChangeIndex={(i) => {
+    setSelectedIndex(i);
+    setSelected(archivesState[i]); 
+  }}
+  loop={true}
+/>
 
       <RepresentativeConfirmModal
         open={openRepModal}
