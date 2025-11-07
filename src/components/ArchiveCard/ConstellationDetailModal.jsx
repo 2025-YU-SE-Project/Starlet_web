@@ -40,11 +40,11 @@ const colorIconMap = {
 };
 
 const EMOTIONS = [
-  { key: "HAPPY",    label: "행복해요" },
-  { key: "SAD",      label: "슬퍼요" },
-  { key: "ANGRY",    label: "화나요" },
-  { key: "FUNNY",    label: "웃겨요" },
-  { key: "WOW",      label: "놀라워요" },
+  { key: "HAPPY", label: "행복해요" },
+  { key: "SAD", label: "슬퍼요" },
+  { key: "ANGRY", label: "화나요" },
+  { key: "FUNNY", label: "웃겨요" },
+  { key: "WOW", label: "놀라워요" },
   { key: "CONFUSED", label: "잘 모르겠어요" },
 ];
 
@@ -56,6 +56,7 @@ function pick(obj, keys, def = 0) {
 function formatKDate(iso) {
   if (!iso) return "-";
   const d = new Date(iso);
+  if (isNaN(d)) return "-";
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
@@ -65,7 +66,7 @@ function formatKDate(iso) {
 function toISODate(input) {
   if (!input) return null;
   const d = typeof input === "string" ? new Date(input) : input;
-  if (isNaN(d.getTime())) return null;
+  if (isNaN(d?.getTime?.())) return null;
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
@@ -74,7 +75,7 @@ function toISODate(input) {
 
 function emotionLabel(e) {
   const found = EMOTIONS.find((v) => v.key === e);
-  return found ? found.label : (e || "-");
+  return found ? found.label : e || "-";
 }
 
 export default function ConstellationDetailModal({
@@ -82,27 +83,25 @@ export default function ConstellationDetailModal({
   onClose,
   detail,
   initial,
+  items = [],
+  index = 0,
+  onChangeIndex,
+  loop = true,
 }) {
-  // 훅 호출 전 조기 반환 (Hook 순서 안전)
   if (!open) return null;
 
   const navigate = useNavigate();
 
-  const model = detail || initial || {};
-  const {
-    name,
-    description,
-    date,
-    stars = [],
-    connections = [],
-  } = model;
+  const hasList = Array.isArray(items) && items.length > 0;
+  const model = hasList && items?.[index] ? items[index] : (detail || initial || {});
+  const { name, description, date, stars = [], connections = [] } = model || {};
 
   function resolveEmotionFromStar(s) {
-    const explicit = s.emotion || s.emotionType || s.mood;
+    const explicit = s?.emotion || s?.emotionType || s?.mood;
     if (explicit) return explicit;
-    const colorKey = (s.color || "").toUpperCase();
+    const colorKey = String(s?.color || "").toUpperCase();
     return COLOR_TO_EMOTION[colorKey] || null;
-    }
+  }
 
   const counts = useMemo(() => {
     const fromFields = Object.fromEntries(
@@ -133,11 +132,55 @@ export default function ConstellationDetailModal({
     onClose?.();
   };
 
+  const total = hasList ? items.length : 1;
+  const canNav = total > 1;
+
+  const goIdx = (next) => {
+    if (!canNav || !onChangeIndex) return;
+    const n = loop ? (next + total) % total : Math.min(Math.max(next, 0), total - 1);
+    onChangeIndex(n);
+  };
+  const goPrev = () => goIdx(index - 1);
+  const goNext = () => goIdx(index + 1);
+
+  React.useEffect(() => {
+    const onKey = (e) => {
+      if (!open) return;
+      if (e.key === "ArrowLeft") { e.preventDefault(); goPrev(); }
+      if (e.key === "ArrowRight") { e.preventDefault(); goNext(); }
+      if (e.key === "Escape") onClose?.();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, index, total]);
+
   return (
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} aria-hidden="true" />
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                      bg-white/85  text-neutral-900 w-280 max-w-[95vw] rounded-2xl shadow-2xl">
+      <div className="left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+                      bg-white/85 text-neutral-900 w-280 max-w-[95vw] rounded-2xl shadow-2xl relative">
+        {canNav && ( // 방향키 버튼으로 별자리 상세페이지 이동
+          <>
+            <button
+              aria-label="이전 별자리"
+              onClick={(e) => { e.stopPropagation(); goPrev(); }}
+              className="absolute left-[-80px] top-1/2 -translate-y-1/2
+                         flex items-center justify-center select-none"
+            >
+              <span className="text-white text-8xl leading-none  hover:text-gray-300">‹</span>
+            </button>
+            <button
+              aria-label="다음 별자리"
+              onClick={(e) => { e.stopPropagation(); goNext(); }}
+              className="absolute right-[-80px] top-1/2 -translate-y-1/2
+                          flex items-center justify-center select-none"
+            >
+              <span className="text-white text-8xl leading-none hover:text-gray-300">›</span>
+            </button>
+          </>
+        )}
+
         <div className="flex gap-6 px-8 pt-8">
           <div
             className="rounded-2xl overflow-hidden mt-5"
@@ -161,9 +204,8 @@ export default function ConstellationDetailModal({
           <div className="flex flex-col flex-1">
             <div className="flex items-start justify-between">
               <div>
-                {/* 상단 표시 날짜는 클릭 불가로 유지 */}
                 <div className="text-neutral-500 mt-5">{formatKDate(date)}</div>
-                <div className="text-3xl font-bold mt-1">{name}</div>
+                <div className="text-3xl font-bold mt-1">{name || ""}</div>
               </div>
               <button
                 onClick={onClose}
@@ -188,12 +230,7 @@ export default function ConstellationDetailModal({
                     <span className="w-32 text-xl">{em.label}</span>
                     <div className="flex items-center">
                       {Array.from({ length: Math.min(6, cnt) }).map((_, idx) => (
-                        <img
-                          key={idx}
-                          src={iconSrc}
-                          alt={`${em.label} (${colorKey})`}
-                          className="w-8 h-8"
-                        />
+                        <img key={idx} src={iconSrc} alt={`${em.label} (${colorKey})`} className="w-8 h-8" />
                       ))}
                     </div>
                   </div>
@@ -215,32 +252,29 @@ export default function ConstellationDetailModal({
               <div>생성 날짜</div>
             </div>
 
-            <div className="max-h-50 overflow-y-auto divide-y divide-[#D9D9D9]">
+            <div className="max-h-50 overflow-y-au>to divide-y divide-[#D9D9D9]">
               {(stars || []).map((s) => {
-                const colorKey = (s.color || "").toUpperCase();
+                const colorKey = String(s?.color || "").toUpperCase();
                 const icon = colorIconMap[colorKey] || yellowColorIcon;
                 const e = resolveEmotionFromStar(s);
+                const key = s?.starId || s?.id;
 
                 return (
-                  <div
-                    key={s.starId}
-                    className="grid grid-cols-3 items-center px-6 py-3 bg-[#EBEBEB]"
-                  >
+                  <div key={key} className="grid grid-cols-3 items-center px-6 py-3 bg-[#EBEBEB]">
                     <img src={icon} alt={colorKey || "COLOR"} className="w-8 h-8 ml-4" />
                     <div className="px-2">{emotionLabel(e)}</div>
 
-                    {/* 날짜 셀: 스타일 변경 없이 클릭 이동 */}
                     <div
-                    className="cursor-pointer hover:underline"
+                      className="cursor-pointer hover:underline"
                       role="button"
                       tabIndex={0}
                       aria-label="해당 날짜 일기장으로 이동"
-                      onClick={() => goCalendarWith(s.date)}
+                      onClick={() => goCalendarWith(s?.date)}
                       onKeyDown={(ev) => {
-                        if (ev.key === "Enter" || ev.key === " ") goCalendarWith(s.date);
+                        if (ev.key === "Enter" || ev.key === " ") goCalendarWith(s?.date);
                       }}
                     >
-                      {formatKDate(s.date)}
+                      {formatKDate(s?.date)}
                     </div>
                   </div>
                 );
