@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useMemo, useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { CiMenuBurger } from "react-icons/ci";
 import Sidebar from "../components/Sidebar";
 import EmotionModal from "../components/EmotionModal";
@@ -18,27 +18,11 @@ import imgPurple from "../assets/emotions/purple.png";
 import imgYellow from "../assets/emotions/yellow.png";
 
 const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December",
 ];
 const WEEKDAY_NAMES = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
+  "Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday",
 ];
 
 const COLOR_IMAGE = {
@@ -92,9 +76,16 @@ function ymd(date) {
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
+function parseISODate(iso) {
+  if (!iso) return null;
+  const d = new Date(`${iso}T00:00:00`);
+  return isNaN(d.getTime()) ? null : d;
+}
 
 function Calendar() {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [viewDate, setViewDate] = useState(
     () => new Date(new Date().getFullYear(), new Date().getMonth(), 1)
   );
@@ -110,6 +101,8 @@ function Calendar() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [pickedEmotion, setPickedEmotion] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
+
+  const didOpenFromQueryRef = useRef(false);
 
   const userName =
     localStorage.getItem("nickname") ||
@@ -281,6 +274,24 @@ function Calendar() {
       }
     }
   };
+
+
+  useEffect(() => {
+    const search = new URLSearchParams(location.search);
+    const qDate = search.get("date"); // yyyy-mm-dd
+    if (!qDate || didOpenFromQueryRef.current) return;
+
+    const d = parseISODate(qDate);
+    if (!d) return;
+
+ 
+    setViewDate(new Date(d.getFullYear(), d.getMonth(), 1));
+
+    setTimeout(() => {
+      didOpenFromQueryRef.current = true;
+      openModalFor(d);
+    }, 0);
+  }, [location.search]);
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
