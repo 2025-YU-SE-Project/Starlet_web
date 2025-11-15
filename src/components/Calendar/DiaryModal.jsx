@@ -1,17 +1,17 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
-import imgBlue from "../../assets/Calendar/blue.png";
-import imgOrange from "../../assets/Calendar/orange.png";
-import imgRed from "../../assets/Calendar/red.png";
-import imgGreen from "../../assets/Calendar/green.png";
-import imgPurple from "../../assets/Calendar/purple.png";
-import imgYellow from "../../assets/Calendar/yellow.png";
-import calendarIcon from "../../assets/Calendar/calendar.png";
-import emotionIcon from "../../assets/Calendar/emotion.png";
-import tagIcon from "../../assets/Calendar/tag.png";
-import starBg from "../../assets/Calendar/starbg.png";
-import backIcon from "../../assets/Calendar/back.png";
+import imgBlue from "../../assets/emotions/blue.png";
+import imgOrange from "../../assets/emotions/orange.png";
+import imgRed from "../../assets/emotions/red.png";
+import imgGreen from "../../assets/emotions/green.png";
+import imgPurple from "../../assets/emotions/purple.png";
+import imgYellow from "../../assets/emotions/yellow.png";
+import calendarIcon from "../../assets/emotions/calendar.png";
+import emotionIcon from "../../assets/emotions/emotion.png";
+import tagIcon from "../../assets/emotions/tag.png";
+import starBg from "../../assets/emotions/starbg.png";
+import backIcon from "../../assets/emotions/back.png";
 
 const STICKER = {
   funny: imgOrange,

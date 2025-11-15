@@ -1,12 +1,12 @@
 import React, { useMemo } from "react";
 import { normalizeStars } from "../lib/normalize";
 
-import blueColorIcon from "../assets/Calendar/blue.png";
-import greenColorIcon from "../assets/Calendar/green.png";
-import orangeColorIcon from "../assets/Calendar/orange.png";
-import purpleColorIcon from "../assets/Calendar/purple.png";
-import redColorIcon from "../assets/Calendar/red.png";
-import yellowColorIcon from "../assets/Calendar/yellow.png";
+import blueColorIcon from "../assets/emotions/blue.png";
+import greenColorIcon from "../assets/emotions/green.png";
+import orangeColorIcon from "../assets/emotions/orange.png";
+import purpleColorIcon from "../assets/emotions/purple.png";
+import redColorIcon from "../assets/emotions/red.png";
+import yellowColorIcon from "../assets/emotions/yellow.png";
 
 const FALLBACK_COLOR_ICON = yellowColorIcon;
 

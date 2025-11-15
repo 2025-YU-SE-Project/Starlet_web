@@ -4,12 +4,12 @@ import ConstellationMini from "../ConstellationMini";
 import bgImage from "../../assets/background.png";
 import { FaPencil } from "react-icons/fa6";
 
-import yellowColorIcon from "../../assets/Calendar/yellow.png";
-import blueColorIcon from "../../assets/Calendar/blue.png";
-import redColorIcon from "../../assets/Calendar/red.png";
-import orangeColorIcon from "../../assets/Calendar/orange.png";
-import greenColorIcon from "../../assets/Calendar/green.png";
-import purpleColorIcon from "../../assets/Calendar/purple.png";
+import yellowColorIcon from "../../assets/emotions/yellow.png";
+import blueColorIcon from "../../assets/emotions/blue.png";
+import redColorIcon from "../../assets/emotions/red.png";
+import orangeColorIcon from "../../assets/emotions/orange.png";
+import greenColorIcon from "../../assets/emotions/green.png";
+import purpleColorIcon from "../../assets/emotions/purple.png";
 
 const COLOR_TO_EMOTION = {
   YELLOW: "HAPPY",

@@ -9,12 +9,12 @@ import getStars from "../apis/Calendar/getStars";
 import getDiary from "../apis/Calendar/getDiary";
 import createDiary from "../apis/Calendar/createDiary";
 import editDiary from "../apis/Calendar/editDiary";
-import imgBlue from "../assets/Calendar/blue.png";
-import imgOrange from "../assets/Calendar/orange.png";
-import imgRed from "../assets/Calendar/red.png";
-import imgGreen from "../assets/Calendar/green.png";
-import imgPurple from "../assets/Calendar/purple.png";
-import imgYellow from "../assets/Calendar/yellow.png";
+import imgBlue from "../assets/emotions/blue.png";
+import imgOrange from "../assets/emotions/orange.png";
+import imgRed from "../assets/emotions/red.png";
+import imgGreen from "../assets/emotions/green.png";
+import imgPurple from "../assets/emotions/purple.png";
+import imgYellow from "../assets/emotions/yellow.png";
 
 const MONTH_NAMES = [
   "January",

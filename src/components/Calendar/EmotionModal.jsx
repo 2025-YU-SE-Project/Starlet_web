@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
-import iconFunny from "../../assets/Calendar/funny.png";
-import iconAngry from "../../assets/Calendar/angry.png";
-import iconWow from "../../assets/Calendar/wow.png";
-import iconHappy from "../../assets/Calendar/happy.png";
-import iconConfused from "../../assets/Calendar/confused.png";
-import iconCrying from "../../assets/Calendar/crying.png";
-import calendarIcon from "../../assets/Calendar/calendar.png";
-import emotionIcon from "../../assets/Calendar/emotion.png";
-import tagIcon from "../../assets/Calendar/tag.png";
+import iconFunny from "../../assets/emotions/funny.png";
+import iconAngry from "../../assets/emotions/angry.png";
+import iconWow from "../../assets/emotions/wow.png";
+import iconHappy from "../../assets/emotions/happy.png";
+import iconConfused from "../../assets/emotions/confused.png";
+import iconCrying from "../../assets/emotions/crying.png";
+import calendarIcon from "../../assets/emotions/calendar.png";
+import emotionIcon from "../../assets/emotions/emotion.png";
+import tagIcon from "../../assets/emotions/tag.png";
 
 const EMOTIONS = [
   { id: "funny", title: "웃겨요", icon: iconFunny },
