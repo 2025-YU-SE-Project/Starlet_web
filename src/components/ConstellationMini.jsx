@@ -1,14 +1,12 @@
 import React, { useMemo } from "react";
 import { normalizeStars } from "../lib/normalize";
 
-
-import blueColorIcon from "../assets/emotions/blue.png";
-import greenColorIcon from "../assets/emotions/green.png";
-import orangeColorIcon from "../assets/emotions/orange.png";
-import purpleColorIcon from "../assets/emotions/purple.png";
-import redColorIcon from "../assets/emotions/red.png";
-import yellowColorIcon from "../assets/emotions/yellow.png";
-
+import blueColorIcon from "../assets/Calendar/blue.png";
+import greenColorIcon from "../assets/Calendar/green.png";
+import orangeColorIcon from "../assets/Calendar/orange.png";
+import purpleColorIcon from "../assets/Calendar/purple.png";
+import redColorIcon from "../assets/Calendar/red.png";
+import yellowColorIcon from "../assets/Calendar/yellow.png";
 
 const FALLBACK_COLOR_ICON = yellowColorIcon;
 
@@ -47,7 +45,6 @@ export default function ConstellationMini({
       .filter(Boolean);
   }, [connections, byId]);
 
-
   const colorMap = {
     YELLOW: yellowColorIcon,
     BLUE: blueColorIcon,
@@ -82,7 +79,6 @@ export default function ConstellationMini({
         />
       )}
 
- 
       {ns.map((s) => (
         <circle
           key={`halo-${s.starId}`}
@@ -94,7 +90,6 @@ export default function ConstellationMini({
         />
       ))}
 
-  
       <g className="[mix-blend-mode:screen]">
         {lines.map((l) => (
           <line
@@ -110,7 +105,6 @@ export default function ConstellationMini({
         ))}
       </g>
 
-   
       {ns.map((s, i) => {
         const delayMs = `${((s.starId ?? i) * 137) % 1200}ms`;
         const colorKey = (s.color || "").toUpperCase();
@@ -125,7 +119,11 @@ export default function ConstellationMini({
               height="20"
               filter="url(#glow)"
               className="animate-pulse [animation-duration:900ms]"
-              style={{ animationDelay: delayMs, transformOrigin: "center", transformBox: "fill-box" }}
+              style={{
+                animationDelay: delayMs,
+                transformOrigin: "center",
+                transformBox: "fill-box",
+              }}
             />
             <circle cx={s._nx} cy={s._ny} r="1.8" fill="#fff" />
           </g>

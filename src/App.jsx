@@ -9,7 +9,7 @@ import Calendar from "./pages/Calendar";
 import StarArchive from "./pages/StarArchive";
 import NotFound from "./pages/NotFound";
 import StarSky from "./pages/StarSky";
-
+import MyPage from "./pages/MyPage";
 
 const App = () => {
   return (
@@ -23,9 +23,9 @@ const App = () => {
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/archive" element={<StarArchive />} />
             <Route path="/starsky" element={<StarSky />} />
+            <Route path="/mypage" element={<MyPage />} />
             <Route path="/" element={<MainPage />} />
             <Route path="*" element={<NotFound />} />
-
           </Routes>
         </div>
       </BrowserRouter>

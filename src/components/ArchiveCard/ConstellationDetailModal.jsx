@@ -4,13 +4,12 @@ import ConstellationMini from "../ConstellationMini";
 import bgImage from "../../assets/background.png";
 import { FaPencil } from "react-icons/fa6";
 
-
-import yellowColorIcon from "../../assets/emotions/yellow.png";
-import blueColorIcon from "../../assets/emotions/blue.png";
-import redColorIcon from "../../assets/emotions/red.png";
-import orangeColorIcon from "../../assets/emotions/orange.png";
-import greenColorIcon from "../../assets/emotions/green.png";
-import purpleColorIcon from "../../assets/emotions/purple.png";
+import yellowColorIcon from "../../assets/Calendar/yellow.png";
+import blueColorIcon from "../../assets/Calendar/blue.png";
+import redColorIcon from "../../assets/Calendar/red.png";
+import orangeColorIcon from "../../assets/Calendar/orange.png";
+import greenColorIcon from "../../assets/Calendar/green.png";
+import purpleColorIcon from "../../assets/Calendar/purple.png";
 
 const COLOR_TO_EMOTION = {
   YELLOW: "HAPPY",
@@ -20,7 +19,6 @@ const COLOR_TO_EMOTION = {
   GREEN: "WOW",
   PURPLE: "CONFUSED",
 };
-
 
 const EMOTION_TO_COLOR = {
   HAPPY: "YELLOW",
@@ -32,7 +30,6 @@ const EMOTION_TO_COLOR = {
   CRYING: "BLUE",
 };
 
-
 const colorIconMap = {
   YELLOW: yellowColorIcon,
   BLUE: blueColorIcon,
@@ -42,15 +39,13 @@ const colorIconMap = {
   PURPLE: purpleColorIcon,
 };
 
-
 const EMOTIONS = [
-  { key: "HAPPY",    label: "행복해요" },
-  { key: "SAD",      label: "슬퍼요" },
-  { key: "ANGRY",    label: "화나요" },
-  { key: "FUNNY",    label: "웃겨요" },
-  { key: "WOW",      label: "놀라워요" },
+  { key: "HAPPY", label: "행복해요" },
+  { key: "SAD", label: "슬퍼요" },
+  { key: "ANGRY", label: "화나요" },
+  { key: "FUNNY", label: "웃겨요" },
+  { key: "WOW", label: "놀라워요" },
   { key: "CONFUSED", label: "혼란스러워요" },
-  
 ];
 
 function pick(obj, keys, def = 0) {
@@ -70,8 +65,8 @@ function formatKDate(iso) {
 }
 
 function emotionLabel(e) {
-  const found = EMOTIONS.find(v => v.key === e);
-  return found ? found.label : (e || "-");
+  const found = EMOTIONS.find((v) => v.key === e);
+  return found ? found.label : e || "-";
 }
 
 export default function ConstellationDetailModal({
@@ -83,13 +78,7 @@ export default function ConstellationDetailModal({
   if (!open) return null;
 
   const model = detail || initial || {};
-  const {
-    name,
-    description,
-    date,
-    stars = [],
-    connections = [],
-  } = model;
+  const { name, description, date, stars = [], connections = [] } = model;
 
   /* 별에서 감정 추론: 명시적 필드 우선, 없으면 색상->감정 매핑 사용 */
   function resolveEmotionFromStar(s) {
@@ -99,16 +88,18 @@ export default function ConstellationDetailModal({
     return COLOR_TO_EMOTION[colorKey] || null;
   }
 
-
   const counts = useMemo(() => {
     const fromFields = Object.fromEntries(
-      EMOTIONS.map(e => [e.key, pick(model, [`${e.key.toLowerCase()}Count`, `${e.key}Count`], null)])
+      EMOTIONS.map((e) => [
+        e.key,
+        pick(model, [`${e.key.toLowerCase()}Count`, `${e.key}Count`], null),
+      ])
     );
 
-    const needCalc = Object.values(fromFields).some(v => v == null);
+    const needCalc = Object.values(fromFields).some((v) => v == null);
     if (!needCalc) return fromFields;
 
-    const agg = Object.fromEntries(EMOTIONS.map(e => [e.key, 0]));
+    const agg = Object.fromEntries(EMOTIONS.map((e) => [e.key, 0]));
     (stars || []).forEach((s) => {
       const e = resolveEmotionFromStar(s);
       if (e && agg[e] != null) agg[e] += 1;
@@ -126,8 +117,10 @@ export default function ConstellationDetailModal({
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                      bg-white text-neutral-900 w-[960px] max-w-[95vw] rounded-2xl shadow-2xl">
+      <div
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+                      bg-white text-neutral-900 w-[960px] max-w-[95vw] rounded-2xl shadow-2xl"
+      >
         {/* 헤더 */}
         <div className="flex gap-6 p-8">
           {/* 별 썸네일 */}
@@ -153,7 +146,9 @@ export default function ConstellationDetailModal({
           <div className="flex flex-col flex-1 gap-3">
             <div className="flex items-start justify-between">
               <div>
-                <div className="text-neutral-500 text-sm mt-5">{formatKDate(date)}</div>
+                <div className="text-neutral-500 text-sm mt-5">
+                  {formatKDate(date)}
+                </div>
                 <div className="text-3xl font-bold mt-1">{name}</div>
               </div>
               <button
@@ -169,7 +164,6 @@ export default function ConstellationDetailModal({
               {description || "설명이 없습니다."}
             </div>
 
-      
             <div className="mt-4 grid grid-rows-2 gap-y-2">
               {EMOTIONS.map((em) => {
                 const colorKey = EMOTION_TO_COLOR[em.key] || "YELLOW";
@@ -179,14 +173,16 @@ export default function ConstellationDetailModal({
                   <div key={em.key} className="flex items-center gap-3">
                     <span className="w-32 text-xl">{em.label}</span>
                     <div className="flex items-center">
-                      {Array.from({ length: Math.min(6, cnt) }).map((_, idx) => (
-                        <img
-                          key={idx}
-                          src={iconSrc}
-                          alt={`${em.label} (${colorKey})`}
-                          className="w-8 h-8"
-                        />
-                      ))}
+                      {Array.from({ length: Math.min(6, cnt) }).map(
+                        (_, idx) => (
+                          <img
+                            key={idx}
+                            src={iconSrc}
+                            alt={`${em.label} (${colorKey})`}
+                            className="w-8 h-8"
+                          />
+                        )
+                      )}
                     </div>
                   </div>
                 );
@@ -196,11 +192,11 @@ export default function ConstellationDetailModal({
         </div>
 
         <div className=" bg-neutral-50" />
-    
 
-     
         <div className="p-6">
-          <div className="font-semibold mb-3 text-[#4F4F4F]/80 text-xl">내가 남긴 기록 보기</div>
+          <div className="font-semibold mb-3 text-[#4F4F4F]/80 text-xl">
+            내가 남긴 기록 보기
+          </div>
 
           <div className="border border-[#F4F4F4] rounded-xl overflow-hidden">
             <div className="grid grid-cols-3 bg-[#DFDFDF] px-12 py-3">
@@ -215,15 +211,24 @@ export default function ConstellationDetailModal({
                 const icon = colorIconMap[colorKey] || yellowColorIcon;
                 const e = resolveEmotionFromStar(s);
                 return (
-                  <div key={s.starId} className="grid grid-cols-3 items-center px-6 py-3 bg-[#EBEBEB]/50">
-                    <img src={icon} alt={colorKey || "COLOR"} className="w-8 h-8 ml-4" />
+                  <div
+                    key={s.starId}
+                    className="grid grid-cols-3 items-center px-6 py-3 bg-[#EBEBEB]/50"
+                  >
+                    <img
+                      src={icon}
+                      alt={colorKey || "COLOR"}
+                      className="w-8 h-8 ml-4"
+                    />
                     <div>{emotionLabel(e)}</div>
                     <div>{formatKDate(s.date)}</div>
                   </div>
                 );
               })}
               {(!stars || stars.length === 0) && (
-                <div className="px-6 py-8 text-neutral-500 text-sm">기록이 없습니다.</div>
+                <div className="px-6 py-8 text-neutral-500 text-sm">
+                  기록이 없습니다.
+                </div>
               )}
             </div>
           </div>

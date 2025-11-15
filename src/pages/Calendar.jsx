@@ -2,20 +2,19 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CiMenuBurger } from "react-icons/ci";
 import Sidebar from "../components/Sidebar";
-import EmotionModal from "../components/EmotionModal";
-import DiaryModal from "../components/DiaryModal";
+import EmotionModal from "../components/Calendar/EmotionModal";
+import DiaryModal from "../components/Calendar/DiaryModal";
 import { getAccessToken } from "../apis/api";
 import getStars from "../apis/Calendar/getStars";
 import getDiary from "../apis/Calendar/getDiary";
 import createDiary from "../apis/Calendar/createDiary";
 import editDiary from "../apis/Calendar/editDiary";
-
-import imgBlue from "../assets/emotions/blue.png";
-import imgOrange from "../assets/emotions/orange.png";
-import imgRed from "../assets/emotions/red.png";
-import imgGreen from "../assets/emotions/green.png";
-import imgPurple from "../assets/emotions/purple.png";
-import imgYellow from "../assets/emotions/yellow.png";
+import imgBlue from "../assets/Calendar/blue.png";
+import imgOrange from "../assets/Calendar/orange.png";
+import imgRed from "../assets/Calendar/red.png";
+import imgGreen from "../assets/Calendar/green.png";
+import imgPurple from "../assets/Calendar/purple.png";
+import imgYellow from "../assets/Calendar/yellow.png";
 
 const MONTH_NAMES = [
   "January",
@@ -122,11 +121,15 @@ function Calendar() {
     const first = new Date(year, month, 1);
     const firstWeekday = first.getDay();
     const thisMonthDays = daysInMonth(year, month);
+
     const needed = firstWeekday + thisMonthDays;
     const totalCells = needed <= 35 ? 35 : 42;
+
     const lastDayOfPrev = new Date(year, month, 0).getDate();
     const prevStart = lastDayOfPrev - firstWeekday + 1;
+
     const cells = [];
+
     for (let i = 0; i < firstWeekday; i++) {
       const day = prevStart + i;
       cells.push({
@@ -135,6 +138,7 @@ function Calendar() {
         inCurrentMonth: false,
       });
     }
+
     for (let d = 1; d <= thisMonthDays; d++) {
       cells.push({
         key: `c-${d}`,
@@ -142,6 +146,7 @@ function Calendar() {
         inCurrentMonth: true,
       });
     }
+
     let nextDay = 1;
     while (cells.length < totalCells) {
       cells.push({
@@ -150,6 +155,7 @@ function Calendar() {
         inCurrentMonth: false,
       });
     }
+
     return cells;
   }, [viewDate]);
 
@@ -159,8 +165,10 @@ function Calendar() {
       navigate("/signin");
       return;
     }
+
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
+
     (async () => {
       try {
         const list = await getStars(year, month + 1);
@@ -181,8 +189,10 @@ function Calendar() {
   const openModalFor = async (dateObj) => {
     setSelectedDate(dateObj);
     const k = ymd(dateObj);
+
     try {
       const data = await getDiary(k);
+
       if (!data) {
         setPickedEmotion("");
         setSelectedTags([]);
@@ -190,6 +200,7 @@ function Calendar() {
         setIsEmotionOpen(true);
         return;
       }
+
       const localEmotion = EMOTION_API_TO_LOCAL[data.emotion] || "";
       setPickedEmotion(localEmotion);
       setSelectedTags(
@@ -234,18 +245,22 @@ function Calendar() {
   const handleSaveDiary = async (text) => {
     if (!selectedDate) return;
     const k = ymd(selectedDate);
+
     if (!isEdit) {
       try {
         const factors = selectedTags
           .map((t) => TAG_TO_FACTOR[t])
           .filter(Boolean);
+
         const payload = {
           emotion: EMOTION_LOCAL_TO_API[pickedEmotion] || pickedEmotion,
           factors,
           content: text,
           date: k,
         };
+
         const data = await createDiary(payload);
+
         setEntries((prev) => ({
           ...prev,
           [k]: {
@@ -255,7 +270,6 @@ function Calendar() {
           },
         }));
         setStars((prev) => ({ ...prev, [k]: data.color }));
-        setIsDiaryOpen(false);
         await refreshStars();
         window.dispatchEvent(new Event("stars-updated"));
       } catch (e) {
@@ -264,12 +278,15 @@ function Calendar() {
           navigate("/signin");
           return;
         }
+        throw e;
       }
     } else {
       try {
         await editDiary({ date: k, content: text });
-        setEntries((prev) => ({ ...prev, [k]: { ...(prev[k] || {}), text } }));
-        setIsDiaryOpen(false);
+        setEntries((prev) => ({
+          ...prev,
+          [k]: { ...(prev[k] || {}), text },
+        }));
         await refreshStars();
         window.dispatchEvent(new Event("stars-updated"));
       } catch (e) {
@@ -278,6 +295,7 @@ function Calendar() {
           navigate("/signin");
           return;
         }
+        throw e;
       }
     }
   };
@@ -386,6 +404,7 @@ function Calendar() {
         open={isEmotionOpen}
         initialEmotion={pickedEmotion}
         initialTags={selectedTags}
+        selectedDate={selectedDate}
         onClose={() => setIsEmotionOpen(false)}
         onPick={handlePickEmotion}
       />
