@@ -1,4 +1,5 @@
-import React, { useMemo } from "react";
+
+import React, { useMemo, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import ConstellationMini from "../ConstellationMini";
@@ -10,6 +11,10 @@ import redColorIcon from "../../assets/emotions/red.png";
 import orangeColorIcon from "../../assets/emotions/orange.png";
 import greenColorIcon from "../../assets/emotions/green.png";
 import purpleColorIcon from "../../assets/emotions/purple.png";
+
+import ConstellationModal from "../ConstellationModal";
+import updateConstellation from "../../apis/updateConstellation";
+import getConstellationArchive from "../../apis/getConstellationArchive";
 
 const COLOR_TO_EMOTION = {
   YELLOW: "HAPPY",
@@ -53,23 +58,19 @@ function pick(obj, keys, def = 0) {
   return def;
 }
 
-
 function toDate(input) {
   if (!input) return null;
   if (input instanceof Date) return isNaN(input.getTime()) ? null : input;
-
 
   if (typeof input === "number") {
     const d = new Date(input);
     return isNaN(d.getTime()) ? null : d;
   }
 
-
   if (typeof input === "string") {
     const s0 = input.trim();
     if (!s0) return null;
 
- 
     const s =
       s0.length >= 10
         ? s0.slice(0, 10).replace(/[./]/g, "-")
@@ -77,7 +78,6 @@ function toDate(input) {
 
     const d = new Date(s);
     if (!isNaN(d.getTime())) return d;
-
 
     const d2 = new Date(s0);
     return isNaN(d2.getTime()) ? null : d2;
@@ -118,31 +118,45 @@ export default function ConstellationDetailModal({
   index = 0,
   onChangeIndex,
   loop = true,
+  onUpdated,
 }) {
   if (!open) return null;
 
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [editInitial, setEditInitial] = useState(null);
+  const [editStars, setEditStars] = useState([]);
+ const [localPatched, setLocalPatched] = useState(null); 
   const navigate = useNavigate();
 
-const hasList = Array.isArray(items) && items.length > 0;
-const listItem = hasList && items?.[index] ? items[index] : (initial || {});
+  const hasList = Array.isArray(items) && items.length > 0;
+  const listItem = hasList && items?.[index] ? items[index] : initial || {};
 
+  const detailed =
+    detail && detail.constellation ? detail.constellation : detail;
 
-const detailed = (detail && detail.constellation) ? detail.constellation : detail;
+  const idOf = (x) => x?.constellationId ?? x?.id;
+  const same =
+    detailed && listItem && idOf(detailed) && idOf(detailed) === idOf(listItem);
 
+  let model = same ? { ...listItem, ...detailed } : listItem ?? detailed ?? {};
 
-const idOf = (x) => x?.constellationId ?? x?.id;
-const same = detailed && listItem && idOf(detailed) && idOf(detailed) === idOf(listItem);
+ if (localPatched) {
+   if (localPatched.name != null) model.name = localPatched.name;
+   if (localPatched.description != null)
+     model.description = localPatched.description;
+ }
 
-const model = same ? { ...listItem, ...detailed } : (listItem ?? detailed ?? {});
-
-  const { name, description, date, stars = [], connections = [] } = model;
+  const { name, description, stars = [], connections = [] } = model;
 
   const total = hasList ? items.length : 0;
   const canNav = total > 1;
 
   const goIdx = (next) => {
     if (!canNav || !onChangeIndex) return;
-    const n = loop ? (next + total) % total : Math.min(Math.max(next, 0), total - 1);
+    const n = loop
+      ? (next + total) % total
+      : Math.min(Math.max(next, 0), total - 1);
     onChangeIndex(n);
   };
   const goPrev = () => goIdx(index - 1);
@@ -151,9 +165,15 @@ const model = same ? { ...listItem, ...detailed } : (listItem ?? detailed ?? {})
   React.useEffect(() => {
     const onKey = (e) => {
       if (!open) return;
-      if (e.key === "ArrowLeft")  { e.preventDefault(); goPrev(); }
-      if (e.key === "ArrowRight") { e.preventDefault(); goNext(); }
-      if (e.key === "Escape")     onClose?.();
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        goPrev();
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        goNext();
+      }
+      if (e.key === "Escape") onClose?.();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -195,7 +215,6 @@ const model = same ? { ...listItem, ...detailed } : (listItem ?? detailed ?? {})
     onClose?.();
   };
 
-
   const headerDate =
     model?.date ??
     model?.createdAt ??
@@ -214,26 +233,82 @@ const model = same ? { ...listItem, ...detailed } : (listItem ?? detailed ?? {})
     model?.constellationCreatedAt ??
     null;
 
+ const handleOpenEdit = async () => {
+
+  const archiveId = model?.id ?? model?.constellationId;
+  if (!archiveId) {
+    console.warn("archiveId가 없습니다.", model);
+    return;
+  }
+
+  try {
+    const data = await getConstellationArchive(archiveId);
+
+    const mappedStars = (data.stars || []).map((s) => ({
+      id: s.starId,
+      color: String(s.color || "").toUpperCase(),
+      x: s.x,
+      y: s.y,
+      date: s.date,
+    }));
+
+    const lines = (data.connections || []).map((c) => [
+      String(c.startStarId),
+      String(c.endStarId),
+    ]);
+
+    setEditStars(mappedStars);
+    setEditInitial({
+      id: data.constellationId,     
+      name: data.name ?? "",
+      description: data.description ?? "",
+      lines,
+      constellationCreatedAt: data.date ?? headerDate,
+    });
+
+    setEditOpen(true);
+  } catch (e) {
+    console.error("아카이브 불러오기 실패:", e);
+    alert("별자리 정보를 불러오는 중 오류가 발생했어요.");
+  }
+};
+
   return (
     <div className="fixed inset-0 z-[100]">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} aria-hidden="true" />
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                      bg-white/85 text-neutral-900 w-280 max-w-[95vw] rounded-2xl shadow-2xl relative">
+      <div
+        className="absolute inset-0 bg-black/60"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+                    bg-white/85 text-neutral-900 w-280 max-w-[95vw] rounded-2xl shadow-2xl relative"
+      >
         {canNav && (
           <>
             <button
               aria-label="이전 별자리"
-              onClick={(e) => { e.stopPropagation(); goPrev(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                goPrev();
+              }}
               className="absolute left-[-80px] top-1/2 -translate-y-1/2 flex items-center justify-center select-none"
             >
-              <span className="text-white text-8xl leading-none hover:text-gray-300">‹</span>
+              <span className="text-white text-8xl leading-none hover:text-gray-300">
+                ‹
+              </span>
             </button>
             <button
               aria-label="다음 별자리"
-              onClick={(e) => { e.stopPropagation(); goNext(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                goNext();
+              }}
               className="absolute right-[-80px] top-1/2 -translate-y-1/2 flex items-center justify-center select-none"
             >
-              <span className="text-white text-8xl leading-none hover:text-gray-300">›</span>
+              <span className="text-white text-8xl leading-none hover:text-gray-300">
+                ›
+              </span>
             </button>
           </>
         )}
@@ -261,7 +336,9 @@ const model = same ? { ...listItem, ...detailed } : (listItem ?? detailed ?? {})
           <div className="flex flex-col flex-1">
             <div className="flex items-start justify-between">
               <div>
-                <div className="text-neutral-500 mt-5">{formatKDate(headerDate)}</div>
+                <div className="text-neutral-500 mt-5">
+                  {formatKDate(headerDate)}
+                </div>
                 <div className="text-3xl font-bold mt-1">{name}</div>
               </div>
               <button
@@ -283,13 +360,36 @@ const model = same ? { ...listItem, ...detailed } : (listItem ?? detailed ?? {})
                 const iconSrc = colorIconMap[colorKey];
                 const cnt = counts[em.key] || 0;
                 return (
-                  <div key={em.key} className="flex items-center gap-3 ">
-                    <span className="w-32 text-xl">{em.label}</span>
-                    <div className="flex items-center">
-                      {Array.from({ length: Math.min(6, cnt) }).map((_, idx) => (
-                        <img key={idx} src={iconSrc} alt={`${em.label} (${colorKey})`} className="w-8 h-8" />
-                      ))}
+                  <div
+                    key={em.key}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="w-32 text-[18px]">{em.label}</span>
+                      <div className="flex items-center">
+                        {Array.from({ length: Math.min(6, cnt) }).map(
+                          (_, idx) => (
+                            <img
+                              key={idx}
+                              src={iconSrc}
+                              alt={`${em.label} (${colorKey})`}
+                              className="w-8 h-8"
+                            />
+                          )
+                        )}
+                      </div>
                     </div>
+
+                    {em.key === "CONFUSED" && (
+                      <button
+                        type="button"
+                        onClick={handleOpenEdit}
+                        className="flex items-center gap-1 text-[18px] text-[#808080]"
+                      >
+                        <span>수정</span>
+                        <span>✎</span>
+                      </button>
+                    )}
                   </div>
                 );
               })}
@@ -300,7 +400,9 @@ const model = same ? { ...listItem, ...detailed } : (listItem ?? detailed ?? {})
         <div className="bg-neutral-50" />
 
         <div className="p-6 font-pretendard">
-          <div className="font-semibold mb-3 text-[#4F4F4F]/80 text-xl">내가 남긴 기록 보기</div>
+          <div className="font-semibold mb-3 text-[#4F4F4F]/80 text-xl">
+            내가 남긴 기록 보기
+          </div>
 
           <div className="border border-[#d4d4d4] rounded-xl overflow-hidden">
             <div className="grid grid-cols-3 bg-[#d4d4d4] px-12 py-3 font-semibold">
@@ -318,8 +420,15 @@ const model = same ? { ...listItem, ...detailed } : (listItem ?? detailed ?? {})
                 const rowDate = getRowDate(s);
 
                 return (
-                  <div key={key} className="grid grid-cols-3 items-center px-6 py-3 bg-[#EBEBEB]">
-                    <img src={icon} alt={colorKey || "COLOR"} className="w-8 h-8 ml-4" />
+                  <div
+                    key={key}
+                    className="grid grid-cols-3 items-center px-6 py-3 bg-[#EBEBEB]"
+                  >
+                    <img
+                      src={icon}
+                      alt={colorKey || "COLOR"}
+                      className="w-8 h-8 ml-4"
+                    />
                     <div className="px-2">{emotionLabel(e)}</div>
 
                     <div
@@ -329,7 +438,8 @@ const model = same ? { ...listItem, ...detailed } : (listItem ?? detailed ?? {})
                       aria-label="해당 날짜 일기장으로 이동"
                       onClick={() => goCalendarWith(rowDate)}
                       onKeyDown={(ev) => {
-                        if (ev.key === "Enter" || ev.key === " ") goCalendarWith(rowDate);
+                        if (ev.key === "Enter" || ev.key === " ")
+                          goCalendarWith(rowDate);
                       }}
                     >
                       {formatKDate(rowDate)}
@@ -347,6 +457,35 @@ const model = same ? { ...listItem, ...detailed } : (listItem ?? detailed ?? {})
           </div>
         </div>
       </div>
+
+      {/* 별자리 이름/설명 수정 모달 */}
+      <ConstellationModal
+        open={editOpen && !!editInitial}
+        onClose={() => setEditOpen(false)}
+        mode="edit"
+        initial={editInitial || {}}
+        stars={editStars}
+        colorImageMap={colorIconMap}
+        onSubmit={async ({ id, name, description }) => {
+          try {
+            await updateConstellation(id, { name, description });
+
+            onUpdated?.({ id, name, description });
+
+         
+           setLocalPatched({ name, description });
+       
+           setEditInitial((prev) =>
+             prev ? { ...prev, name, description } : prev
+           );
+          } catch (e) {
+            console.error("별자리 수정 실패:", e);
+            alert("별자리 수정 중 오류가 발생했어요.");
+          } finally {
+            setEditOpen(false);
+          }
+        }}
+      />
     </div>
   );
 }
