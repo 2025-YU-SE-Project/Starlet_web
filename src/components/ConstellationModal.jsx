@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-
 import backgroundImg from "../assets/background.png";
 
 const MIN_NODES = 7;
@@ -13,7 +12,10 @@ const ConstellationModal = ({
   initial,
   stars = [],
   colorImageMap = {},
+  mode = "create",
 }) => {
+  const isEdit = mode === "edit";
+
   const [step, setStep] = useState(1);
   const [name, setName] = useState(initial?.name ?? "");
   const [desc, setDesc] = useState(initial?.desc ?? "");
@@ -36,9 +38,10 @@ const ConstellationModal = ({
   useEffect(() => {
     if (!open) return;
 
-    setStep(1);
+  
+    setStep(isEdit ? 2 : 1);
     setName(initial?.name ?? "");
-    setDesc(initial?.desc ?? "");
+    setDesc(initial?.desc ?? initial?.description ?? "");
     setWarn("");
 
     const init = {};
@@ -57,7 +60,7 @@ const ConstellationModal = ({
     return () => {
       document.body.style.overflow = "";
     };
-  }, [open, initial, stars]);
+  }, [open, initial, stars, isEdit]);
 
   useEffect(() => {
     return () => {
@@ -67,7 +70,8 @@ const ConstellationModal = ({
   }, []);
 
   const onPointerDownStar = (e, id) => {
-    if (step !== 1) return;
+    // 생성 1단계에서만 드래그 가능
+    if (isEdit || step !== 1) return;
     e.preventDefault();
     e.stopPropagation();
     setWarn("");
@@ -78,7 +82,7 @@ const ConstellationModal = ({
   };
 
   const onPointerMove = (e) => {
-    if (!dragIdRef.current || !panelRef.current || step !== 1) return;
+    if (!dragIdRef.current || !panelRef.current || isEdit || step !== 1) return;
     e.preventDefault();
 
     const { x, y } = toRel(e.clientX, e.clientY);
@@ -116,7 +120,8 @@ const ConstellationModal = ({
   };
 
   const onClickStar = (id) => {
-    if (step !== 1) return;
+    // 생성 1단계에서만 연결 가능
+    if (isEdit || step !== 1) return;
 
     if (!selectedStar) {
       setSelectedStar(id);
@@ -162,19 +167,77 @@ const ConstellationModal = ({
   const finish = () => {
     if (!canFinish) return;
 
+    const trimmedName = name.trim();
+    const trimmedDesc = desc.trim();
     const createdAt =
       initial?.constellationCreatedAt || new Date().toISOString();
 
+    if (isEdit) {
+      const id = initial?.constellationId ?? initial?.id;
+      if (!id) {
+        console.warn("수정 모드인데 id가 없습니다.");
+        return;
+      }
+      onSubmit?.({
+        id,
+        name: trimmedName,
+        description: trimmedDesc,
+      });
+      return;
+    }
+
     onSubmit?.({
-      name: name.trim(),
-      desc: desc.trim(),
+      name: trimmedName,
+      desc: trimmedDesc,
       lines: edges,
       starPositions,
       constellationCreatedAt: createdAt,
     });
   };
 
-  if (!open) return null;
+ if (!open) return null;
+
+
+  const interactive = !isEdit && step === 1;
+
+
+  let renderPositions = starPositions;
+
+  if (!interactive) {
+    const ids = Object.keys(starPositions);
+    if (ids.length > 0) {
+      let minX = 1, maxX = 0, minY = 1, maxY = 0;
+
+      ids.forEach((id) => {
+        const p = starPositions[id];
+        if (!p) return;
+        minX = Math.min(minX, p.x);
+        maxX = Math.max(maxX, p.x);
+        minY = Math.min(minY, p.y);
+        maxY = Math.max(maxY, p.y);
+      });
+
+      const spanX = Math.max(maxX - minX, 0.001);
+      const spanY = Math.max(maxY - minY, 0.001);
+      const margin = 0.12;
+
+      const scaled = {};
+      ids.forEach((id) => {
+        const p = starPositions[id];
+        if (!p) return;
+
+        const nx = (p.x - minX) / spanX;
+        const ny = (p.y - minY) / spanY;
+
+        scaled[id] = {
+          x: margin + nx * (1 - margin * 2),
+          y: margin + ny * (1 - margin * 2),
+        };
+      });
+
+      renderPositions = scaled;
+    }
+  }
 
   return (
     <div
@@ -196,6 +259,7 @@ const ConstellationModal = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
+ 
         <div
           className="flex items-center justify-between px-7 h-[64px] rounded-t-[26px]"
           style={{
@@ -205,7 +269,7 @@ const ConstellationModal = ({
         >
           <button
             onClick={() => {
-              if (step === 1) onClose?.();
+              if (isEdit || step === 1) onClose?.();
               else {
                 setStep(1);
                 setWarn("");
@@ -214,14 +278,14 @@ const ConstellationModal = ({
             }}
             className="text-[24px] text-black/70 hover:text-black leading-none"
           >
-            {step === 1 ? "×" : "←"}
+            {isEdit ? "×" : step === 1 ? "×" : "←"}
           </button>
 
           <div className="text-[20px] font-semibold text-black">
-            별자리 생성
+            {isEdit ? "별자리 수정" : "별자리 생성"}
           </div>
 
-          {step === 1 ? (
+          {step === 1 && !isEdit ? (
             <button
               onClick={goNext}
               className="text-[15px] font-semibold text-[#111827]"
@@ -233,9 +297,7 @@ const ConstellationModal = ({
               onClick={finish}
               disabled={!canFinish}
               className={`text-[15px] font-semibold ${
-                canFinish
-                  ? "text-[#111827]"
-                  : "text-black/30 cursor-not-allowed"
+                canFinish ? "text-[#111827]" : "text-black/30 cursor-not-allowed"
               }`}
             >
               완료
@@ -243,14 +305,16 @@ const ConstellationModal = ({
           )}
         </div>
 
+
         <div className="flex flex-col items-center px-10 py-6 gap-4">
-          {step === 1 && (
+          {!isEdit && step === 1 && (
             <p className="text-[13px] text-black/60">
               *별을 끌어 이동하고, 서로 연결하여 별자리를 완성해보세요
             </p>
           )}
 
           <div className="flex flex-col items-center gap-5">
+         
             <div
               ref={panelRef}
               className="relative w-[440px] max-w-full aspect-square rounded-[26px] overflow-hidden"
@@ -261,69 +325,73 @@ const ConstellationModal = ({
                 border: "1px solid rgba(0,0,0,0.12)",
               }}
             >
-              <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                {edges.map(([a, b], idx) => {
-                  const pa = starPositions[a];
-                  const pb = starPositions[b];
-                  if (!pa || !pb) return null;
+             <svg className="absolute inset-0 w-full h-full pointer-events-none">
+  {edges.map(([a, b], idx) => {
+    const pa = renderPositions[a];  
+    const pb = renderPositions[b];
+    if (!pa || !pb) return null;
 
-                  return (
-                    <line
-                      key={idx}
-                      x1={`${pa.x * 100}%`}
-                      y1={`${pa.y * 100}%`}
-                      x2={`${pb.x * 100}%`}
-                      y2={`${pb.y * 100}%`}
-                      stroke="#ffffff"
-                      strokeOpacity="0.95"
-                      strokeWidth="2.2"
-                      strokeLinecap="round"
-                    />
-                  );
-                })}
-              </svg>
+    return (
+      <line
+        key={idx}
+        x1={`${pa.x * 100}%`}
+        y1={`${pa.y * 100}%`}
+        x2={`${pb.x * 100}%`}
+        y2={`${pb.y * 100}%`}
+        stroke="#ffffff"
+        strokeOpacity="0.95"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+    );
+  })}
+</svg>
 
-              {stars.map((s) => {
-                const p = starPositions[s.id];
-                if (!p) return null;
+{stars.map((s) => {
+  const p = renderPositions[s.id];   
+  if (!p) return null;
 
-                const imgSrc = colorImageMap[s.color];
-                if (!imgSrc) return null;
+  const imgSrc = colorImageMap[s.color];
+  if (!imgSrc) return null;
 
-                const isSelected = step === 1 && selectedStar === s.id;
+  const isSelected = interactive && selectedStar === s.id;
 
-                return (
-                  <img
-                    key={s.id}
-                    src={imgSrc}
-                    alt={s.color}
-                    draggable={false}
-                    onPointerDown={(e) => onPointerDownStar(e, s.id)}
-                    onClick={() => onClickStar(s.id)}
-                    style={{
-                      position: "absolute",
-                      left: `${p.x * 100}%`,
-                      top: `${p.y * 100}%`,
-                      transform: "translate(-50%, -50%)",
-                      width: 22,
-                      height: 22,
-                      userSelect: "none",
-                      touchAction: "none",
-                      cursor: step === 1 ? "grab" : "default",
-                      filter: isSelected
-                        ? "drop-shadow(0 0 8px rgba(255,255,255,0.9))"
-                        : "none",
-                      animation: isSelected
-                        ? "twinkleStar 0.9s ease-in-out infinite alternate"
-                        : "none",
-                      pointerEvents: step === 1 ? "auto" : "none",
-                    }}
-                  />
-                );
-              })}
+  return (
+    <img
+      key={s.id}
+      src={imgSrc}
+      alt={s.color}
+      draggable={false}
+      onPointerDown={
+        interactive ? (e) => onPointerDownStar(e, s.id) : undefined
+      }
+      onClick={interactive ? () => onClickStar(s.id) : undefined}
+      style={{
+        position: "absolute",
+        left: `${p.x * 100}%`,
+        top: `${p.y * 100}%`,
+        transform: "translate(-50%, -50%)",
+        width: 22,
+        height: 22,
+        userSelect: "none",
+        touchAction: "none",
+        cursor: interactive ? "grab" : "default",
+        filter: isSelected
+          ? "drop-shadow(0 0 8px rgba(255,255,255,0.9))"
+          : "none",
+        animation: isSelected
+          ? "twinkleStar 0.9s ease-in-out infinite alternate"
+          : "none",
+        pointerEvents: interactive ? "auto" : "none",
+      }}
+    />
+  );
+})}
+
             </div>
 
-            {step === 1 && (
+       
+            {interactive && (
               <div className="flex gap-3">
                 <button
                   onClick={clearLines}
@@ -351,6 +419,7 @@ const ConstellationModal = ({
               </div>
             )}
 
+    
             {step === 2 && (
               <div className="flex flex-col items-center w-full gap-4">
                 <h2 className="text-[17px] font-semibold text-black/80">
