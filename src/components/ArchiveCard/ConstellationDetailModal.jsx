@@ -339,7 +339,9 @@ const model = same ? { ...listItem, ...detailed } : (listItem ?? detailed ?? {})
               })}
 
               {(!stars || stars.length === 0) && (
-                <div className="px-6 py-8 text-neutral-500 text-sm">기록이 없습니다.</div>
+                <div className="px-6 py-8 text-neutral-500 text-sm">
+                  기록이 없습니다.
+                </div>
               )}
             </div>
           </div>
