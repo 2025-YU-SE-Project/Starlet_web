@@ -283,18 +283,35 @@ const model = same ? { ...listItem, ...detailed } : (listItem ?? detailed ?? {})
                 const iconSrc = colorIconMap[colorKey];
                 const cnt = counts[em.key] || 0;
                 return (
-                  <div key={em.key} className="flex items-center gap-3 ">
-                    <span className="w-32 text-xl">{em.label}</span>
-                    <div className="flex items-center">
-                      {Array.from({ length: Math.min(6, cnt) }).map((_, idx) => (
-                        <img key={idx} src={iconSrc} alt={`${em.label} (${colorKey})`} className="w-8 h-8" />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+    <div key={em.key} className="flex items-center justify-between">
+
+      <div className="flex items-center gap-3">
+        <span className="w-32 text-[18px]">{em.label}</span>
+        <div className="flex items-center">
+          {Array.from({ length: Math.min(6, cnt) }).map((_, idx) => (
+            <img
+              key={idx}
+              src={iconSrc}
+              alt={`${em.label} (${colorKey})`}
+              className="w-8 h-8"
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* 오른쪽: 수정 버튼 */}
+      {em.key === "CONFUSED" && (
+        <button className="flex items-center gap-1 text-[18px] text-[#808080]">
+          <span>수정</span> 
+          <span>✎</span>
+        </button>
+      )}
+    </div>
+  );
+})}
             </div>
           </div>
+          
         </div>
 
         <div className="bg-neutral-50" />
@@ -334,7 +351,11 @@ const model = same ? { ...listItem, ...detailed } : (listItem ?? detailed ?? {})
                     >
                       {formatKDate(rowDate)}
                     </div>
+
+                    
                   </div>
+
+                  
                 );
               })}
 
