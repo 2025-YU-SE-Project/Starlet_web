@@ -38,7 +38,6 @@ const ConstellationModal = ({
   useEffect(() => {
     if (!open) return;
 
-  
     setStep(isEdit ? 2 : 1);
     setName(initial?.name ?? "");
     setDesc(initial?.desc ?? initial?.description ?? "");
@@ -70,7 +69,7 @@ const ConstellationModal = ({
   }, []);
 
   const onPointerDownStar = (e, id) => {
-    // 생성 1단계에서만 드래그 가능
+능
     if (isEdit || step !== 1) return;
     e.preventDefault();
     e.stopPropagation();
@@ -120,7 +119,7 @@ const ConstellationModal = ({
   };
 
   const onClickStar = (id) => {
-    // 생성 1단계에서만 연결 가능
+
     if (isEdit || step !== 1) return;
 
     if (!selectedStar) {
@@ -195,19 +194,19 @@ const ConstellationModal = ({
     });
   };
 
- if (!open) return null;
+  if (!open) return null;
 
 
   const interactive = !isEdit && step === 1;
 
-
   let renderPositions = starPositions;
-
   if (!interactive) {
     const ids = Object.keys(starPositions);
     if (ids.length > 0) {
-      let minX = 1, maxX = 0, minY = 1, maxY = 0;
-
+      let minX = 1,
+        maxX = 0,
+        minY = 1,
+        maxY = 0;
       ids.forEach((id) => {
         const p = starPositions[id];
         if (!p) return;
@@ -225,16 +224,13 @@ const ConstellationModal = ({
       ids.forEach((id) => {
         const p = starPositions[id];
         if (!p) return;
-
         const nx = (p.x - minX) / spanX;
         const ny = (p.y - minY) / spanY;
-
         scaled[id] = {
           x: margin + nx * (1 - margin * 2),
           y: margin + ny * (1 - margin * 2),
         };
       });
-
       renderPositions = scaled;
     }
   }
@@ -259,7 +255,7 @@ const ConstellationModal = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
- 
+  
         <div
           className="flex items-center justify-between px-7 h-[64px] rounded-t-[26px]"
           style={{
@@ -297,7 +293,9 @@ const ConstellationModal = ({
               onClick={finish}
               disabled={!canFinish}
               className={`text-[15px] font-semibold ${
-                canFinish ? "text-[#111827]" : "text-black/30 cursor-not-allowed"
+                canFinish
+                  ? "text-[#111827]"
+                  : "text-black/30 cursor-not-allowed"
               }`}
             >
               완료
@@ -305,7 +303,7 @@ const ConstellationModal = ({
           )}
         </div>
 
-
+   
         <div className="flex flex-col items-center px-10 py-6 gap-4">
           {!isEdit && step === 1 && (
             <p className="text-[13px] text-black/60">
@@ -314,7 +312,7 @@ const ConstellationModal = ({
           )}
 
           <div className="flex flex-col items-center gap-5">
-         
+
             <div
               ref={panelRef}
               className="relative w-[440px] max-w-full aspect-square rounded-[26px] overflow-hidden"
@@ -325,72 +323,109 @@ const ConstellationModal = ({
                 border: "1px solid rgba(0,0,0,0.12)",
               }}
             >
-             <svg className="absolute inset-0 w-full h-full pointer-events-none">
-  {edges.map(([a, b], idx) => {
-    const pa = renderPositions[a];  
-    const pb = renderPositions[b];
-    if (!pa || !pb) return null;
+              <svg
+                viewBox="0 0 100 100"
+                width="100%"
+                height="100%"
+                className="block"
+              >
+                <defs>
+                  <filter id="star-glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur
+                      in="SourceGraphic"
+                      stdDeviation="2.5"
+                      result="b1"
+                    />
+                    <feGaussianBlur
+                      in="SourceGraphic"
+                      stdDeviation="2.0"
+                      result="b2"
+                    />
+                    <feMerge>
+                      <feMergeNode in="b1" />
+                      <feMergeNode in="b2" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
 
-    return (
-      <line
-        key={idx}
-        x1={`${pa.x * 100}%`}
-        y1={`${pa.y * 100}%`}
-        x2={`${pb.x * 100}%`}
-        y2={`${pb.y * 100}%`}
-        stroke="#ffffff"
-        strokeOpacity="0.95"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-      />
-    );
-  })}
-</svg>
 
-{stars.map((s) => {
-  const p = renderPositions[s.id];   
-  if (!p) return null;
+                <g className="[mix-blend-mode:screen]">
+                  {edges.map(([a, b], idx) => {
+                    const pa = renderPositions[a];
+                    const pb = renderPositions[b];
+                    if (!pa || !pb) return null;
+                    return (
+                      <line
+                        key={`${a}-${b}-${idx}`}
+                        x1={pa.x * 100}
+                        y1={pa.y * 100}
+                        x2={pb.x * 100}
+                        y2={pb.y * 100}
+                        stroke="#CBE1FF"
+                        strokeWidth="0.5"
+                        strokeOpacity="0.9"
+                      />
+                    );
+                  })}
+                </g>
 
-  const imgSrc = colorImageMap[s.color];
-  if (!imgSrc) return null;
+                {(stars || []).map((s, i) => {
+                  const p = renderPositions[s.id];
+                  if (!p) return null;
 
-  const isSelected = interactive && selectedStar === s.id;
+                  const colorKey = (s.color || "").toUpperCase();
+                  const icon = colorImageMap[colorKey];
+                  if (!icon) return null;
 
-  return (
-    <img
-      key={s.id}
-      src={imgSrc}
-      alt={s.color}
-      draggable={false}
-      onPointerDown={
-        interactive ? (e) => onPointerDownStar(e, s.id) : undefined
-      }
-      onClick={interactive ? () => onClickStar(s.id) : undefined}
-      style={{
-        position: "absolute",
-        left: `${p.x * 100}%`,
-        top: `${p.y * 100}%`,
-        transform: "translate(-50%, -50%)",
-        width: 22,
-        height: 22,
-        userSelect: "none",
-        touchAction: "none",
-        cursor: interactive ? "grab" : "default",
-        filter: isSelected
-          ? "drop-shadow(0 0 8px rgba(255,255,255,0.9))"
-          : "none",
-        animation: isSelected
-          ? "twinkleStar 0.9s ease-in-out infinite alternate"
-          : "none",
-        pointerEvents: interactive ? "auto" : "none",
-      }}
-    />
-  );
-})}
+                  const isSelected = interactive && selectedStar === s.id;
+                  const delayMs = `${((s.id ?? i) * 137) % 1200}ms`;
 
+                  return (
+                    <g key={s.id ?? i}>
+                      <image 
+                        href={icon}
+                        x={p.x * 100 - 3} // 애니매이션 효과 조정 
+                        y={p.y * 100 - 3}
+                        width={6}
+                        height={6}
+                        filter="url(#star-glow)"
+                        className="animate-pulse [animation-duration:900ms]"
+                        style={{
+                          animationDelay: delayMs,
+                          transformOrigin: "center",
+                          transformBox: "fill-box",
+                          cursor: interactive ? "grab" : "default",
+                          pointerEvents: interactive ? "auto" : "none",
+                        }}
+                        onPointerDown={
+                          interactive
+                            ? (e) => onPointerDownStar(e, s.id)
+                            : undefined
+                        }
+                        onClick={
+                          interactive ? () => onClickStar(s.id) : undefined
+                        }
+                      />
+                   
+                      <circle
+                        cx={p.x * 100}
+                        cy={p.y * 100}
+                        r={0.5}
+                        fill="#ffffff"
+                        style={{
+                          filter: isSelected
+                            ? "drop-shadow(0 0 8px rgba(25,255,255,0.9))"
+                            : "none",
+                        }}
+                      />
+                    </g>
+                  );
+                })}
+              </svg>
             </div>
 
-       
+         
             {interactive && (
               <div className="flex gap-3">
                 <button
@@ -419,7 +454,6 @@ const ConstellationModal = ({
               </div>
             )}
 
-    
             {step === 2 && (
               <div className="flex flex-col items-center w-full gap-4">
                 <h2 className="text-[17px] font-semibold text-black/80">
