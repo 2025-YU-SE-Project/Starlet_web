@@ -53,21 +53,20 @@ const Signup = () => {
    confirmByStatus();
   }, [verifiedFlag, email]);
 
-  const handleNicknameCheck = async () => {
-    const v = nickname.trim();
-    if (!v) {
-      setNicknameMsg("닉네임을 입력해주세요.");
-      return;
-    }
-    try {
-      const result = await nicknameCheckApi(v);
-      setNicknameMsg(result?.available ? "사용 가능한 닉네임입니다." : "중복된 닉네임입니다.");
-    } catch (err) {
-      console.error("닉네임 중복 확인 오류:", err);
-      setNicknameMsg("닉네임 확인 오류가 발생했습니다.");
-    }
-  };
-
+ const handleNicknameCheck = async () => {
+  const v = nickname.trim();
+  if (!v) {
+    setNicknameMsg("닉네임을 입력해주세요.");
+    return;
+  }
+  try {
+    const result = await nicknameCheckApi(v);
+    setNicknameMsg(result.message);
+  } catch (err) {
+    console.error("닉네임 중복/유해성 확인 오류:", err);
+    setNicknameMsg("닉네임 확인 오류가 발생했습니다.");
+  }
+};
   const handleEmailCheck = async () => {
     const v = email.trim();
     if (!v) {
