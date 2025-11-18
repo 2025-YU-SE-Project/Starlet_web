@@ -5,6 +5,11 @@ const MIN_NODES = 7;
 const MAX_NODES = 14;
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
+
+const INNER_MARGIN = 0.03;
+const clampInner = (v) =>
+  Math.max(INNER_MARGIN, Math.min(1 - INNER_MARGIN, v));
+
 const ConstellationModal = ({
   open,
   onClose,
@@ -27,14 +32,17 @@ const ConstellationModal = ({
   const panelRef = useRef(null);
   const dragIdRef = useRef(null);
 
-  // 별자리 생성 모달창일때만 별이동 가능하도록
+ 
   const interactive = !isEdit && step === 1;
+
 
   const toRel = (clientX, clientY) => {
     const r = panelRef.current.getBoundingClientRect();
+    const rawX = (clientX - r.left) / r.width;
+    const rawY = (clientY - r.top) / r.height;
     return {
-      x: clamp01((clientX - r.left) / r.width),
-      y: clamp01((clientY - r.top) / r.height),
+      x: clampInner(rawX),
+      y: clampInner(rawY),
     };
   };
 
@@ -49,8 +57,8 @@ const ConstellationModal = ({
     const init = {};
     (stars || []).forEach((s) => {
       init[s.id] = {
-        x: typeof s.x === "number" ? clamp01(s.x) : 0.5,
-        y: typeof s.y === "number" ? clamp01(s.y) : 0.5,
+        x: typeof s.x === "number" ? clampInner(s.x) : 0.5,
+        y: typeof s.y === "number" ? clampInner(s.y) : 0.5,
       };
     });
 
@@ -62,8 +70,8 @@ const ConstellationModal = ({
     return () => {
       document.body.style.overflow = "";
     };
-  }, [open, initial, stars, isEdit]);
-
+  
+  }, [open, isEdit]);
 
   const onPointerMove = useCallback(
     (e) => {
@@ -81,7 +89,6 @@ const ConstellationModal = ({
     [interactive]
   );
 
- 
   const onPointerUp = useCallback(() => {
     dragIdRef.current = null;
     window.removeEventListener("pointermove", onPointerMove);
@@ -98,7 +105,6 @@ const ConstellationModal = ({
     window.addEventListener("pointermove", onPointerMove, { passive: false });
     window.addEventListener("pointerup", onPointerUp, { passive: true });
   };
-
 
   useEffect(() => {
     return () => {
@@ -192,6 +198,7 @@ const ConstellationModal = ({
         name: trimmedName,
         description: trimmedDesc,
       });
+      onClose?.(); 
       return;
     }
 
@@ -202,11 +209,11 @@ const ConstellationModal = ({
       starPositions,
       constellationCreatedAt: createdAt,
     });
+    onClose?.(); 
   };
 
   if (!open) return null;
 
-  // step2, edit 모드에서는 별 위치를 보기 좋게 재스케일
   let renderPositions = starPositions;
   if (!interactive) {
     const ids = Object.keys(starPositions);
