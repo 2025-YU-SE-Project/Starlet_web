@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import backgroundImg from "../assets/background.png";
+import { normalizeStars } from "../lib/normalize"; 
 
 const MIN_NODES = 7;
 const MAX_NODES = 14;
@@ -214,41 +215,77 @@ const ConstellationModal = ({
 
   if (!open) return null;
 
-  let renderPositions = starPositions;
-  if (!interactive) {
-    const ids = Object.keys(starPositions);
-    if (ids.length > 0) {
-      let minX = 1,
-        maxX = 0,
-        minY = 1,
-        maxY = 0;
-      ids.forEach((id) => {
-        const p = starPositions[id];
-        if (!p) return;
-        minX = Math.min(minX, p.x);
-        maxX = Math.max(maxX, p.x);
-        minY = Math.min(minY, p.y);
-        maxY = Math.max(maxY, p.y);
-      });
 
-      const spanX = Math.max(maxX - minX, 0.001);
-      const spanY = Math.max(maxY - minY, 0.001);
-      const margin = 0.12;
 
-      const scaled = {};
-      ids.forEach((id) => {
-        const p = starPositions[id];
-        if (!p) return;
-        const nx = (p.x - minX) / spanX;
-        const ny = (p.y - minY) / spanY;
-        scaled[id] = {
-          x: margin + nx * (1 - margin * 2),
-          y: margin + ny * (1 - margin * 2),
-        };
-      });
-      renderPositions = scaled;
-    }
+ let renderPositions = starPositions;
+
+
+if (isEdit) {
+  const ns = normalizeStars(
+    (stars || []).map((s) => ({
+  
+      ...s,
+      starId: s.id ?? s.starId,
+    })),
+    { w: 100, h: 100, pad: 8 } 
+  );
+
+  const pos = {};
+  ns.forEach((s) => {
+    const key = s.starId ?? s.id;
+
+    pos[key] = {
+      x: s._nx / 100,
+      y: s._ny / 100,
+    };
+  });
+
+  renderPositions = pos;
+}
+
+else if (!interactive) {
+  const ids = Object.keys(starPositions);
+  if (ids.length > 0) {
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+
+    ids.forEach((id) => {
+      const p = starPositions[id];
+      if (!p) return;
+      minX = Math.min(minX, p.x);
+      maxX = Math.max(maxX, p.x);
+      minY = Math.min(minY, p.y);
+      maxY = Math.max(maxY, p.y);
+    });
+
+    const spanX = Math.max(maxX - minX, 0.001);
+    const spanY = Math.max(maxY - minY, 0.001);
+
+    const padding = 0.08;
+    const innerW = 1 - padding * 2;
+    const innerH = 1 - padding * 2;
+    const scale = Math.min(innerW / spanX, innerH / spanY);
+
+    const offsetX = (1 - scale * spanX) / 2;
+    const offsetY = (1 - scale * spanY) / 2;
+
+    const scaled = {};
+    ids.forEach((id) => {
+      const p = starPositions[id];
+      if (!p) return;
+      scaled[id] = {
+        x: offsetX + (p.x - minX) * scale,
+        y: offsetY + (p.y - minY) * scale,
+      };
+    });
+
+    renderPositions = scaled;
   }
+}
+
+
 
   return (
     <div
