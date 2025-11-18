@@ -129,7 +129,7 @@ const StarArchive = () => {
   const currentItems = archivesState?.slice(startIndex, startIndex + pageSize) || [];
 
   return (
-    <div className=" flex flex-col overflow-hidden text-white ">
+   <div className="flex flex-col min-h-screen overflow-hidden text-white">
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       {isOpen && (
         <div className="fixed inset-0 z-40" aria-hidden="true" onClick={() => setIsOpen(false)} />
@@ -173,27 +173,32 @@ const StarArchive = () => {
         )}
       </div>
 
-      {!!archivesState && archivesState.length > 0 && (
-        <div className="flex justify-center items-center text-2xl select-none mb-8">
-          <button
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className={`mx-4 ${currentPage === 1 ? "opacity-50" : "hover:text-blue-300"}`}
-          >
-            {"<"}
-          </button>
-          <span>
-            {currentPage} / {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className={`mx-4 ${currentPage === totalPages ? "opacity-50d" : "hover:text-blue-300"}`}
-          >
-            {">"}
-          </button>
-        </div>
-      )}
+     {!!archivesState && archivesState.length > 0 && (
+  <div className="flex justify-center items-center text-2xl select-none mb-8 mt-auto">
+    <button
+      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+      disabled={currentPage === 1}
+      className={`mx-4 ${
+        currentPage === 1 ? "opacity-50" : "hover:text-blue-300"
+      }`}
+    >
+      {"<"}
+    </button>
+    <span>
+      {currentPage} / {totalPages}
+    </span>
+    <button
+      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+      disabled={currentPage === totalPages}
+      className={`mx-4 ${
+        currentPage === totalPages ? "opacity-50" : "hover:text-blue-300"
+      }`}
+    >
+      {">"}
+    </button>
+  </div>
+)}
+
 
     <ConstellationDetailModal
   open={openDetail}
