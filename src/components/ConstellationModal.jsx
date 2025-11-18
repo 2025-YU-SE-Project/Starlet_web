@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import backgroundImg from "../assets/background.png";
 
 const MIN_NODES = 7;
@@ -26,6 +26,9 @@ const ConstellationModal = ({
 
   const panelRef = useRef(null);
   const dragIdRef = useRef(null);
+
+  // 별자리 생성 모달창일때만 별이동 가능하도록
+  const interactive = !isEdit && step === 1;
 
   const toRel = (clientX, clientY) => {
     const r = panelRef.current.getBoundingClientRect();
@@ -61,16 +64,32 @@ const ConstellationModal = ({
     };
   }, [open, initial, stars, isEdit]);
 
-  useEffect(() => {
-    return () => {
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
-    };
-  }, []);
+
+  const onPointerMove = useCallback(
+    (e) => {
+      if (!dragIdRef.current || !panelRef.current || !interactive) return;
+      e.preventDefault();
+
+      const { x, y } = toRel(e.clientX, e.clientY);
+      const id = dragIdRef.current;
+
+      setStarPositions((prev) => ({
+        ...prev,
+        [id]: { x, y },
+      }));
+    },
+    [interactive]
+  );
+
+ 
+  const onPointerUp = useCallback(() => {
+    dragIdRef.current = null;
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+  }, [onPointerMove]);
 
   const onPointerDownStar = (e, id) => {
-능
-    if (isEdit || step !== 1) return;
+    if (!interactive) return;
     e.preventDefault();
     e.stopPropagation();
     setWarn("");
@@ -80,21 +99,13 @@ const ConstellationModal = ({
     window.addEventListener("pointerup", onPointerUp, { passive: true });
   };
 
-  const onPointerMove = (e) => {
-    if (!dragIdRef.current || !panelRef.current || isEdit || step !== 1) return;
-    e.preventDefault();
 
-    const { x, y } = toRel(e.clientX, e.clientY);
-    const id = dragIdRef.current;
-
-    setStarPositions((prev) => ({ ...prev, [id]: { x, y } }));
-  };
-
-  const onPointerUp = () => {
-    dragIdRef.current = null;
-    window.removeEventListener("pointermove", onPointerMove);
-    window.removeEventListener("pointerup", onPointerUp);
-  };
+  useEffect(() => {
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+    };
+  }, [onPointerMove, onPointerUp]);
 
   const addEdgeIfValid = (a, b) => {
     if (a === b) return;
@@ -119,8 +130,7 @@ const ConstellationModal = ({
   };
 
   const onClickStar = (id) => {
-
-    if (isEdit || step !== 1) return;
+    if (!interactive) return;
 
     if (!selectedStar) {
       setSelectedStar(id);
@@ -196,9 +206,7 @@ const ConstellationModal = ({
 
   if (!open) return null;
 
-
-  const interactive = !isEdit && step === 1;
-
+  // step2, edit 모드에서는 별 위치를 보기 좋게 재스케일
   let renderPositions = starPositions;
   if (!interactive) {
     const ids = Object.keys(starPositions);
@@ -255,7 +263,6 @@ const ConstellationModal = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-  
         <div
           className="flex items-center justify-between px-7 h-[64px] rounded-t-[26px]"
           style={{
@@ -303,7 +310,6 @@ const ConstellationModal = ({
           )}
         </div>
 
-   
         <div className="flex flex-col items-center px-10 py-6 gap-4">
           {!isEdit && step === 1 && (
             <p className="text-[13px] text-black/60">
@@ -312,7 +318,6 @@ const ConstellationModal = ({
           )}
 
           <div className="flex flex-col items-center gap-5">
-
             <div
               ref={panelRef}
               className="relative w-[440px] max-w-full aspect-square rounded-[26px] overflow-hidden"
@@ -330,7 +335,13 @@ const ConstellationModal = ({
                 className="block"
               >
                 <defs>
-                  <filter id="star-glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <filter
+                    id="star-glow"
+                    x="-50%"
+                    y="-50%"
+                    width="200%"
+                    height="200%"
+                  >
                     <feGaussianBlur
                       in="SourceGraphic"
                       stdDeviation="2.5"
@@ -348,7 +359,6 @@ const ConstellationModal = ({
                     </feMerge>
                   </filter>
                 </defs>
-
 
                 <g className="[mix-blend-mode:screen]">
                   {edges.map(([a, b], idx) => {
@@ -383,9 +393,9 @@ const ConstellationModal = ({
 
                   return (
                     <g key={s.id ?? i}>
-                      <image 
+                      <image
                         href={icon}
-                        x={p.x * 100 - 3} // 애니매이션 효과 조정 
+                        x={p.x * 100 - 3}
                         y={p.y * 100 - 3}
                         width={6}
                         height={6}
@@ -407,7 +417,7 @@ const ConstellationModal = ({
                           interactive ? () => onClickStar(s.id) : undefined
                         }
                       />
-                   
+
                       <circle
                         cx={p.x * 100}
                         cy={p.y * 100}
@@ -425,7 +435,6 @@ const ConstellationModal = ({
               </svg>
             </div>
 
-         
             {interactive && (
               <div className="flex gap-3">
                 <button
