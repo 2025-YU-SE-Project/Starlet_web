@@ -65,6 +65,7 @@ function DiaryModal({
   const tagsBoxRef = useRef(null);
   const navigate = useNavigate();
   const parsed = parseDate(dateStr);
+  const displayName = userName || "사용자";
 
   useEffect(() => {
     if (open) {
@@ -153,8 +154,8 @@ function DiaryModal({
               </button>
             )}
             <div className="text-xl font-semibold">
-              <span className="text-[#4F4F4F]">Mins</span>{" "}
-              <span className="text-[#939393]">Diary</span>
+              <span className="text-[#4F4F4F]">{displayName}</span>{" "}
+              <span className="text-[#939393]">의 Diary</span>
             </div>
             <button
               onClick={handleClickDone}

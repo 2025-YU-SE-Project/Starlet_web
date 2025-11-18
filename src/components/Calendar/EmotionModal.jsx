@@ -37,9 +37,11 @@ function EmotionModal({
   selectedDate,
   onClose,
   onPick,
+  userName = "",
 }) {
   const [emotion, setEmotion] = useState(initialEmotion);
   const [tags, setTags] = useState(initialTags);
+  const displayName = userName || "사용자";
 
   const formattedDate = useMemo(() => {
     if (!selectedDate) return "";
@@ -108,8 +110,8 @@ function EmotionModal({
         >
           <div className="relative h-14 bg-[#D9D9D9] flex items-center justify-center">
             <div className="text-xl font-semibold text-[#3B3B3B]">
-              <span className="text-[#4F4F4F]">Mins</span>{" "}
-              <span className="text-[#939393]">Diary</span>
+              <span className="text-[#4F4F4F]">{displayName}</span>{" "}
+              <span className="text-[#939393]">의 Diary</span>
             </div>
             <button
               onClick={handleNext}

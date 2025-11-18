@@ -17,11 +17,27 @@ import imgPurple from "../assets/emotions/purple.png";
 import imgYellow from "../assets/emotions/yellow.png";
 
 const MONTH_NAMES = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 const WEEKDAY_NAMES = [
-  "Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday",
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
 ];
 
 const COLOR_IMAGE = {
@@ -293,7 +309,6 @@ function Calendar() {
     }
   };
 
-
   useEffect(() => {
     const search = new URLSearchParams(location.search);
     const qDate = search.get("date"); // yyyy-mm-dd
@@ -302,7 +317,6 @@ function Calendar() {
     const d = parseISODate(qDate);
     if (!d) return;
 
- 
     setViewDate(new Date(d.getFullYear(), d.getMonth(), 1));
 
     setTimeout(() => {
@@ -418,6 +432,7 @@ function Calendar() {
         selectedDate={selectedDate}
         onClose={() => setIsEmotionOpen(false)}
         onPick={handlePickEmotion}
+        userName={userName}
       />
 
       <DiaryModal
