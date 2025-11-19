@@ -21,12 +21,12 @@ const getStars = async (year, month) => {
       throw new Error(serverMsg || "토큰이 없거나 만료되었습니다.");
     }
     if (err.response) {
-      throw new Error(serverMsg || `오류 발생 (status: ${status})`);
+      throw new Error(serverMsg || `오류 발생 (error ${status})`);
     }
     if (err.request) {
       throw new Error("서버로부터 응답이 없습니다.");
     }
-    throw new Error("요청 중 알 수 없는 오류가 발생했습니다.");
+    throw new Error("알 수 없는 오류가 발생했습니다.");
   }
 };
 

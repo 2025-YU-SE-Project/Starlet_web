@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { CiMenuBurger } from "react-icons/ci";
 import Sidebar from "../components/Sidebar";
 import profileImg from "../assets/MyPage/profile.png";
 import ProfileEdit from "../components/MyPage/ProfileEdit";
 import getLevel from "../apis/MyPage/getLevel";
+import getUser from "../apis/MyPage/getUser";
 
 function MyPage() {
   const [nickname, setNickname] = React.useState(
     () => sessionStorage.getItem("nickname") || "사용자"
   );
+
   const [isOpen, setIsOpen] = React.useState(false);
   const [isProfileEditOpen, setIsProfileEditOpen] = React.useState(false);
 
@@ -16,7 +18,11 @@ function MyPage() {
   const [levelLoading, setLevelLoading] = React.useState(false);
   const [levelError, setLevelError] = React.useState("");
 
-  React.useEffect(() => {
+  const [userData, setUserData] = React.useState(null);
+  const [userLoading, setUserLoading] = React.useState(false);
+  const [userError, setUserError] = React.useState("");
+
+  useEffect(() => {
     const fetchLevel = async () => {
       try {
         setLevelLoading(true);
@@ -33,6 +39,30 @@ function MyPage() {
     };
 
     fetchLevel();
+  }, []);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setUserLoading(true);
+        setUserError("");
+        const data = await getUser();
+        setUserData(data);
+
+        if (data?.nickname) {
+          setNickname(data.nickname);
+          sessionStorage.setItem("nickname", data.nickname);
+        }
+      } catch (e) {
+        setUserError(
+          e?.message || "사용자 정보를 불러오는 중 오류가 발생했습니다."
+        );
+      } finally {
+        setUserLoading(false);
+      }
+    };
+
+    fetchUser();
   }, []);
 
   const minStars = levelData?.min ?? 0;
@@ -60,6 +90,22 @@ function MyPage() {
   const isNearMax = levelData && progressPercent >= 95;
   const displayStarCount =
     currentLevelStars !== null ? currentLevelStars : null;
+
+  const levelName = levelData?.name || "";
+  const levelNameParts = levelName.split(" ");
+  const levelSuffix =
+    levelNameParts.length > 1 ? levelNameParts[levelNameParts.length - 1] : "";
+  const levelPrefix =
+    levelNameParts.length > 1
+      ? levelNameParts.slice(0, levelNameParts.length - 1).join(" ")
+      : levelName;
+
+  const totalStars = userLoading ? null : userData ? userData.totalStars : null;
+  const totalConstellations = userLoading
+    ? null
+    : userData
+    ? userData.totalConstellations
+    : null;
 
   return (
     <div className="relative w-full min-h-screen text-white">
@@ -90,8 +136,12 @@ function MyPage() {
 
             <div className="flex flex-col mt-[110px]">
               <span className="text-medium">
-                <span className="text-white font-semibold">별무리</span>
-                <span className="text-gray-300 font-medium ml-1">탐험가</span>
+                <span className="text-white font-semibold">{levelPrefix}</span>
+                {levelSuffix && (
+                  <span className="text-gray-300 font-medium ml-1">
+                    {levelSuffix}
+                  </span>
+                )}
               </span>
 
               <span className="text-3xl mt-1">
@@ -108,26 +158,31 @@ function MyPage() {
 
               <div className="mt-4 inline-flex items-center rounded-[12px] bg-white/30 backdrop-blur px-5 py-1 ml-[-5px]">
                 <div className="flex items-center gap-4 pr-5">
-                  <span className="text-[14px] text-white/90">기록된 별</span>
-                  <span className="text-[16px] font-bold text-white">
-                    {levelLoading
-                      ? "-"
-                      : displayStarCount !== null
-                      ? displayStarCount
-                      : "-"}
+                  <span className="text-[14px] text-white/80">기록된 별</span>
+                  <span className="text-[16px] font-semibold text-white">
+                    {userLoading ? "-" : totalStars !== null ? totalStars : "-"}
                   </span>
                 </div>
                 <div className="h-6 w-px bg-white/30" />
                 <div className="flex items-center gap-4 pl-4">
-                  <span className="text-[14px] text-white/90">
+                  <span className="text-[14px] text-white/80">
                     생성한 별자리
                   </span>
-                  <span className="text-[16px] font-bold text-white">7</span>
+                  <span className="text-[16px] font-semibold text-white">
+                    {userLoading
+                      ? "-"
+                      : totalConstellations !== null
+                      ? totalConstellations
+                      : "-"}
+                  </span>
                 </div>
               </div>
 
-              {levelError && (
-                <div className="mt-2 text-xs text-red-300">{levelError}</div>
+              {(levelError || userError) && (
+                <div className="mt-2 text-xs text-red-300 space-y-1">
+                  {levelError && <div>{levelError}</div>}
+                  {userError && <div>{userError}</div>}
+                </div>
               )}
             </div>
 
@@ -200,7 +255,6 @@ function MyPage() {
               <span>{levelData ? maxStars : "-"}</span>
             </div>
           </div>
-
           <div className="mt-13">
             <div className="w-full h-px bg-white/20" />
           </div>
