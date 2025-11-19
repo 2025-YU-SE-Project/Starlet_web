@@ -77,6 +77,15 @@ const TAG_TO_FACTOR = {
   기타: "ETC",
 };
 
+const COLOR_GLOW = {
+  RED: "bg-red-300/50",
+  ORANGE: "bg-orange-300/50",
+  YELLOW: "bg-yellow-300/50",
+  GREEN: "bg-green-300/50",
+  BLUE: "bg-blue-300/50",
+  PURPLE: "bg-purple-300/50",
+};
+
 function addMonths(date, delta) {
   const d = new Date(date);
   d.setMonth(d.getMonth() + delta);
@@ -311,7 +320,7 @@ function Calendar() {
 
   useEffect(() => {
     const search = new URLSearchParams(location.search);
-    const qDate = search.get("date"); // yyyy-mm-dd
+    const qDate = search.get("date");
     if (!qDate || didOpenFromQueryRef.current) return;
 
     const d = parseISODate(qDate);
@@ -400,15 +409,24 @@ function Calendar() {
                   {label}
                 </div>
                 {color && COLOR_IMAGE[color] && (
-                  <img
-                    src={COLOR_IMAGE[color]}
-                    alt=""
-                    className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
-                                w-8 h-8 md:w-10 md:h-10 ${
-                                  cell.inCurrentMonth ? "" : "opacity-40"
-                                }`}
-                    draggable={false}
-                  />
+                  <div
+                    className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+                flex items-center justify-center ${
+                  cell.inCurrentMonth ? "" : "opacity-40"
+                }`}
+                  >
+                    <div
+                      className={`w-8 h-8 md:w-10 md:h-10 rounded-full blur-md ${
+                        COLOR_GLOW[color] || "bg-white/40"
+                      }`}
+                    />
+                    <img
+                      src={COLOR_IMAGE[color]}
+                      alt=""
+                      className="absolute w-8 h-8 md:w-10 md:h-10"
+                      draggable={false}
+                    />
+                  </div>
                 )}
               </div>
             );
