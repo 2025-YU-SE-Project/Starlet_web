@@ -1,20 +1,25 @@
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { CiMenuBurger } from "react-icons/ci";
 import Sidebar from "../components/Sidebar";
 import EmotionModal from "../components/Calendar/EmotionModal";
 import DiaryModal from "../components/Calendar/DiaryModal";
+import DiarySummary from "../components/Calendar/DiarySummary";
+
 import { getAccessToken } from "../apis/api";
 import getStars from "../apis/Calendar/getStars";
 import getDiary from "../apis/Calendar/getDiary";
 import createDiary from "../apis/Calendar/createDiary";
 import editDiary from "../apis/Calendar/editDiary";
+import getDiarySummary from "../apis/Calendar/getDiarySummary";
+
 import imgBlue from "../assets/emotions/blue.png";
 import imgOrange from "../assets/emotions/orange.png";
 import imgRed from "../assets/emotions/red.png";
 import imgGreen from "../assets/emotions/green.png";
 import imgPurple from "../assets/emotions/purple.png";
 import imgYellow from "../assets/emotions/yellow.png";
+import summaryIcon from "../assets/emotions/summary.png";
 
 const MONTH_NAMES = [
   "January",
@@ -117,7 +122,6 @@ function Calendar() {
 
   const [stars, setStars] = useState({});
   const [entries, setEntries] = useState({});
-  const [msg, setMsg] = useState("");
 
   const [isEmotionOpen, setIsEmotionOpen] = useState(false);
   const [isDiaryOpen, setIsDiaryOpen] = useState(false);
@@ -125,6 +129,11 @@ function Calendar() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [pickedEmotion, setPickedEmotion] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
+
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+  const [summaryData, setSummaryData] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState("");
 
   const didOpenFromQueryRef = useRef(false);
 
@@ -334,6 +343,26 @@ function Calendar() {
     }, 0);
   }, [location.search]);
 
+  const handleOpenSummary = async () => {
+    const y = viewDate.getFullYear();
+    const m = viewDate.getMonth() + 1;
+
+    setIsSummaryOpen(true);
+    setSummaryLoading(true);
+    setSummaryError("");
+    setSummaryData(null);
+
+    try {
+      const data = await getDiarySummary(y, m);
+      setSummaryData(data);
+    } catch (e) {
+      if (e?.message) setSummaryError(e.message);
+      else setSummaryError("일기 요약을 불러오는 중 오류가 발생했습니다.");
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
 
@@ -347,13 +376,29 @@ function Calendar() {
           onClick={() => setIsOpen(false)}
         />
       )}
-      <button
-        className="ml-[1.81rem] mt-[2.13rem]"
-        onClick={() => setIsOpen(true)}
-        aria-label="open sidebar"
-      >
-        <CiMenuBurger className="cursor-pointer" size={30} />
-      </button>
+
+      <div className="w-full flex justify-between items-center px-6 mt-[2.13rem]">
+        <button
+          onClick={() => setIsOpen(true)}
+          aria-label="open sidebar"
+          className="cursor-pointer"
+        >
+          <CiMenuBurger size={30} />
+        </button>
+
+        <button
+          type="button"
+          onClick={handleOpenSummary}
+          className="cursor-pointer pr-2"
+        >
+          <img
+            src={summaryIcon}
+            alt="summary"
+            className="w-6 h-6 md:w-8 md:h-8"
+            draggable={false}
+          />
+        </button>
+      </div>
 
       <div className="w-[90%] max-w-5xl mx-auto mt-10 mb-5 flex flex-col items-center gap-6">
         <span className="text-[50px] font-julius">STAR CALENDAR</span>
@@ -385,7 +430,7 @@ function Calendar() {
         ))}
       </div>
 
-      <div className="w-[90%] max-w-5xl mx-auto rounded-[10px] border border-white overflow-hidden">
+      <div className="w-[90%] max-w-5xl mx-auto rounded-[10px] mb-7 border border-white overflow-hidden">
         <div className="grid grid-cols-7">
           {grid.map((cell, idx) => {
             const label = cell.date.getDate();
@@ -434,15 +479,6 @@ function Calendar() {
         </div>
       </div>
 
-      <div className="w-[90%] max-w-5xl mx-auto flex justify-start mt-4 mb-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="text-[20px] hover:underline hover:underline-offset-4 cursor-pointer ml-[0.6rem]"
-        >
-          {"<"} Back
-        </button>
-      </div>
-
       <EmotionModal
         open={isEmotionOpen}
         initialEmotion={pickedEmotion}
@@ -469,11 +505,15 @@ function Calendar() {
         }}
       />
 
-      {msg && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded">
-          {msg}
-        </div>
-      )}
+      <DiarySummary
+        open={isSummaryOpen}
+        onClose={() => setIsSummaryOpen(false)}
+        summary={summaryData}
+        loading={summaryLoading}
+        error={summaryError}
+        year={year}
+        month={month + 1}
+      />
     </div>
   );
 }
