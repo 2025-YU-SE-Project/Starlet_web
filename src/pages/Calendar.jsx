@@ -110,6 +110,14 @@ function parseISODate(iso) {
   const d = new Date(`${iso}T00:00:00`);
   return isNaN(d.getTime()) ? null : d;
 }
+function isToday(date) {
+  const today = new Date();
+  return (
+    date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate()
+  );
+}
 
 function Calendar() {
   const navigate = useNavigate();
@@ -134,6 +142,7 @@ function Calendar() {
   const [summaryData, setSummaryData] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState("");
+  const [msg, setMsg] = useState("");
 
   const didOpenFromQueryRef = useRef(false);
 
@@ -213,6 +222,12 @@ function Calendar() {
     })();
   }, [viewDate, navigate]);
 
+  useEffect(() => {
+    if (!msg) return;
+    const timer = setTimeout(() => setMsg(""), 2500);
+    return () => clearTimeout(timer);
+  }, [msg]);
+
   const openModalFor = async (dateObj) => {
     setSelectedDate(dateObj);
     const k = ymd(dateObj);
@@ -221,6 +236,11 @@ function Calendar() {
       const data = await getDiary(k);
 
       if (!data) {
+        if (!isToday(dateObj)) {
+          setMsg("일기 생성은 오늘 날짜에만 가능합니다.");
+          return;
+        }
+
         setPickedEmotion("");
         setSelectedTags([]);
         setIsEdit(false);
@@ -316,6 +336,7 @@ function Calendar() {
         }));
         await refreshStars();
         window.dispatchEvent(new Event("stars-updated"));
+        setMsg("일기 수정이 완료되었습니다.");
       } catch (e) {
         const status = e?.response?.status || e?.status;
         if (status === 401 || e?.message?.includes("토큰")) {
@@ -357,7 +378,7 @@ function Calendar() {
       setSummaryData(data);
     } catch (e) {
       if (e?.message) setSummaryError(e.message);
-      else setSummaryError("일기 요약을 불러오는 중 오류가 발생했습니다.");
+      else setSummaryError("일기 분석을 불러오는 중 오류가 발생했습니다.");
     } finally {
       setSummaryLoading(false);
     }
@@ -514,6 +535,12 @@ function Calendar() {
         year={year}
         month={month + 1}
       />
+
+      {msg && (
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-lg text-sm z-[999]">
+          {msg}
+        </div>
+      )}
     </div>
   );
 }

@@ -171,7 +171,7 @@ function EmotionModal({
                       key={e.id}
                       type="button"
                       onClick={() => setEmotion(e.id)}
-                      className="group w-[80px] flex flex-col items-center focus:outline-none"
+                      className="group w-[90px] flex flex-col items-center focus:outline-none"
                     >
                       <div
                         className={`flex items-center justify-center w-[60px] h-[60px] rounded-full transition ${
@@ -188,7 +188,7 @@ function EmotionModal({
                         />
                       </div>
                       <div
-                        className={` text-[13px] font-medium ${
+                        className={`text-[13px] font-medium whitespace-nowrap break-keep ${
                           active ? "text-black" : "text-black"
                         }`}
                       >
