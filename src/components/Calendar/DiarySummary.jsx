@@ -23,7 +23,7 @@ function DiarySummary({ open, onClose, summary, loading, error, year, month }) {
   return (
     <div className="fixed inset-0 z-[70]" onClick={onClose}>
       <div
-        className="absolute top-22 right-5"
+        className="absolute top-24 right-5"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-[360px] max-w-[90vw] rounded-[24px] bg-[#F4F4F4] text-[#333333] overflow-hidden flex flex-col">
