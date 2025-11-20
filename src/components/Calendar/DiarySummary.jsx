@@ -4,15 +4,7 @@ import { IoClose } from "react-icons/io5";
 function DiarySummary({ open, onClose, summary, loading, error, year, month }) {
   if (!open) return null;
 
-  const monthLabel = `${year}년 ${String(month).padStart(2, "0")}월`;
-
-  const apiMessage =
-    summary?.summary ??
-    summary?.message ??
-    summary?.content ??
-    summary?.text ??
-    summary?.overview ??
-    "";
+  const apiMessage = summary?.summary || summary?.message || "";
 
   const displayText = loading
     ? "이번 달 일기를 분석하는 중입니다..."
