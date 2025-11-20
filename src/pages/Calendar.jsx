@@ -407,17 +407,24 @@ function Calendar() {
           <CiMenuBurger size={30} />
         </button>
 
-        <button
-          type="button"
-          onClick={handleOpenSummary}
-          className="cursor-pointer pr-2"
-        >
-          <img
-            src={summaryIcon}
-            alt="summary"
-            className="w-6 h-6 md:w-8 md:h-8"
-            draggable={false}
-          />
+        <button type="button" onClick={handleOpenSummary} className="pr-2">
+          <div className="group relative flex items-center justify-center w-12 h-12 cursor-pointer">
+            <div
+              className={`absolute w-12 h-12 rounded-full bg-white/30 transition-all duration-200
+        ${
+          isSummaryOpen
+            ? "opacity-100 scale-100"
+            : "opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100"
+        }`}
+            />
+
+            <img
+              src={summaryIcon}
+              alt="summary"
+              className="relative w-6 h-6 md:w-8 md:h-8"
+              draggable={false}
+            />
+          </div>
         </button>
       </div>
 
