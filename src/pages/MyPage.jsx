@@ -1,15 +1,111 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { CiMenuBurger } from "react-icons/ci";
 import Sidebar from "../components/Sidebar";
 import profileImg from "../assets/MyPage/profile.png";
 import ProfileEdit from "../components/MyPage/ProfileEdit";
+import getLevel from "../apis/MyPage/getLevel";
+import getUser from "../apis/MyPage/getUser";
 
 function MyPage() {
   const [nickname, setNickname] = React.useState(
     () => sessionStorage.getItem("nickname") || "사용자"
   );
+
   const [isOpen, setIsOpen] = React.useState(false);
   const [isProfileEditOpen, setIsProfileEditOpen] = React.useState(false);
+
+  const [levelData, setLevelData] = React.useState(null);
+  const [levelLoading, setLevelLoading] = React.useState(false);
+  const [levelError, setLevelError] = React.useState("");
+
+  const [userData, setUserData] = React.useState(null);
+  const [userLoading, setUserLoading] = React.useState(false);
+  const [userError, setUserError] = React.useState("");
+
+  useEffect(() => {
+    const fetchLevel = async () => {
+      try {
+        setLevelLoading(true);
+        setLevelError("");
+        const data = await getLevel();
+        setLevelData(data);
+      } catch (e) {
+        setLevelError(
+          e?.message || "레벨 정보를 불러오는 중 오류가 발생했습니다."
+        );
+      } finally {
+        setLevelLoading(false);
+      }
+    };
+
+    fetchLevel();
+  }, []);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setUserLoading(true);
+        setUserError("");
+        const data = await getUser();
+        setUserData(data);
+
+        if (data?.nickname) {
+          setNickname(data.nickname);
+          sessionStorage.setItem("nickname", data.nickname);
+        }
+      } catch (e) {
+        setUserError(
+          e?.message || "사용자 정보를 불러오는 중 오류가 발생했습니다."
+        );
+      } finally {
+        setUserLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  const minStars = levelData?.min ?? 0;
+  const maxStars = levelData?.max ?? 0;
+  const progressToNext =
+    typeof levelData?.progressToNext === "number"
+      ? levelData.progressToNext
+      : null;
+
+  let currentLevelStars = null;
+  if (levelData && typeof progressToNext === "number") {
+    currentLevelStars = maxStars - progressToNext;
+    if (currentLevelStars < minStars) currentLevelStars = minStars;
+    if (currentLevelStars > maxStars) currentLevelStars = maxStars;
+  }
+
+  let progressPercent = 0;
+  if (levelData && currentLevelStars !== null && maxStars > minStars) {
+    progressPercent =
+      ((currentLevelStars - minStars) / (maxStars - minStars)) * 100;
+    if (progressPercent < 0) progressPercent = 0;
+    if (progressPercent > 100) progressPercent = 100;
+  }
+
+  const isNearMax = levelData && progressPercent >= 95;
+  const displayStarCount =
+    currentLevelStars !== null ? currentLevelStars : null;
+
+  const levelName = levelData?.name || "";
+  const levelNameParts = levelName.split(" ");
+  const levelSuffix =
+    levelNameParts.length > 1 ? levelNameParts[levelNameParts.length - 1] : "";
+  const levelPrefix =
+    levelNameParts.length > 1
+      ? levelNameParts.slice(0, levelNameParts.length - 1).join(" ")
+      : levelName;
+
+  const totalStars = userLoading ? null : userData ? userData.totalStars : null;
+  const totalConstellations = userLoading
+    ? null
+    : userData
+    ? userData.totalConstellations
+    : null;
 
   return (
     <div className="relative w-full min-h-screen text-white">
@@ -40,28 +136,54 @@ function MyPage() {
 
             <div className="flex flex-col mt-[110px]">
               <span className="text-medium">
-                <span className="text-white font-semibold">별무리</span>
-                <span className="text-gray-300 font-medium ml-1">탐험가</span>
+                <span className="text-white font-semibold">{levelPrefix}</span>
+                {levelSuffix && (
+                  <span className="text-gray-300 font-medium ml-1">
+                    {levelSuffix}
+                  </span>
+                )}
               </span>
 
               <span className="text-3xl mt-1">
                 <span className="text-white font-bold">{nickname}</span>
-                <span className="text-gray-300 font-medium ml-1">님</span>
+                <span className="text-gray-300 font-medium ml-1 mr-5">님</span>
+
+                <span className="text-white text-sm hover:underline hover:underline-offset-4 cursor-pointer">
+                  <span className="font-medium" style={{ color: "#54C65B" }}>
+                    10
+                  </span>
+                  명의 친구
+                </span>
               </span>
 
               <div className="mt-4 inline-flex items-center rounded-[12px] bg-white/30 backdrop-blur px-5 py-1 ml-[-5px]">
                 <div className="flex items-center gap-4 pr-5">
-                  <span className="text-[14px] text-white/90">기록된 별</span>
-                  <span className="text-[16px] font-bold text-white">27</span>
+                  <span className="text-[14px] text-white/80">기록된 별</span>
+                  <span className="text-[16px] font-semibold text-white">
+                    {userLoading ? "-" : totalStars !== null ? totalStars : "-"}
+                  </span>
                 </div>
                 <div className="h-6 w-px bg-white/30" />
                 <div className="flex items-center gap-4 pl-4">
-                  <span className="text-[14px] text-white/90">
+                  <span className="text-[14px] text-white/80">
                     생성한 별자리
                   </span>
-                  <span className="text-[16px] font-bold text-white">7</span>
+                  <span className="text-[16px] font-semibold text-white">
+                    {userLoading
+                      ? "-"
+                      : totalConstellations !== null
+                      ? totalConstellations
+                      : "-"}
+                  </span>
                 </div>
               </div>
+
+              {(levelError || userError) && (
+                <div className="mt-2 text-xs text-red-300 space-y-1">
+                  {levelError && <div>{levelError}</div>}
+                  {userError && <div>{userError}</div>}
+                </div>
+              )}
             </div>
 
             <button
@@ -83,23 +205,56 @@ function MyPage() {
         <div className="max-w-[1270px] mx-auto px-6">
           <div className="mt-10 relative">
             <div className="flex justify-end mb-1 pr-2 text-sm text-[#E5E5E5]">
-              <span className="opacity-90">다음 레벨까지 -2</span>
+              {levelLoading ? (
+                <span className="opacity-90">레벨 정보를 불러오는 중...</span>
+              ) : levelData ? (
+                <>
+                  {progressToNext !== null && progressToNext > 0 && (
+                    <span className="opacity-90">
+                      다음 레벨까지 -{progressToNext}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span className="opacity-90">
+                  레벨 정보를 불러오지 못했습니다.
+                </span>
+              )}
             </div>
+
             <div className="relative w-full h-10 rounded-[10px] bg-[#D9D9D9] overflow-hidden">
-              <div className="h-full bg-[#54C65B]" style={{ width: "72%" }} />
+              <div
+                className="h-full bg-[#54C65B] transition-all duration-500"
+                style={{
+                  width: `${levelData ? progressPercent : 0}%`,
+                }}
+              />
             </div>
+
             <div
-              className="absolute top-full -translate-x-1/2 inline-flex items-center bg-[#54C65B] text-white text-sm font-semibold px-3 py-1 rounded-full"
-              style={{ left: "72%" }}
+              className={`absolute -translate-x-1/2 inline-flex items-center bg-[#54C65B] text-white text-sm font-semibold px-3 py-1 rounded-full
+    ${isNearMax ? "top-[115%]" : "top-[90%]"}`}
+              style={{
+                left: isNearMax
+                  ? `calc(${progressPercent}% - 14px)`
+                  : `${progressPercent}%`,
+              }}
             >
-              ★ 27
+              <span className="whitespace-nowrap">
+                ★{" "}
+                {levelLoading
+                  ? "-"
+                  : displayStarCount !== null
+                  ? displayStarCount
+                  : "-"}
+              </span>
             </div>
+
             <div className="flex justify-between text-xs text-gray-300 mt-2">
-              <span>10</span>
-              <span>29</span>
+              <span>{levelData ? minStars : 0}</span>
+              <span>{levelData ? maxStars : "-"}</span>
             </div>
           </div>
-
           <div className="mt-13">
             <div className="w-full h-px bg-white/20" />
           </div>
@@ -270,6 +425,7 @@ function MyPage() {
           </div>
         </div>
       </div>
+
       <ProfileEdit
         open={isProfileEditOpen}
         onClose={() => setIsProfileEditOpen(false)}

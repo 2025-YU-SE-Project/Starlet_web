@@ -443,6 +443,37 @@ export default function StarSkyDate({
     onTransformEnd,
   ]);
 
+  useEffect(() => {
+    if (locked) return;
+    if (!containerRef.current) return;
+    if (!filteredStars.length) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+
+    const baseMap =
+      appliedMapRef.current["single"] ||
+      Object.fromEntries(filteredStars.map((s) => [s.id, { x: s.x, y: s.y }]));
+
+    let changed = false;
+    const nextMap = { ...baseMap };
+
+    filteredStars.forEach((s) => {
+      const cur = baseMap[s.id] || { x: s.x, y: s.y };
+      const adjusted = avoidUiZones(cur.x, cur.y, rect);
+
+      if (adjusted.x !== cur.x || adjusted.y !== cur.y) {
+        changed = true;
+        nextMap[s.id] = { x: adjusted.x, y: adjusted.y };
+        onMove?.(s.id, adjusted.x, adjusted.y);
+      }
+    });
+
+    if (changed) {
+      appliedMapRef.current["single"] = nextMap;
+      setAppliedVersion((v) => v + 1);
+    }
+  }, [filteredStars, locked, onMove]);
+
   const toRel = (clientX, clientY) => {
     const r = containerRef.current.getBoundingClientRect();
     return {
