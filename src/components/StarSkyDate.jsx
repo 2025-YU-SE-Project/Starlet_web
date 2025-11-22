@@ -31,7 +31,6 @@ function avoidUiZones(nx, ny, rect) {
   const zones = [
     { x1: 0, y1: 0, x2: 60, y2: 65 },
     { x1: rect.width - 115, y1: 0, x2: rect.width, y2: 50 },
-
     {
       x1: rect.width / 2 - 160,
       y1: rect.height - 80,
@@ -189,9 +188,10 @@ export default function StarSkyDate({
     return y === year && (m === firstMonth || m === secondMonth);
   };
 
-  const filteredStars = useMemo(() => {
-    return stars.filter((s) => inCurrentPair(s.date));
-  }, [stars, year, firstMonth, secondMonth]);
+  const filteredStars = useMemo(
+    () => stars.filter((s) => inCurrentPair(s.date)),
+    [stars, year, firstMonth, secondMonth]
+  );
 
   const currentPairIdSet = useMemo(() => {
     const set = new Set();
@@ -252,6 +252,7 @@ export default function StarSkyDate({
   const didInitialScaleRef = useRef(false);
   const committedMapRef = useRef(null);
   const singleScaleOriginRef = useRef(null);
+  const [lastDirection, setLastDirection] = useState(null); // "up" | "down" | null
 
   const [activeConstellationId, setActiveConstellationId] = useState(null);
   const [scaleUIMap, setScaleUIMap] = useState({});
@@ -705,9 +706,13 @@ export default function StarSkyDate({
   };
 
   const applyScalePreviewSingle = (newScale, { commit = false } = {}) => {
-    const sAbs = Math.max(0.5, Math.min(1.5, newScale));
+    const sAbs = Math.max(0.5, Math.min(2.0, newScale));
 
-    let base = singleScaleOriginRef.current;
+    const targetId = activeConstellationId;
+    let base =
+      multipleMode && targetId
+        ? multiScaleOriginRef.current[targetId]
+        : singleScaleOriginRef.current;
     if (!base) {
       const rawBase = Object.fromEntries(
         filteredStars.map((s) => [s.id, { x: s.x, y: s.y }])
@@ -748,7 +753,8 @@ export default function StarSkyDate({
     setPendingApply(true);
 
     if (commit) {
-      appliedMapRef.current["single"] = deepClone(fitted);
+      const saveKey = multipleMode && targetId ? targetId : "single";
+      appliedMapRef.current[saveKey] = deepClone(fitted);
       scaleRef.current = sAbs;
       setScaleUI(sAbs);
       onTransformEnd?.(fitted);
@@ -835,6 +841,8 @@ export default function StarSkyDate({
           transform: "translate(-50%, 8px)",
         };
   })();
+
+  const sliderRatio = Math.max(0, Math.min(1, (scaleUI - 0.5) / 1.5));
 
   return (
     <div className="fixed inset-0 select-none">
@@ -1194,202 +1202,110 @@ export default function StarSkyDate({
         )}
       </div>
 
-      {!multipleMode && locked && isSelected && (
+      {/* ──────────────── 크기 조절 UI (중앙 원 드래그 + 색 변화) ──────────────── */}
+      {locked && isSelected && (
         <div
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-black/35 backdrop-blur px-4 py-3 rounded-xl flex flex-col gap-3 min-w-[220px]"
+          className="absolute right-6 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center"
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between">
-            <div className="text-white/85 text-sm">크기 조절 (0.5x ~ 2.0x)</div>
-            <div className="text-white/70 text-xs">x{scaleUI.toFixed(2)}</div>
-          </div>
-          <input
-            type="range"
-            min={0.5}
-            max={2.0}
-            step={0.02}
-            value={scaleUI}
-            onChange={(e) => {
-              const v = parseFloat(e.target.value);
-              setScaleUI(v);
-              applyScalePreviewSingle(v);
-            }}
-          />
-          <div className="flex items-center justify-between text-white/70 text-xs">
-            <span>0.5x</span>
-            <span>1.0x</span>
-            <span>2.0x</span>
-          </div>
-          <button
-            className="px-3 py-1.5 rounded bg-white/75 hover:bg-white text-black text-sm"
-            onClick={() => {
-              if (!previewMap) {
-                setPendingApply(false);
-                return;
-              }
-              const ok = window.confirm("이 위치로 적용하시겠습니까?");
-              if (!ok) {
-                if (originalPositionRef.current) {
-                  appliedMapRef.current["single"] = deepClone(
-                    originalPositionRef.current
-                  );
-                  setPreviewMap(null);
-                  onTransformEnd?.(originalPositionRef.current);
-                  setAppliedVersion((v) => v + 1);
-                }
-                setPendingApply(false);
-                return;
-              }
-              applyScalePreviewSingle(scaleUI, { commit: true });
-              const applied = appliedMapRef.current["single"] || previewMap;
-              onApply?.(applied);
-              setPreviewMap(null);
-              setPendingApply(false);
-              setIsSelected(true);
-            }}
-          >
-            적용
-          </button>
-        </div>
-      )}
+          <div className="flex flex-col items-center gap-3">
+            {/* + 버튼 */}
+            <button
+              type="button"
+              className="text-white text-[28px] leading-none hover:opacity-90"
+              onClick={() => {
+                const next = Math.min(2.0, +(scaleUI + 0.05).toFixed(2));
+                setScaleUI(next);
+                applyScalePreviewSingle(next);
+              }}
+            >
+              +
+            </button>
 
-      {multipleMode && locked && activeConstellationId && isSelected && (
-        <div
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-black/35 backdrop-blur px-4 py-3 rounded-xl flex flex-col gap-3 min-w-[220px]"
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center justify-between">
-            <div className="text-white/85 text-sm">별자리 크기 조절</div>
-            <div className="text-white/70 text-xs">
-              x
-              {(
-                scaleUIMap[activeConstellationId] ??
-                appliedMapRef.current[activeConstellationId + "__scale"] ??
-                1
-              ).toFixed(2)}
+            {/* ───────── 세로 슬라이더 전체 ───────── */}
+            <div className="relative h-[300px] w-[40px] flex flex-col items-center">
+              {/* 슬라이더 트랙 */}
+              <div className="relative w-[12px] flex-1 rounded-full bg-white/15">
+                {/* 🔼 위쪽 진해지는 영역 */}
+                <div
+                  className="absolute left-0 right-0 bg-white/55 transition-all"
+                  style={{
+                    top: 0,
+                    height: `${sliderRatio * 100}%`, // 위로 갈수록 커짐
+                  }}
+                />
+
+                {/* 🔽 아래쪽 진해지는 영역 */}
+                <div
+                  className="absolute left-0 right-0 bg-white/55 transition-all"
+                  style={{
+                    bottom: 0,
+                    height: `${(1 - sliderRatio) * 100}%`, // 아래로 갈수록 커짐
+                  }}
+                />
+
+                {/* 외곽 라인 */}
+                <div className="absolute inset-0 rounded-full border border-white/30 pointer-events-none" />
+
+                {/* 🟡 드래그 핸들 */}
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 w-8 h-8 rounded-full 
+                       bg-[#f5f5f5] shadow-[0_0_10px_rgba(0,0,0,0.45)]
+                       cursor-grab active:cursor-grabbing"
+                  style={{
+                    bottom: `${sliderRatio * 100}%`,
+                  }}
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    const startY = e.clientY;
+                    const startScale = scaleUI;
+
+                    const onMove = (ev) => {
+                      const delta = (startY - ev.clientY) / 250; // 민감도
+                      let next = startScale + delta * 1.5;
+                      next = Math.max(0.5, Math.min(2.0, next));
+                      setScaleUI(+next.toFixed(3));
+                      applyScalePreviewSingle(+next.toFixed(3));
+                    };
+
+                    const onUp = () => {
+                      window.removeEventListener("pointermove", onMove);
+                      window.removeEventListener("pointerup", onUp);
+                    };
+
+                    window.addEventListener("pointermove", onMove);
+                    window.addEventListener("pointerup", onUp);
+                  }}
+                />
+              </div>
+
+              {/* - 버튼 */}
+              <button
+                type="button"
+                className="mt-3 hover:opacity-90"
+                onClick={() => {
+                  const next = Math.max(0.5, +(scaleUI - 0.05).toFixed(2));
+                  setScaleUI(next);
+                  applyScalePreviewSingle(next);
+                }}
+              >
+                <div className="w-3 h-[2px] bg-white rounded-full" />
+              </button>
             </div>
-          </div>
-          <input
-            type="range"
-            min={0.5}
-            max={2.0}
-            step={0.05}
-            value={
-              scaleUIMap[activeConstellationId] ??
-              appliedMapRef.current[activeConstellationId + "__scale"] ??
-              1
-            }
-            onChange={(e) => {
-              const vRaw = parseFloat(e.target.value);
-              const v = Math.max(0.5, Math.min(2.0, vRaw));
 
-              setScaleUIMap((prev) => ({
-                ...prev,
-                [activeConstellationId]: v,
-              }));
-
-              const selected = filteredConstellationGroups.find(
-                (g) => g.id === activeConstellationId
-              );
-              if (!selected) return;
-
-              const base = baseConstShapesRef.current[activeConstellationId];
-              if (!base) return;
-
-              const committed =
-                committedConstMapRef.current[activeConstellationId] ||
-                appliedMapRef.current[activeConstellationId] ||
-                base;
-
-              const baseBox = computeBBoxFromPoints(Object.values(base));
-              const committedBox = computeBBoxFromPoints(
-                Object.values(committed)
-              );
-
-              const tx =
-                committedBox && baseBox ? committedBox.cx - baseBox.cx : 0;
-              const ty =
-                committedBox && baseBox ? committedBox.cy - baseBox.cy : 0;
-
-              const scaled = {};
-              Object.entries(base).forEach(([id, p]) => {
-                const dx = p.x - baseBox.cx;
-                const dy = p.y - baseBox.cy;
-                scaled[id] = {
-                  x: baseBox.cx + dx * v + tx,
-                  y: baseBox.cy + dy * v + ty,
-                };
-              });
-
-              setPreviewMap(scaled);
-              onTransform?.(scaled);
-              setPendingApply(true);
-            }}
-          />
-          <div className="flex items-center justify-between text-white/70 text-xs">
-            <span>0.5x</span>
-            <span>2.0x</span>
-          </div>
-          <button
-            className="px-3 py-1.5 rounded bg-white/75 hover:bg-white text-black text-sm"
-            onClick={() => {
-              const cur = previewMap;
-              const ok = window.confirm("이 위치로 적용하시겠습니까?");
-              if (!ok) {
-                if (originalPositionRef.current) {
-                  setPreviewMap(null);
-                  onTransformEnd?.(originalPositionRef.current);
-                }
-                setPendingApply(false);
-                return;
-              }
-
-              const constId = activeConstellationId;
-
-              if (cur) {
-                appliedMapRef.current[constId] = cur;
-                const lastScale =
-                  scaleUIMap[constId] ??
-                  appliedMapRef.current[constId + "__scale"] ??
-                  1;
-                appliedMapRef.current[constId + "__scale"] = lastScale;
-
-                committedConstMapRef.current[constId] = deepClone(cur);
-                onTransformEnd?.(cur);
-                onApply?.(cur);
-                if (onConstellationMove) {
-                  onConstellationMove(constId, cur);
-                }
-                setAppliedVersion((v) => v + 1);
+            {/* 적용 버튼 */}
+            <button
+              type="button"
+              className="mt-2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-lg
+                   flex items-center justify-center"
+              onClick={() => {
+                applyScalePreviewSingle(scaleUI, { commit: true });
+                const applied = appliedMapRef.current["single"] || previewMap;
+                onApply?.(applied);
                 setPreviewMap(null);
-                setPendingApply(false);
-                originalPositionRef.current = deepClone(cur);
-                setIsSelected(true);
-              } else if (originalPositionRef.current) {
-                appliedMapRef.current[constId] = originalPositionRef.current;
-                const lastScale =
-                  scaleUIMap[constId] ??
-                  appliedMapRef.current[constId + "__scale"] ??
-                  1;
-                appliedMapRef.current[constId + "__scale"] = lastScale;
-
-                committedConstMapRef.current[constId] = deepClone(
-                  originalPositionRef.current
-                );
-                onTransformEnd?.(originalPositionRef.current);
-                onApply?.(originalPositionRef.current);
-                if (onConstellationMove) {
-                  onConstellationMove(constId, originalPositionRef.current);
-                }
-                setAppliedVersion((v) => v + 1);
-                setPreviewMap(null);
-                setPendingApply(false);
-                setIsSelected(true);
-              }
-            }}
-          >
-            적용
-          </button>
+              }}
+            />
+          </div>
         </div>
       )}
 

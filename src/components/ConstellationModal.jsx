@@ -1,14 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import backgroundImg from "../assets/background.png";
+import suggestConstellation from "../apis/Constellation/suggestConstellation"; // ✅ 추가
 
 const MIN_NODES = 7;
 const MAX_NODES = 14;
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
-
 const INNER_MARGIN = 0.03;
-const clampInner = (v) =>
-  Math.max(INNER_MARGIN, Math.min(1 - INNER_MARGIN, v));
+const clampInner = (v) => Math.max(INNER_MARGIN, Math.min(1 - INNER_MARGIN, v));
 
 const ConstellationModal = ({
   open,
@@ -28,13 +27,12 @@ const ConstellationModal = ({
   const [edges, setEdges] = useState([]);
   const [selectedStar, setSelectedStar] = useState(null);
   const [warn, setWarn] = useState("");
+  const [suggesting, setSuggesting] = useState(false); // ✅ 추천 로딩 상태
 
   const panelRef = useRef(null);
   const dragIdRef = useRef(null);
 
- 
   const interactive = !isEdit && step === 1;
-
 
   const toRel = (clientX, clientY) => {
     const r = panelRef.current.getBoundingClientRect();
@@ -70,8 +68,7 @@ const ConstellationModal = ({
     return () => {
       document.body.style.overflow = "";
     };
-  
-  }, [open, isEdit]);
+  }, [open, isEdit, initial, stars]);
 
   const onPointerMove = useCallback(
     (e) => {
@@ -198,7 +195,7 @@ const ConstellationModal = ({
         name: trimmedName,
         description: trimmedDesc,
       });
-      onClose?.(); 
+      onClose?.();
       return;
     }
 
@@ -209,7 +206,30 @@ const ConstellationModal = ({
       starPositions,
       constellationCreatedAt: createdAt,
     });
-    onClose?.(); 
+    onClose?.();
+  };
+
+  const handleSuggest = async () => {
+    if (!Object.keys(starPositions).length) {
+      setWarn("별을 먼저 선택해서 별자리를 만들어주세요.");
+      return;
+    }
+
+    try {
+      setSuggesting(true);
+      setWarn("");
+
+      const starIds = Object.keys(starPositions).map((id) => Number(id));
+
+      const data = await suggestConstellation(starIds);
+      if (data?.name) setName(data.name);
+      if (data?.description) setDesc(data.description);
+    } catch (e) {
+      console.error("별자리 추천 실패:", e);
+      setWarn("별자리 이름/설명 추천에 실패했어요. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setSuggesting(false);
+    }
   };
 
   if (!open) return null;
@@ -472,9 +492,26 @@ const ConstellationModal = ({
 
             {step === 2 && (
               <div className="flex flex-col items-center w-full gap-4">
-                <h2 className="text-[17px] font-semibold text-black/80">
-                  별자리 이름을 지정해주세요
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-[17px] font-semibold text-black/80">
+                    별자리 이름을 지정해주세요
+                  </h2>
+
+                  {!isEdit && (
+                    <button
+                      type="button"
+                      onClick={handleSuggest}
+                      disabled={suggesting}
+                      className={`ml-2 px-3 py-1 rounded-full text-[11px] ${
+                        suggesting
+                          ? "bg-[#e5e7eb] text-black/40 cursor-wait"
+                          : "bg-[#e5e7eb] text-black/70 hover:bg-[#d4d7dd]"
+                      }`}
+                    >
+                      {suggesting ? "추천 중..." : "추천받기"}
+                    </button>
+                  )}
+                </div>
 
                 <div className="w-[380px] flex flex-col gap-3">
                   <input
