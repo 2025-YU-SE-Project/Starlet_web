@@ -354,7 +354,7 @@ export default function ConstellationDetailModal({
               {description || "설명이 없습니다."}
             </div>
 
-<div className="mt-4 grid grid-rows-2 gap-y-1 font-pretendard">
+<div className="mt-6 grid grid-rows-2 gap-y-1 font-pretendard">
   {EMOTIONS.map((em) => {
     const colorKey = EMOTION_TO_COLOR[em.key] || "YELLOW";
     const iconSrc = colorIconMap[colorKey];
