@@ -287,7 +287,7 @@ React.useEffect(() => {
       />
       <div
         className="left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                    bg-white/85 text-neutral-900 w-280 max-w-[95vw] rounded-2xl shadow-2xl relative"
+                    bg-white text-neutral-900 w-280 max-w-[95vw] rounded-2xl shadow-2xl relative"
       >
         {canNav && (
           <>
