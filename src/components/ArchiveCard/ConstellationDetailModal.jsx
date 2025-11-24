@@ -281,7 +281,7 @@ React.useEffect(() => {
   return (
     <div className="fixed inset-0 z-[100]">
       <div
-        className="absolute inset-0 bg-black/60"
+        className="absolute inset-0 bg-black/60 "
         onClick={onClose}
         aria-hidden="true"
       />
@@ -349,7 +349,7 @@ React.useEffect(() => {
               <button
                 onClick={onClose}
                 aria-label="닫기"
-                className="p-2 rounded-full hover:bg-neutral-100 active:scale-95"
+                className="p-2 rounded-full hover:bg-neutral-100 active:scale-95 cursor-pointer"
               >
                 <IoClose size={40} />
               </button>
@@ -398,7 +398,7 @@ React.useEffect(() => {
           <button
             type="button"
             onClick={handleOpenEdit}
-            className="flex items-center gap-1 text-[18px] text-[#808080]"
+            className="flex items-center gap-1 text-[18px] text-[#808080] cursor-pointer"
           >
             <span>수정</span>
             <span>✎</span>
