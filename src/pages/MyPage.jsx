@@ -1,26 +1,32 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { CiMenuBurger } from "react-icons/ci";
 import Sidebar from "../components/Sidebar";
 import profileImg from "../assets/MyPage/profile.png";
 import ProfileEdit from "../components/MyPage/ProfileEdit";
 import getLevel from "../apis/MyPage/getLevel";
 import getUser from "../apis/MyPage/getUser";
+import representativeStar from "../apis/MyPage/representativeStar";
+import RepresentativeCons from "../components/MyPage/RepresentativeCons";
 
 function MyPage() {
-  const [nickname, setNickname] = React.useState(
+  const [nickname, setNickname] = useState(
     () => sessionStorage.getItem("nickname") || "사용자"
   );
 
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [isProfileEditOpen, setIsProfileEditOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
 
-  const [levelData, setLevelData] = React.useState(null);
-  const [levelLoading, setLevelLoading] = React.useState(false);
-  const [levelError, setLevelError] = React.useState("");
+  const [levelData, setLevelData] = useState(null);
+  const [levelLoading, setLevelLoading] = useState(false);
+  const [levelError, setLevelError] = useState("");
 
-  const [userData, setUserData] = React.useState(null);
-  const [userLoading, setUserLoading] = React.useState(false);
-  const [userError, setUserError] = React.useState("");
+  const [userData, setUserData] = useState(null);
+  const [userLoading, setUserLoading] = useState(false);
+  const [userError, setUserError] = useState("");
+
+  const [repStar, setRepStar] = useState(null);
+  const [repStarLoading, setRepStarLoading] = useState(true);
+  const [repStarError, setRepStarError] = useState(null);
 
   useEffect(() => {
     const fetchLevel = async () => {
@@ -63,6 +69,25 @@ function MyPage() {
     };
 
     fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const fetchRepresentativeStar = async () => {
+      try {
+        setRepStarLoading(true);
+        setRepStarError(null);
+
+        const data = await representativeStar();
+        setRepStar(data);
+      } catch (e) {
+        console.error(e);
+        setRepStarError(e.message || "대표 별자리를 불러오지 못했습니다.");
+      } finally {
+        setRepStarLoading(false);
+      }
+    };
+
+    fetchRepresentativeStar();
   }, []);
 
   const minStars = levelData?.min ?? 0;
@@ -109,6 +134,14 @@ function MyPage() {
 
   return (
     <div className="relative w-full min-h-screen text-white">
+      <div className="absolute top-11 right-50">
+        <RepresentativeCons
+          data={repStar}
+          loading={repStarLoading}
+          error={repStarError}
+        />
+      </div>
+
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       {isOpen && (
         <div
@@ -232,8 +265,9 @@ function MyPage() {
             </div>
 
             <div
-              className={`absolute -translate-x-1/2 inline-flex items-center bg-[#54C65B] text-white text-sm font-semibold px-3 py-1 rounded-full
-    ${isNearMax ? "top-[115%]" : "top-[90%]"}`}
+              className={`absolute -translate-x-1/2 inline-flex items-center bg-[#54C65B] text-white text-sm font-semibold px-3 py-1 rounded-full ${
+                isNearMax ? "top-[115%]" : "top-[90%]"
+              }`}
               style={{
                 left: isNearMax
                   ? `calc(${progressPercent}% - 14px)`
@@ -255,6 +289,7 @@ function MyPage() {
               <span>{levelData ? maxStars : "-"}</span>
             </div>
           </div>
+
           <div className="mt-13">
             <div className="w-full h-px bg-white/20" />
           </div>
