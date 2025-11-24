@@ -385,7 +385,7 @@ React.useEffect(() => {
                   <img
                     src={iconSrc}
                     alt={`${em.label} (${colorKey})`}
-                    className="w-8 h-8"
+                    className="w-7 h-7"
                   />
                 )}
               </div>
