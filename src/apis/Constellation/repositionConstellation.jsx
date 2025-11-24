@@ -1,6 +1,5 @@
-import api from "../api.jsx";
+import api from "../api";
 
-export default async function repositionConstellation(id, payload) {
-  const { data } = await api.patch(`constellation/reposition/${id}`, payload);
-  return data;
+export default function repositionConstellation(id, body) {
+  return api.patch(`/constellation/reposition/${id}`, body);
 }

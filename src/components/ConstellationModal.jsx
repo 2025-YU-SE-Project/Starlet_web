@@ -1,10 +1,14 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import backgroundImg from "../assets/background.png";
-import suggestConstellation from "../apis/Constellation/suggestConstellation"; // ✅ 추가
+import suggestConstellation from "../apis/Constellation/suggestConstellation";
+import { MdArrowBackIosNew } from "react-icons/md";
 
 const MIN_NODES = 7;
 const MAX_NODES = 14;
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
+
+const MAX_NAME_LEN = 10;
+const MAX_DESC_LEN = 30;
 
 const INNER_MARGIN = 0.03;
 const clampInner = (v) => Math.max(INNER_MARGIN, Math.min(1 - INNER_MARGIN, v));
@@ -27,7 +31,8 @@ const ConstellationModal = ({
   const [edges, setEdges] = useState([]);
   const [selectedStar, setSelectedStar] = useState(null);
   const [warn, setWarn] = useState("");
-  const [suggesting, setSuggesting] = useState(false); // ✅ 추천 로딩 상태
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestInfoOpen, setSuggestInfoOpen] = useState(false);
 
   const panelRef = useRef(null);
   const dragIdRef = useRef(null);
@@ -48,8 +53,10 @@ const ConstellationModal = ({
     if (!open) return;
 
     setStep(isEdit ? 2 : 1);
-    setName(initial?.name ?? "");
-    setDesc(initial?.desc ?? initial?.description ?? "");
+    setName((initial?.name ?? "").slice(0, MAX_NAME_LEN));
+    setDesc(
+      (initial?.desc ?? initial?.description ?? "").slice(0, MAX_DESC_LEN)
+    );
     setWarn("");
 
     const init = {};
@@ -174,7 +181,11 @@ const ConstellationModal = ({
     setStep(2);
   };
 
-  const canFinish = name.trim().length > 0 && desc.trim().length > 0;
+  const canFinish =
+    name.trim().length > 0 &&
+    name.trim().length <= MAX_NAME_LEN &&
+    desc.trim().length > 0 &&
+    desc.trim().length <= MAX_DESC_LEN;
 
   const finish = () => {
     if (!canFinish) return;
@@ -308,7 +319,7 @@ const ConstellationModal = ({
             }}
             className="text-[24px] text-black/70 hover:text-black leading-none"
           >
-            {isEdit ? "×" : step === 1 ? "×" : "←"}
+            {isEdit ? "×" : step === 1 ? "" : <MdArrowBackIosNew />}
           </button>
 
           <div className="text-[20px] font-semibold text-black">
@@ -318,7 +329,7 @@ const ConstellationModal = ({
           {step === 1 && !isEdit ? (
             <button
               onClick={goNext}
-              className="text-[15px] font-semibold text-[#111827]"
+              className="text-[18px] font-semibold text-[#111827]"
             >
               다음
             </button>
@@ -326,7 +337,7 @@ const ConstellationModal = ({
             <button
               onClick={finish}
               disabled={!canFinish}
-              className={`text-[15px] font-semibold ${
+              className={`text-[18px] font-semibold ${
                 canFinish
                   ? "text-[#111827]"
                   : "text-black/30 cursor-not-allowed"
@@ -492,24 +503,71 @@ const ConstellationModal = ({
 
             {step === 2 && (
               <div className="flex flex-col items-center w-full gap-4">
-                <div className="flex items-center gap-2">
+                {/* 제목 + 추천받기 + ? 말풍선 */}
+                <div className="flex items-center gap-2 relative">
                   <h2 className="text-[17px] font-semibold text-black/80">
                     별자리 이름을 지정해주세요
                   </h2>
 
                   {!isEdit && (
-                    <button
-                      type="button"
-                      onClick={handleSuggest}
-                      disabled={suggesting}
-                      className={`ml-2 px-3 py-1 rounded-full text-[11px] ${
-                        suggesting
-                          ? "bg-[#e5e7eb] text-black/40 cursor-wait"
-                          : "bg-[#e5e7eb] text-black/70 hover:bg-[#d4d7dd]"
-                      }`}
-                    >
-                      {suggesting ? "추천 중..." : "추천받기"}
-                    </button>
+                    <>
+                      {/* 추천받기 버튼 */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSuggestInfoOpen(false); // 🔥 추천받기 눌렀을 때 말풍선 숨김
+                          handleSuggest();
+                        }}
+                        disabled={suggesting}
+                        className={`ml-2 px-3 py-1 rounded-full text-[11px] ${
+                          suggesting
+                            ? "bg-[#e5e7eb] text-black/40 cursor-wait"
+                            : "bg-[#e5e7eb] text-[#4F4F4FB2] hover:bg-[#d4d7dd]"
+                        }`}
+                      >
+                        {suggesting ? "추천 중..." : "추천받기"}
+                      </button>
+
+                      {/* ? 버튼 */}
+                      <button
+                        type="button"
+                        className="w-4 h-4 ml-[-4px] rounded-full border border-[#B3B3B3] flex items-center justify-center text-[12px] text-[#B3B3B3] bg-white hover:bg-gray-50 self-end"
+                        // 🔥 클릭 시 토글
+                        onClick={() => setSuggestInfoOpen((v) => !v)}
+                        // 🔥 호버 시 열림
+                        onMouseEnter={() => setSuggestInfoOpen(true)}
+                        onMouseLeave={() => setSuggestInfoOpen(false)}
+                      >
+                        ?
+                      </button>
+
+                      {/* 말풍선 */}
+                      {suggestInfoOpen && (
+                        <div className="absolute bottom-full left-1/2 translate-x-[27%] mb-4 z-50">
+                          <div className="relative">
+                            <div
+                              className="rounded-2xl bg-white shadow-[0_12px_30px_rgba(0,0,0,0.18)]
+border border-gray-100 px-6 py-4 w-[240px]"
+                            >
+                              <div className="inline-flex items-center px-4 py-1 rounded-md bg-[#FFE75A] text-[13px] font-semibold text-[#4b5563] mb-3">
+                                별자리 네이밍 AI
+                              </div>
+
+                              <p className="text-[12px] leading-relaxed text-[#4b5563]">
+                                별자리에 포함된 별들의 감정 일기에서{" "}
+                                <span className="font-semibold">
+                                  감정 상태 · 요인 · 내용
+                                </span>
+                                을 기반으로 AI가 어울리는 별자리 이름과 별자리
+                                설명을 추천해줘요.
+                              </p>
+                            </div>
+
+                            <div className="absolute -bottom-2 left-[25%] w-4 h-4 bg-white border-l border-b border-gray-100 rotate-45" />
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -519,6 +577,7 @@ const ConstellationModal = ({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="미지정 별자리"
+                    maxLength={MAX_NAME_LEN}
                     className="w-full h-[44px] rounded-full bg-white px-5 text-[14px] text-black outline-none border border-black/10 focus:border-[#4b5563]"
                   />
 
@@ -527,6 +586,7 @@ const ConstellationModal = ({
                     value={desc}
                     onChange={(e) => setDesc(e.target.value)}
                     placeholder="별자리에 대한 소개를 작성해주세요"
+                    maxLength={MAX_DESC_LEN}
                     className="w-full h-[44px] rounded-full bg-white px-5 text-[14px] text-black outline-none border border-black/10 focus:border-[#4b5563]"
                   />
                 </div>

@@ -40,13 +40,18 @@ const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
 const MIN_PICK = 7;
 const MAX_PICK = 14;
+
+// ───────────────── 이름 / 스케일 캐시 키 ─────────────────
 const LOCAL_CONST_NAME_KEY = "starsky.constellationNameCache.v1";
+const LOCAL_CONST_SCALE_KEY = "starsky.constellationScaleCache.v1";
+
 const makeStarIdsKey = (ids = []) =>
   ids
     .map((x) => String(x))
     .sort()
     .join(",");
 
+// ───────────────── 이름 캐시 로드/저장 ─────────────────
 const loadNameCache = () => {
   if (typeof window === "undefined") return {};
   try {
@@ -66,6 +71,29 @@ const saveNameCache = (obj) => {
     localStorage.setItem(LOCAL_CONST_NAME_KEY, JSON.stringify(obj));
   } catch (e) {
     console.warn("별자리 이름 캐시 저장 실패:", e);
+  }
+};
+
+// ───────────────── 스케일 캐시 로드/저장 ─────────────────
+const loadScaleCache = () => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(LOCAL_CONST_SCALE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (typeof parsed === "object" && parsed) return parsed;
+    return {};
+  } catch {
+    return {};
+  }
+};
+
+const saveScaleCache = (obj) => {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(LOCAL_CONST_SCALE_KEY, JSON.stringify(obj));
+  } catch (e) {
+    console.warn("별자리 스케일 캐시 저장 실패:", e);
   }
 };
 
@@ -96,8 +124,11 @@ const StarSky = () => {
   const [locked, setLocked] = useState(false);
   const [selectedStarIds, setSelectedStarIds] = useState([]);
   const [m1, m2] = useMemo(() => monthsForPair(pair), [pair]);
-  const nameCacheRef = useRef(loadNameCache());
 
+  const nameCacheRef = useRef(loadNameCache());
+  const scaleCacheRef = useRef(loadScaleCache());
+
+  // ───────────────── 별 데이터 정규화 ─────────────────
   const normalizeStars = (list = []) =>
     list
       .map((it) => ({
@@ -109,10 +140,15 @@ const StarSky = () => {
       }))
       .filter((s) => s.id && s.color && s.date);
 
-  const normalizeConstellations = (rawList = []) => {
+  // ───────────────── 별자리 데이터 정규화 (+ 스케일 복원) ─────────────────
+  const normalizeConstellations = useCallback((rawList = []) => {
     if (!Array.isArray(rawList)) return [];
 
+    const scaleCache = scaleCacheRef.current || {};
+
     return rawList.map((c) => {
+      const id = c.constellationId ?? c.id;
+
       const rawStars =
         c.stars || c.starts || c.starList || c.star || c.starEntities || [];
 
@@ -124,31 +160,40 @@ const StarSky = () => {
         .filter(Boolean);
 
       const starKey = makeStarIdsKey(serverStarIds);
-      const cached = nameCacheRef.current[starKey];
+      const cachedName = nameCacheRef.current[starKey];
 
       const finalName =
-        c.name && c.name.trim() !== "" ? c.name : cached?.name || "";
+        c.name && c.name.trim() !== "" ? c.name : cachedName?.name || "";
+
       const finalDesc =
         c.description && c.description.trim() !== ""
           ? c.description
-          : cached?.desc || "";
+          : cachedName?.desc || "";
 
       const baseDate =
-        cached?.createdAt ||
+        cachedName?.createdAt ||
+        c.createAt ||
         c.createdAt ||
         c.createdDate ||
         c.date ||
         (rawStars[0]?.date ?? new Date().toISOString().slice(0, 10));
 
+      let scale = 1.0;
+      const cachedScale = scaleCache[id];
+      if (typeof cachedScale === "number" && Number.isFinite(cachedScale)) {
+        scale = Math.max(0.5, Math.min(2.0, cachedScale));
+      }
+
       return {
-        id: c.constellationId ?? c.id,
-        constellationId: c.constellationId ?? c.id,
+        id,
+        constellationId: id,
         name: finalName,
         description: finalDesc,
         createdAt: baseDate,
         constellationCreatedAt: baseDate,
         x: typeof c.x === "number" ? clamp01(c.x) : 0.5,
         y: typeof c.y === "number" ? clamp01(c.y) : 0.5,
+        scale,
         stars: rawStars.map((s) => ({
           id: s.starId ?? s.id,
           starId: s.starId ?? s.id,
@@ -174,8 +219,9 @@ const StarSky = () => {
         }),
       };
     });
-  };
+  }, []); // ✅ deps 배열 추가그
 
+  // ───────────────── 별(점) 불러오기 ─────────────────
   const fetchNight = useCallback(async () => {
     setLoading(true);
     try {
@@ -183,11 +229,6 @@ const StarSky = () => {
       const list = await getNightSkyStar(year, queryMonth);
       setRawStars(normalizeStars(list));
     } catch (e) {
-      const status = e?.response?.status || e?.status;
-      if (status === 401) {
-        navigate("/signin");
-        return;
-      }
       console.error("별 불러오기 실패:", e);
       setRawStars([]);
     } finally {
@@ -195,6 +236,7 @@ const StarSky = () => {
     }
   }, [year, pair, navigate]);
 
+  // ───────────────── 별자리 불러오기 ─────────────────
   const fetchConstellations = useCallback(async () => {
     const month = pair * 2 + 1;
     try {
@@ -239,13 +281,15 @@ const StarSky = () => {
       );
       setServerConstellations([]);
     }
-  }, [year, pair]);
+  }, [year, pair, normalizeConstellations]);
 
+  // ───────────────── 초기/새로고침 시 데이터 로드 ─────────────────
   useEffect(() => {
     fetchNight();
     fetchConstellations();
   }, [fetchNight, fetchConstellations]);
 
+  // 캘린더/다이어리 쪽에서 별이 변경되었을 때 갱신
   useEffect(() => {
     const onUpdated = () => {
       fetchNight();
@@ -255,6 +299,7 @@ const StarSky = () => {
     return () => window.removeEventListener("stars-updated", onUpdated);
   }, [fetchNight, fetchConstellations]);
 
+  // ───────────────── 좌표 캐시 + 별 리스트 만들기 ─────────────────
   useEffect(() => {
     const cache = coordsCacheRef.current;
     const next = rawStars.map((s) => {
@@ -267,6 +312,7 @@ const StarSky = () => {
     setStars(next);
   }, [rawStars]);
 
+  // ───────────────── 개별 별 이동 ─────────────────
   const handleMove = async (id, x, y) => {
     const nx = clamp01(x);
     const ny = clamp01(y);
@@ -284,42 +330,79 @@ const StarSky = () => {
     }
   };
 
-  const handleConstellationMove = async (constellationId, movedStarsMap) => {
-    setServerConstellations((prev) =>
-      prev.map((c) => {
-        if (c.constellationId !== constellationId && c.id !== constellationId)
-          return c;
-        return {
-          ...c,
-          stars: (c.stars || []).map((st) => {
-            const key = st.starId ?? st.id;
-            const np = movedStarsMap[key];
-            if (!np) return st;
-            return { ...st, x: np.x, y: np.y };
-          }),
-        };
-      })
-    );
-
+  // ───────────────── 별자리 중심 이동 ─────────────────
+  const handleConstellationMove = async (constellationId, appliedMap) => {
     try {
-      const firstKey = Object.keys(movedStarsMap)[0];
-      if (firstKey) {
-        const p = movedStarsMap[firstKey];
-        await repositionConstellation(constellationId, {
-          x: p.x,
-          y: p.y,
-        });
-      }
-      const tasks = [];
-      for (const [id, pos] of Object.entries(movedStarsMap)) {
-        tasks.push(repositionStar(id, { x: pos.x, y: pos.y }));
-      }
-      if (tasks.length) await Promise.all(tasks);
-    } catch (e) {
-      console.error("별자리 이동 저장 실패:", e);
+      const points = Object.values(appliedMap);
+      if (!points.length) return;
+
+      const sum = points.reduce(
+        (acc, p) => ({
+          x: acc.x + p.x,
+          y: acc.y + p.y,
+        }),
+        { x: 0, y: 0 }
+      );
+
+      const center = {
+        x: sum.x / points.length,
+        y: sum.y / points.length,
+      };
+
+      await repositionConstellation(constellationId, center);
+      console.log("별자리 위치 저장 성공", center);
+    } catch (err) {
+      console.error("별자리 이동 저장 실패", err);
     }
   };
 
+  // ───────────────── 별자리 내 별 좌표 적용 + (옵션) 스케일 저장 ─────────────────
+  // StarSkyDate에서 onApply(appliedMap, { constellationId, scale }) 형태로 호출해주면
+  // 여기서 스케일까지 캐시에 저장됨.
+  const handleConstellationApply = async (appliedMap, meta) => {
+    try {
+      const tasks = [];
+
+      for (const [id, pos] of Object.entries(appliedMap)) {
+        const starId = Number(id);
+        if (!Number.isFinite(starId)) continue;
+
+        tasks.push(
+          repositionStar(starId, {
+            x: clamp01(pos.x ?? 0.5),
+            y: clamp01(pos.y ?? 0.5),
+          })
+        );
+      }
+
+      if (tasks.length) {
+        await Promise.all(tasks);
+        console.log("별자리 내 별 좌표 저장 성공", appliedMap);
+      }
+
+      // ★ 별자리 스케일 캐시 저장 (meta가 넘어온 경우에만)
+      if (
+        meta &&
+        meta.constellationId &&
+        typeof meta.scale === "number" &&
+        Number.isFinite(meta.scale)
+      ) {
+        const id = meta.constellationId;
+        const s = Math.max(0.5, Math.min(2.0, meta.scale));
+        const nextCache = {
+          ...(scaleCacheRef.current || {}),
+          [id]: s,
+        };
+        scaleCacheRef.current = nextCache;
+        saveScaleCache(nextCache);
+        console.log("별자리 스케일 저장:", id, s);
+      }
+    } catch (e) {
+      console.error("별자리 내 별 좌표 저장 실패:", e);
+    }
+  };
+
+  // ───────────────── 월/연도 이동 ─────────────────
   const handlePrev = () =>
     setCal(({ year, pair }) =>
       pair === 0 ? { year: year - 1, pair: 5 } : { year, pair: pair - 1 }
@@ -329,6 +412,7 @@ const StarSky = () => {
       pair === 5 ? { year: year + 1, pair: 0 } : { year, pair: pair + 1 }
     );
 
+  // ───────────────── 별자리 생성 버튼 ─────────────────
   const handleGenerate = () => {
     const cnt = selectedStarIds.length;
     if (cnt < MIN_PICK || cnt > MAX_PICK) {
@@ -338,6 +422,7 @@ const StarSky = () => {
     setOpen(true);
   };
 
+  // ───────────────── 별자리 생성 모달 제출 ─────────────────
   const handleSubmit = async ({
     name,
     desc,
@@ -415,6 +500,7 @@ const StarSky = () => {
     setOpen(false);
   };
 
+  // ───────────────── 현재 달/짝에 해당하는 별자리 필터 ─────────────────
   const filteredConstellations = useMemo(() => {
     if (!serverConstellations.length) return [];
     return serverConstellations.filter((c) => {
@@ -488,6 +574,7 @@ const StarSky = () => {
             : {
                 name: constellation.name,
                 createdAt: constellation.createdAt,
+                // 단일 모드에서 스케일을 쓰고 싶다면 여기도 추후 scale 추가 가능
               }
         }
         onTransformEnd={
@@ -507,6 +594,7 @@ const StarSky = () => {
         }
         selectedIds={selectedStarIds}
         onSelectChange={setSelectedStarIds}
+        onApply={handleConstellationApply}
       />
 
       <ConstellationModal
