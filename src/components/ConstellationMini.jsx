@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import { normalizeStars } from "../lib/normalize";
-
 import blueColorIcon from "../assets/emotions/blue.png";
 import greenColorIcon from "../assets/emotions/green.png";
 import orangeColorIcon from "../assets/emotions/orange.png";

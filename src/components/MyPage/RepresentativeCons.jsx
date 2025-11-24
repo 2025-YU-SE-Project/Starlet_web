@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-
 import redIcon from "../../assets/emotions/red.png";
 import orangeIcon from "../../assets/emotions/orange.png";
 import yellowIcon from "../../assets/emotions/yellow.png";
@@ -49,27 +48,13 @@ export default function RepresentativeCons({ data, loading, error }) {
   const height = 215;
   const pad = 15;
 
-  if (loading) {
+  if (loading || error || !data) {
     return (
-      <div className="w-[260px] h-[200px] flex items-center justify-center text-xs text-gray-300">
-        대표 별자리를 불러오는 중...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="w-[260px] h-[200px] flex items-center justify-center text-xs text-red-300 px-2 text-center">
-        {error}
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div className="w-[260px] h-[200px] flex items-center justify-center text-xs text-gray-300">
-        대표 별자리가 없습니다.
-      </div>
+      <svg
+        width={width}
+        height={height}
+        style={{ background: "transparent" }}
+      />
     );
   }
 
@@ -78,7 +63,7 @@ export default function RepresentativeCons({ data, loading, error }) {
 
   const ns = useMemo(
     () => normalizeStarsLocal(stars, { w: width, h: height, pad }),
-    [stars, width, height]
+    [stars]
   );
 
   const byId = useMemo(() => {
