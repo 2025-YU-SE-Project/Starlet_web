@@ -29,6 +29,7 @@ const ConstellationModal = ({
   const [edges, setEdges] = useState([]);
   const [selectedStar, setSelectedStar] = useState(null);
   const [warn, setWarn] = useState("");
+  const [metaError, setMetaError] = useState("");
 
   const panelRef = useRef(null);
   const dragIdRef = useRef(null);
@@ -54,6 +55,7 @@ const ConstellationModal = ({
     setName(initial?.name ?? "");
     setDesc(initial?.desc ?? initial?.description ?? "");
     setWarn("");
+     setMetaError(""); 
 
     const init = {};
     (stars || []).forEach((s) => {
@@ -180,38 +182,56 @@ const ConstellationModal = ({
 
   const canFinish = name.trim().length > 0 && desc.trim().length > 0;
 
-  const finish = () => {
-    if (!canFinish) return;
+const finish = () => {
+  if (!canFinish) return;
 
-    const trimmedName = name.trim();
-    const trimmedDesc = desc.trim();
-    const createdAt =
-      initial?.constellationCreatedAt || new Date().toISOString();
+  const trimmedName = name.trim();
+  const trimmedDesc = desc.trim();
 
-    if (isEdit) {
-      const id = initial?.constellationId ?? initial?.id;
-      if (!id) {
-        console.warn("수정 모드인데 id가 없습니다.");
-        return;
-      }
-      onSubmit?.({
-        id,
-        name: trimmedName,
-        description: trimmedDesc,
-      });
-      onClose?.(); 
+
+  setMetaError("");
+
+  // 길이 제한 검사: 이름 10자, 설명 30자
+  if (trimmedName.length > 10 || trimmedDesc.length > 30) {
+    if (trimmedName.length > 10 && trimmedDesc.length > 30) {
+      setMetaError("별자리 이름은 10자 이내, 설명은 30자 이내로 입력해주세요.");
+    } else if (trimmedName.length > 10) {
+      setMetaError("별자리 이름은 10자 이내로 입력해주세요.");
+    } else {
+      setMetaError("별자리 설명은 30자 이내로 입력해주세요.");
+    }
+    return; 
+  }
+
+  const trimmedNameFinal = trimmedName;
+  const trimmedDescFinal = trimmedDesc;
+  const createdAt =
+    initial?.constellationCreatedAt || new Date().toISOString();
+
+  if (isEdit) {
+    const id = initial?.constellationId ?? initial?.id;
+    if (!id) {
+      console.warn("수정 모드인데 id가 없습니다.");
       return;
     }
-
     onSubmit?.({
-      name: trimmedName,
-      desc: trimmedDesc,
-      lines: edges,
-      starPositions,
-      constellationCreatedAt: createdAt,
+      id,
+      name: trimmedNameFinal,
+      description: trimmedDescFinal,
     });
-    onClose?.(); 
-  };
+    onClose?.();
+    return;
+  }
+
+  onSubmit?.({
+    name: trimmedNameFinal,
+    desc: trimmedDescFinal,
+    lines: edges,
+    starPositions,
+    constellationCreatedAt: createdAt,
+  });
+  onClose?.();
+};
 
   if (!open) return null;
 
@@ -321,9 +341,10 @@ else if (!interactive) {
                 setStep(1);
                 setWarn("");
                 setSelectedStar(null);
+                setMetaError("");
               }
             }}
-            className="text-[24px] text-black/70 hover:text-black leading-none"
+            className="text-[24px] text-black/70 hover:text-black leading-none cursor-pointer"
           >
             {isEdit ? "×" : step === 1 ? "×" : "←"}
           </button>
@@ -335,7 +356,7 @@ else if (!interactive) {
           {step === 1 && !isEdit ? (
             <button
               onClick={goNext}
-              className="text-[15px] font-semibold text-[#111827]"
+              className="text-[15px] font-semibold text-[#111827] cursor-pointer"
             >
               다음
             </button>
@@ -343,7 +364,7 @@ else if (!interactive) {
             <button
               onClick={finish}
               disabled={!canFinish}
-              className={`text-[15px] font-semibold ${
+              className={`text-[15px] font-semibold cursor-pointer ${
                 canFinish
                   ? "text-[#111827]"
                   : "text-black/30 cursor-not-allowed"
@@ -514,27 +535,37 @@ else if (!interactive) {
                 </h2>
 
                 <div className="w-[380px] flex flex-col gap-3">
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="미지정 별자리"
-                    className="w-full h-[44px] rounded-full bg-white px-5 text-[14px] text-black outline-none border border-black/10 focus:border-[#4b5563]"
-                  />
+  <input
+    type="text"
+    value={name}
+    onChange={(e) => setName(e.target.value)}
+    placeholder="미지정 별자리"
+    className="w-full h-[44px] rounded-full bg-white px-5 text-[14px] text-black outline-none border border-black/10 focus:border-[#4b5563]"
+  />
 
-                  <input
-                    type="text"
-                    value={desc}
-                    onChange={(e) => setDesc(e.target.value)}
-                    placeholder="별자리에 대한 소개를 작성해주세요"
-                    className="w-full h-[44px] rounded-full bg-white px-5 text-[14px] text-black outline-none border border-black/10 focus:border-[#4b5563]"
-                  />
-                </div>
+  <input
+    type="text"
+    value={desc}
+    onChange={(e) => setDesc(e.target.value)}
+    placeholder="별자리에 대한 소개를 작성해주세요"
+    className="w-full h-[44px] rounded-full bg-white px-5 text-[14px] text-black outline-none border border-black/10 focus:border-[#4b5563]"
+  />
+
+
+  <div className="h-[10px] flex items-center">
+    {metaError && (
+      <p className="text-[12px] text-red-600">
+        {metaError}
+      </p>
+    )}
+  </div>
+</div>
+
               </div>
             )}
 
             {warn && (
-              <div className="text-[12px] text-red-700 bg-red-50/80 border border-red-200 px-3 py-2 rounded-lg">
+              <div className="text-[12px] text-red-700 bg-red-50/80 border">
                 {warn}
               </div>
             )}
