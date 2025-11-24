@@ -162,22 +162,27 @@ export default function ConstellationDetailModal({
   const goPrev = () => goIdx(index - 1);
   const goNext = () => goIdx(index + 1);
 
-  React.useEffect(() => {
-    const onKey = (e) => {
-      if (!open) return;
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        goPrev();
-      }
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        goNext();
-      }
-      if (e.key === "Escape") onClose?.();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, index, total]);
+
+React.useEffect(() => {
+  const onKey = (e) => {
+  
+    if (!open || editOpen) return;
+
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      goPrev();
+    }
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      goNext();
+    }
+    if (e.key === "Escape") onClose?.();
+  };
+
+  window.addEventListener("keydown", onKey);
+  return () => window.removeEventListener("keydown", onKey);
+}, [open, editOpen, index, total]);
+
 
   function resolveEmotionFromStar(s) {
     const explicit = s?.emotion || s?.emotionType || s?.mood;
