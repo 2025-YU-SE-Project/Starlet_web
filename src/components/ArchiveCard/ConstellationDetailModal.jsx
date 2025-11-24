@@ -354,46 +354,56 @@ export default function ConstellationDetailModal({
               {description || "설명이 없습니다."}
             </div>
 
-            <div className="mt-4 grid grid-rows-2 gap-y-1 font-pretendard">
-              {EMOTIONS.map((em) => {
-                const colorKey = EMOTION_TO_COLOR[em.key] || "YELLOW";
-                const iconSrc = colorIconMap[colorKey];
-                const cnt = counts[em.key] || 0;
-                return (
-                  <div
-                    key={em.key}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="w-32 text-[18px]">{em.label}</span>
-                      <div className="flex items-center">
-                        {Array.from({ length: Math.min(6, cnt) }).map(
-                          (_, idx) => (
-                            <img
-                              key={idx}
-                              src={iconSrc}
-                              alt={`${em.label} (${colorKey})`}
-                              className="w-8 h-8"
-                            />
-                          )
-                        )}
-                      </div>
-                    </div>
+<div className="mt-4 grid grid-rows-2 gap-y-1 font-pretendard">
+  {EMOTIONS.map((em) => {
+    const colorKey = EMOTION_TO_COLOR[em.key] || "YELLOW";
+    const iconSrc = colorIconMap[colorKey];
+    const cnt = counts[em.key] || 0;
 
-                    {em.key === "CONFUSED" && (
-                      <button
-                        type="button"
-                        onClick={handleOpenEdit}
-                        className="flex items-center gap-1 text-[18px] text-[#808080]"
-                      >
-                        <span>수정</span>
-                        <span>✎</span>
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+    return (
+      <div
+        key={em.key}
+        className="flex items-center justify-between"
+      >
+  
+        <div className="flex items-center gap-3">
+          <span className="w-32 text-[18px]">{em.label}</span>
+
+
+          <div className="flex items-center w-40 h-8">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="w-8 h-8 flex items-center justify-center"
+              >
+                {idx < cnt && (
+                  <img
+                    src={iconSrc}
+                    alt={`${em.label} (${colorKey})`}
+                    className="w-8 h-8"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+
+        {em.key === "CONFUSED" && (
+          <button
+            type="button"
+            onClick={handleOpenEdit}
+            className="flex items-center gap-1 text-[18px] text-[#808080]"
+          >
+            <span>수정</span>
+            <span>✎</span>
+          </button>
+        )}
+      </div>
+    );
+  })}
+</div>
+
           </div>
         </div>
 
