@@ -503,7 +503,6 @@ const ConstellationModal = ({
 
             {step === 2 && (
               <div className="flex flex-col items-center w-full gap-4">
-                {/* 제목 + 추천받기 + ? 말풍선 */}
                 <div className="flex items-center gap-2 relative">
                   <h2 className="text-[17px] font-semibold text-black/80">
                     별자리 이름을 지정해주세요
@@ -511,11 +510,10 @@ const ConstellationModal = ({
 
                   {!isEdit && (
                     <>
-                      {/* 추천받기 버튼 */}
                       <button
                         type="button"
                         onClick={() => {
-                          setSuggestInfoOpen(false); // 🔥 추천받기 눌렀을 때 말풍선 숨김
+                          setSuggestInfoOpen(false);
                           handleSuggest();
                         }}
                         disabled={suggesting}
@@ -528,20 +526,16 @@ const ConstellationModal = ({
                         {suggesting ? "추천 중..." : "추천받기"}
                       </button>
 
-                      {/* ? 버튼 */}
                       <button
                         type="button"
                         className="w-4 h-4 ml-[-4px] rounded-full border border-[#B3B3B3] flex items-center justify-center text-[12px] text-[#B3B3B3] bg-white hover:bg-gray-50 self-end"
-                        // 🔥 클릭 시 토글
                         onClick={() => setSuggestInfoOpen((v) => !v)}
-                        // 🔥 호버 시 열림
                         onMouseEnter={() => setSuggestInfoOpen(true)}
                         onMouseLeave={() => setSuggestInfoOpen(false)}
                       >
                         ?
                       </button>
 
-                      {/* 말풍선 */}
                       {suggestInfoOpen && (
                         <div className="absolute bottom-full left-1/2 translate-x-[27%] mb-4 z-50">
                           <div className="relative">

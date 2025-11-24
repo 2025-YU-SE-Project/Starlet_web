@@ -31,13 +31,10 @@ function avoidUiZones(nx, ny, rect) {
   let py = ny * rect.height;
 
   const zones = [
-    // 1) 좌측 상단 햄버거 메뉴 영역
     { x1: 0, y1: 0, x2: 70, y2: 80 },
 
-    // 2) 우측 상단 Generate 텍스트 근처
     { x1: rect.width - 150, y1: 0, x2: rect.width, y2: 70 },
 
-    // 3) 우측 크기 조절 슬라이더 전체 영역
     {
       x1: rect.width - 90,
       y1: rect.height * 0.1,
@@ -45,7 +42,6 @@ function avoidUiZones(nx, ny, rect) {
       y2: rect.height * 0.95,
     },
 
-    // 4) 하단 월/년도 네비게이션 영역
     {
       x1: rect.width / 2 - 220,
       y1: rect.height - 110,
@@ -180,7 +176,6 @@ function fitMapIntoView(map, pad = 0) {
   return fitted;
 }
 
-// 현재는 쓰이지 않지만 혹시 기본 최소 크기 강제하고 싶을 때 사용 가능
 function ensureMinSize(baseMap, minSize = 0.12) {
   const pts = Object.values(baseMap);
   const box = computeBBoxFromPoints(pts);
@@ -217,7 +212,7 @@ export default function StarSkyDate({
   onTransform,
   onTransformEnd,
   onApply,
-  initialScaleOnLock = 0.5, // 현재는 안 쓰지만 그대로 둠
+  initialScaleOnLock = 0.5,
   constellationMeta = { name: "", createdAt: "" },
   selectedIds = [],
   onSelectChange,
@@ -264,7 +259,6 @@ export default function StarSkyDate({
     return constellationGroups.map((g) => {
       const rawStars = g.stars || [];
 
-      // ⭐ raw 좌표 기준으로 별자리가 얼마나 퍼져 있는지 먼저 계산
       const rawPts = rawStars.map((s) => ({
         x: typeof s.x === "number" ? clamp01(s.x) : 0.5,
         y: typeof s.y === "number" ? clamp01(s.y) : 0.5,
@@ -272,13 +266,11 @@ export default function StarSkyDate({
       const rawBox = computeBBoxFromPoints(rawPts);
       const rawSize = rawBox ? Math.max(rawBox.w, rawBox.h) : 0;
 
-      // ✨ 사용자가 한 번이라도 크기를 조정해서 저장한 별자리인지 여부
       const isScaleEdited =
         typeof g.scale === "number" &&
         Number.isFinite(g.scale) &&
         g.scale !== 1;
 
-      // 👉 scale 안 만졌고 + 너무 큰 별자리인 경우에만 normalize
       const needNormalize = rawSize > 0.3 && !isScaleEdited;
 
       const stars = needNormalize
@@ -337,7 +329,7 @@ export default function StarSkyDate({
   const didInitialScaleRef = useRef(false);
   const committedMapRef = useRef(null);
   const singleScaleOriginRef = useRef(null);
-  const [lastDirection, setLastDirection] = useState(null); // "up" | "down" | null
+  const [lastDirection, setLastDirection] = useState(null);
 
   const [activeConstellationId, setActiveConstellationId] = useState(null);
   const [scaleUIMap, setScaleUIMap] = useState({});
@@ -360,7 +352,6 @@ export default function StarSkyDate({
   useEffect(() => {
     const wasMulti = prevMultipleRef.current;
     if (!wasMulti && multipleMode) {
-      // 단일 → 멀티 모드 전환 시 단일 관련 상태 초기화
       setPreviewMap(null);
       setIsSelected(false);
       setActiveConstellationId(null);
@@ -376,7 +367,6 @@ export default function StarSkyDate({
     prevMultipleRef.current = multipleMode;
   }, [multipleMode]);
 
-  // 년/월 쌍이 바뀔 때 전체 내부 상태 초기화
   useEffect(() => {
     baseConstShapesRef.current = {};
 
@@ -438,7 +428,6 @@ export default function StarSkyDate({
       return;
     }
 
-    // 단일 별자리 모드: 잠금 상태 진입 시 최초 한 번 서버 좌표를 기준으로 사용
     if (locked && !didInitialScaleRef.current) {
       didInitialScaleRef.current = true;
 
@@ -449,7 +438,6 @@ export default function StarSkyDate({
       singleScaleOriginRef.current = base;
       appliedMapRef.current["single"] = base;
 
-      // 🔥 변경 부분: 기본값을 무조건 1.0으로, 그리고 scaleRef 도 맞춰 놓기
       const remembered = scaleUIMap["single"];
       const initialScale =
         typeof remembered === "number" && Number.isFinite(remembered)
@@ -457,7 +445,7 @@ export default function StarSkyDate({
           : 1.0;
 
       setScaleUI(initialScale);
-      scaleRef.current = initialScale; // ★ 기준 스케일도 함께 세팅
+      scaleRef.current = initialScale;
 
       setPreviewMap(null);
       onTransform?.(base);
@@ -480,7 +468,7 @@ export default function StarSkyDate({
       committedMapRef.current = null;
       setPreviewMap(null);
       setIsSelected(false);
-      // ❌ scaleUI, scaleRef, scaleUIMap은 건드리지 않음
+
       appliedMapRef.current = {};
       singleScaleOriginRef.current = null;
       multiScaleOriginRef.current = {};
@@ -497,19 +485,16 @@ export default function StarSkyDate({
 
   useEffect(() => {
     if (!locked) {
-      // 잠금 풀리면 다시 초기화
       setAllowPulseAnim(false);
       hasSelectedOnceRef.current = false;
       return;
     }
 
     if (isSelected) {
-      // ⭐ 처음 선택됐을 때: 애니메이션 끔 (한 번만)
       if (!hasSelectedOnceRef.current) {
         hasSelectedOnceRef.current = true;
         setAllowPulseAnim(false);
       } else {
-        // 두 번째부터는 애니메이션 켬
         setAllowPulseAnim(true);
       }
     }
@@ -575,10 +560,8 @@ export default function StarSkyDate({
       mode: "single",
     };
 
-    // 🔹 이번 편집 세션용 기준은 새로 만들 거라 초기화
     delete scaleBaseRef.current["single"];
 
-    // 🔹 슬라이더는 "이전에 적용했던 스케일"을 기억해서 그 위치에서 시작
     const remembered = scaleUIMap["single"];
     const initialScale =
       typeof remembered === "number" && Number.isFinite(remembered)
@@ -619,10 +602,8 @@ export default function StarSkyDate({
       multiScaleOriginRef.current[constId] = deepClone(originMap);
     }
 
-    // 🔹 이번 세션 기준 스케일 정보는 새로 계산할 거라 초기화
     delete scaleBaseRef.current[constId];
 
-    // 🔹 슬라이더는 "이 별자리에 마지막으로 적용했던 스케일"을 기억
     let remembered = scaleUIMap[constId];
     if (!(typeof remembered === "number" && Number.isFinite(remembered))) {
       const fromServer =
@@ -692,7 +673,6 @@ export default function StarSkyDate({
     } else if (drag.mode === "multi") {
       const constId = drag.constellationId;
       if (previewMap) {
-        // ✅ 이동 후 최종 위치는 committedConstMapRef에만 저장
         committedConstMapRef.current[constId] = deepClone(previewMap);
       } else if (appliedMapRef.current[constId]) {
         committedConstMapRef.current[constId] = deepClone(
@@ -716,7 +696,6 @@ export default function StarSkyDate({
     setHoveredConstellationId(null);
     setLastDirection(null);
 
-    // 아직 적용 안 한 상태였다면 원래 위치로 되돌리기
     if (pendingApply) {
       if (originalPositionRef.current) {
         const saveKey =
@@ -835,8 +814,6 @@ export default function StarSkyDate({
     const targetId = activeConstellationId;
     const saveKey = multipleMode && targetId ? targetId : "single";
 
-    // 🔹 이번 편집 세션에서 처음 스케일을 바꿀 때,
-    //    "그 순간 보이던 모양 + 그때의 절대 스케일(baseScale)"을 기준으로 저장
     if (!scaleBaseRef.current[saveKey]) {
       let currentShape = null;
 
@@ -858,14 +835,11 @@ export default function StarSkyDate({
           currentShape[realId] = { x: s.x, y: s.y };
         });
       } else {
-        // 단일 모드: 현재 별들 좌표
         currentShape = Object.fromEntries(
           filteredStars.map((s) => [s.id, { x: s.x, y: s.y }])
         );
       }
 
-      // 이때의 "기준 절대 스케일" (이전에 적용되어 있던 값)
-      // 수정
       const baseScale =
         typeof scaleUIMap[saveKey] === "number" &&
         Number.isFinite(scaleUIMap[saveKey])
@@ -889,7 +863,6 @@ export default function StarSkyDate({
     const baseBox = computeBBoxFromPoints(Object.values(base));
     if (!baseBox) return;
 
-    // 🔹 "지금 절대 스케일 / 기준 절대 스케일" 만큼만 다시 키우거나 줄이기
     const factor = sAbs / baseScale;
 
     const scaled = {};
@@ -916,11 +889,6 @@ export default function StarSkyDate({
     if (commit) {
       appliedMapRef.current[saveKey] = deepClone(fitted);
 
-      // 세션 끝났으니 기준은 다음 번에 다시 계산해도 되고,
-      // 남겨둬도 크게 문제 되진 않지만 깔끔하게 지우고 싶으면:
-      // delete scaleBaseRef.current[saveKey];
-
-      // 새 "절대 스케일" 저장 (다음 편집 때 슬라이더 위치용)
       scaleRef.current = sAbs;
       setScaleUI(sAbs);
       setScaleUIMap((prev) => ({
@@ -1043,20 +1011,15 @@ export default function StarSkyDate({
 
   const centerRatio = 0.5;
 
-  // 방향(lastDirection)에 상관 없이,
-  // - center 아래에 있으면 아래쪽 영역을 채우고
-  // - center 위로 올라가면 위쪽 영역을 채우도록
   let upFillStyle = { opacity: 0 };
   let downFillStyle = { opacity: 0 };
 
   if (sliderRatio >= centerRatio) {
-    // 위쪽 영역 채우기 (center ~ sliderRatio)
     upFillStyle = {
       bottom: `${centerRatio * 100}%`,
       height: `${(sliderRatio - centerRatio) * 100}%`,
     };
   } else {
-    // 아래쪽 영역 채우기 (sliderRatio ~ center)
     downFillStyle = {
       bottom: `${sliderRatio * 100}%`,
       height: `${(centerRatio - sliderRatio) * 100}%`,
@@ -1074,7 +1037,6 @@ export default function StarSkyDate({
         onPointerUp={onGroupPointerUp}
       >
         <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 2 }}>
-          {/* 단일 별자리 모드: edges */}
           {!multipleMode &&
             edges.map(([a, b], idx) => {
               const pa = filteredStars.find((s) => s.id === a);
@@ -1123,7 +1085,6 @@ export default function StarSkyDate({
               );
             })}
 
-          {/* 멀티 별자리 모드: 각 별자리의 edges */}
           {multipleMode &&
             filteredConstellationGroups.map((g) => {
               const appliedForThis = appliedMapRef.current[g.id] || null;
@@ -1210,7 +1171,6 @@ export default function StarSkyDate({
             })}
         </svg>
 
-        {/* 자유 별 (멀티 모드에서 별자리에 포함되지 않은 별) */}
         {filteredStars.map((s) => {
           if (
             multipleMode &&
@@ -1257,7 +1217,7 @@ export default function StarSkyDate({
 
                 {locked &&
                   isSelected &&
-                  allowPulseAnim && // ✅ 이 조건 추가
+                  allowPulseAnim &&
                   !multipleMode &&
                   !selectedForEdit && (
                     <div
@@ -1292,8 +1252,6 @@ export default function StarSkyDate({
                     top: "50%",
                     transform: "translate(-50%, -50%)",
                     zIndex: 1,
-                    // 원하면 transition은 유지해도 되고, 아예 빼도 됨
-                    // transition: "transform 0.12s ease-out",
                   }}
                   onPointerDown={(e) => onStarPointerDown(e, s)}
                   onPointerMove={(e) => onStarPointerMove(e, s)}
@@ -1308,7 +1266,6 @@ export default function StarSkyDate({
           );
         })}
 
-        {/* 멀티 별자리 모드: 각 별자리 안의 별 */}
         {multipleMode &&
           filteredConstellationGroups.map((g) => {
             const appliedForThis = appliedMapRef.current[g.id] || null;
@@ -1325,12 +1282,12 @@ export default function StarSkyDate({
                 (baseMap && baseMap[id]) || { x: s.x, y: s.y };
 
               const showPulse =
-                allowPulseAnim && // ✅ 추가
+                allowPulseAnim &&
                 locked &&
                 (g.id === activeConstellationId ||
                   g.id === hoveredConstellationId) &&
                 isSelected;
-              // ✅ 간선과 같은 좌표계 사용: clampToView 대신 clamp01
+
               const px = clamp01(p.x);
               const py = clamp01(p.y);
 
@@ -1379,8 +1336,6 @@ export default function StarSkyDate({
                         top: "50%",
                         transform: "translate(-50%, -50%)",
                         zIndex: 1,
-                        // 원하면 transition은 유지해도 되고, 아예 빼도 됨
-                        // transition: "transform 0.12s ease-out",
                       }}
                       onPointerDown={(e) => onStarPointerDown(e, s)}
                       onPointerMove={(e) => onStarPointerMove(e, s)}
@@ -1433,14 +1388,12 @@ export default function StarSkyDate({
         )}
       </div>
 
-      {/* ──────────────── 크기 조절 UI (중앙 원 드래그 + 색 변화) ──────────────── */}
       {locked && isSelected && (
         <div
           className="absolute right-6 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center"
           onPointerDown={(e) => e.stopPropagation()}
         >
           <div className="flex flex-col items-center gap-3">
-            {/* + 버튼 */}
             <button
               type="button"
               className="text-white text-[28px] leading-none hover:opacity-90"
@@ -1454,9 +1407,7 @@ export default function StarSkyDate({
               +
             </button>
 
-            {/* ───────── 세로 슬라이더 전체 ───────── */}
             <div className="relative h-[340px] w-[40px] flex flex-col items-center">
-              {/* 슬라이더 트랙 */}
               <div className="relative w-[12px] flex-1 rounded-full bg-white/15">
                 <div
                   className="absolute left-0 right-0 bg-white/60"
@@ -1470,7 +1421,6 @@ export default function StarSkyDate({
 
                 <div className="absolute inset-0 rounded-full border border-white/30 pointer-events-none" />
 
-                {/* 슬라이더 핸들 */}
                 <div
                   className="absolute left-1/2 -translate-x-1/2 w-8 h-8 rounded-full 
                bg-[#f5f5f5] shadow-[0_0_10px_rgba(0,0,0,0.45)]
@@ -1508,7 +1458,6 @@ export default function StarSkyDate({
                 />
               </div>
 
-              {/* - 버튼 */}
               <button
                 type="button"
                 className="mt-3 hover:opacity-90"
@@ -1523,7 +1472,6 @@ export default function StarSkyDate({
               </button>
             </div>
 
-            {/* 적용 버튼 */}
             <button
               type="button"
               className="mt-2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg
@@ -1559,7 +1507,6 @@ export default function StarSkyDate({
         </div>
       )}
 
-      {/* 하단 월/년도 네비게이션 */}
       <div
         className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10
                    bg-black/30 backdrop-blur px-6 py-2 flex items-center gap-6 select-none"
