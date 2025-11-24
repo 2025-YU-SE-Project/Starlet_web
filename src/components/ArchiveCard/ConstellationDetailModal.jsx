@@ -281,7 +281,7 @@ export default function ConstellationDetailModal({
         aria-hidden="true"
       />
       <div
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+        className="left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
                     bg-white/85 text-neutral-900 w-280 max-w-[95vw] rounded-2xl shadow-2xl relative"
       >
         {canNav && (
@@ -458,7 +458,7 @@ export default function ConstellationDetailModal({
         </div>
       </div>
 
-      {/* 별자리 이름/설명 수정 모달 */}
+
       <ConstellationModal
         open={editOpen && !!editInitial}
         onClose={() => setEditOpen(false)}

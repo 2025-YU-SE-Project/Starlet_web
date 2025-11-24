@@ -1,26 +1,35 @@
-// src/components/Sidebar.jsx
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import AuthContext from "../contexts/AuthContext";
 import userGetApi from "../apis/userGetApi";
 import logoutApi from "../apis/logoutApi";
+import getLevelApi from "../apis/getLevelApi";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
   const { accessToken, logout } = useContext(AuthContext);
   const { t } = useTranslation();
 
+    const [levelName, setLevelName] = useState("");   
+  const [levelMin, setLevelMin] = useState(0);     
+  const [levelMax, setLevelMax] = useState(0);      
+  const [progress, setProgress] = useState(0);    
+
   const [nickname, setNickname] = useState("user");
-  const [progress] = useState(34);
+
   const isLoggedIn = !!accessToken;
 
-  useEffect(() => {
+   useEffect(() => {
     let cancelled = false;
 
-    const loadNickname = async () => {
+    const loadUserData = async () => {
       if (!isLoggedIn) {
         setNickname("미등록사용자");
+        setLevelName("");
+        setLevelMin(0);
+        setLevelMax(0);
+        setProgress(0);
         return;
       }
 
@@ -29,7 +38,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       if (cached && !cancelled) setNickname(cached);
 
       try {
-        const users = await userGetApi(accessToken);
+
+        const [users, levelData] = await Promise.all([
+          userGetApi(accessToken),
+          getLevelApi(accessToken),
+        ]);
+
+    
         const myEmail =
           localStorage.getItem("email") || sessionStorage.getItem("email");
         let nk = "user";
@@ -47,24 +62,43 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             sessionStorage.setItem("nickname", nk);
           }
         }
+
+  
+        if (!cancelled && levelData) {
+          const { name, min, max, progressToNext } = levelData;
+
+          setLevelName(name || "");
+          setLevelMin(typeof min === "number" ? min : 0);
+          setLevelMax(typeof max === "number" ? max : 0);
+
+        
+          const range = Math.max(1, (max ?? 0) - (min ?? 0));
+          const current = (max ?? 0) - (progressToNext ?? 0);
+          const percent = Math.round(
+            Math.min(100, Math.max(0, ((current - (min ?? 0)) / range) * 100))
+          );
+          setProgress(percent);
+        }
       } catch (err) {
-        console.error("닉네임 불러오기 실패:", err);
+        console.error("유저/레벨 정보 불러오기 실패:", err);
 
         if (err?.response?.status === 401 || err?.response?.status === 403) {
           logout();
           return;
         }
+
         if (!cancelled) {
           const fallback =
             localStorage.getItem("nickname") ||
             sessionStorage.getItem("nickname") ||
             "사용자";
           setNickname(fallback);
+    
         }
       }
     };
 
-    loadNickname();
+    loadUserData();
     return () => {
       cancelled = true;
     };
@@ -115,27 +149,31 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   {isLoggedIn ? nickname : "미등록사용자"}
                 </span>
                 <span className="text-sm text-gray-300">
-                  {isLoggedIn ? "마스터" : "로그인 후 이용해주세요!"}
-                </span>
+  {isLoggedIn
+    ? levelName || "마스터" 
+    : "로그인 후 이용해주세요!"}
+</span>
+
               </div>
             </div>
 
-            {isLoggedIn && (
-              <div className="mt-4">
-                <div className="w-full h-5 bg-gray-400/60 overflow-hidden">
-                  <div
-                    className="h-full bg-green-500"
-                    style={{
-                      width: `${Math.min(100, Math.max(0, progress))}%`,
-                    }}
-                  />
-                </div>
-                <div className="flex items-center justify-between text-xs text-gray-300 mt-1">
-                  <span>0</span>
-                  <span>100</span>
-                </div>
-              </div>
-            )}
+          {isLoggedIn && (
+  <div className="mt-4">
+    <div className="w-full h-5 bg-gray-400/60 overflow-hidden">
+      <div
+        className="h-full bg-green-500"
+        style={{
+          width: `${Math.min(100, Math.max(0, progress))}%`,
+        }}
+      />
+    </div>
+    <div className="flex items-center justify-between text-xs text-gray-300 mt-1">
+      <span>{levelMin}</span>
+      <span>{levelMax}</span>
+    </div>
+  </div>
+)}
+
 
             <hr className="my-4 border-white/40" />
 
