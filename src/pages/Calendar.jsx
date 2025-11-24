@@ -110,14 +110,14 @@ function parseISODate(iso) {
   const d = new Date(`${iso}T00:00:00`);
   return isNaN(d.getTime()) ? null : d;
 }
-function isToday(date) {
+/* function isToday(date) {    당일 날짜에만 일기 작성 기능 (추후 사용)
   const today = new Date();
   return (
     date.getFullYear() === today.getFullYear() &&
     date.getMonth() === today.getMonth() &&
     date.getDate() === today.getDate()
   );
-}
+} */
 
 function Calendar() {
   const navigate = useNavigate();
@@ -236,11 +236,6 @@ function Calendar() {
       const data = await getDiary(k);
 
       if (!data) {
-        if (!isToday(dateObj)) {
-          setMsg("일기 생성은 오늘 날짜에만 가능합니다.");
-          return;
-        }
-
         setPickedEmotion("");
         setSelectedTags([]);
         setIsEdit(false);
