@@ -350,7 +350,7 @@ export default function ConstellationDetailModal({
               </button>
             </div>
 
-            <div className="text-neutral-500 text-xl leading-relaxed">
+            <div className="text-neutral-500 text-xl leading-relaxed mt-1">
               {description || "설명이 없습니다."}
             </div>
 
