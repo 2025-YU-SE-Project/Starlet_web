@@ -400,30 +400,31 @@ else if (!interactive) {
                 className="block"
               >
                 <defs>
-                  <filter
-                    id="star-glow"
-                    x="-50%"
-                    y="-50%"
-                    width="200%"
-                    height="200%"
-                  >
-                    <feGaussianBlur
-                      in="SourceGraphic"
-                      stdDeviation="2.5"
-                      result="b1"
-                    />
-                    <feGaussianBlur
-                      in="SourceGraphic"
-                      stdDeviation="2.0"
-                      result="b2"
-                    />
-                    <feMerge>
-                      <feMergeNode in="b1" />
-                      <feMergeNode in="b2" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
+  <filter
+    id="star-glow"
+    x="-50%"
+    y="-50%"
+    width="200%"
+    height="200%"
+  >
+    <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="b1" />
+    <feGaussianBlur in="SourceGraphic" stdDeviation="2.0" result="b2" />
+    <feMerge>
+      <feMergeNode in="b1" />
+      <feMergeNode in="b2" />
+      <feMergeNode in="SourceGraphic" />
+    </feMerge>
+  </filter>
+
+  
+  <radialGradient id="selected-star-red" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stopColor="#ff3246" stopOpacity="0.85" />
+    <stop offset="40%" stopColor="#ff465a" stopOpacity="0.45" />
+    <stop offset="70%" stopColor="#ff465a" stopOpacity="0.15" />
+    <stop offset="85%" stopColor="#ff0014" stopOpacity="0" />
+  </radialGradient>
+</defs>
+
 
                 <g className="[mix-blend-mode:screen]">
                   {edges.map(([a, b], idx) => {
@@ -456,46 +457,60 @@ else if (!interactive) {
                   const isSelected = interactive && selectedStar === s.id;
                   const delayMs = `${((s.id ?? i) * 137) % 1200}ms`;
 
-                  return (
-                    <g key={s.id ?? i}>
-                      <image
-                        href={icon}
-                        x={p.x * 100 - 3}
-                        y={p.y * 100 - 3}
-                        width={6}
-                        height={6}
-                        filter="url(#star-glow)"
-                        className="animate-pulse [animation-duration:900ms]"
-                        style={{
-                          animationDelay: delayMs,
-                          transformOrigin: "center",
-                          transformBox: "fill-box",
-                          cursor: interactive ? "grab" : "default",
-                          pointerEvents: interactive ? "auto" : "none",
-                        }}
-                        onPointerDown={
-                          interactive
-                            ? (e) => onPointerDownStar(e, s.id)
-                            : undefined
-                        }
-                        onClick={
-                          interactive ? () => onClickStar(s.id) : undefined
-                        }
-                      />
+                 return (
+  <g key={s.id ?? i}>
+  
+    {isSelected && (
+      <circle
+        cx={p.x * 100}
+        cy={p.y * 100}
+        r={7}  
+        fill="url(#selected-star-red)"
+        className="selected-star-halo"
+        style={{
+       
+          filter: "blur(0.6px) drop-shadow(0 0 22px rgba(255,70,90,1))",
+        }}
+      />
+    )}
 
-                      <circle
-                        cx={p.x * 100}
-                        cy={p.y * 100}
-                        r={0.5}
-                        fill="#ffffff"
-                        style={{
-                          filter: isSelected
-                            ? "drop-shadow(0 0 8px rgba(25,255,255,0.9))"
-                            : "none",
-                        }}
-                      />
-                    </g>
-                  );
+
+    <image
+      href={icon}
+      x={p.x * 100 - 3}
+      y={p.y * 100 - 3}
+      width={6}
+      height={6}
+      filter="url(#star-glow)"
+      className="animate-pulse [animation-duration:900ms]"
+      style={{
+        animationDelay: delayMs,
+        transformOrigin: "center",
+        transformBox: "fill-box",
+        cursor: interactive ? "grab" : "default",
+        pointerEvents: interactive ? "auto" : "none",
+      }}
+      onPointerDown={
+        interactive ? (e) => onPointerDownStar(e, s.id) : undefined
+      }
+      onClick={interactive ? () => onClickStar(s.id) : undefined}
+    />
+
+  
+    <circle
+      cx={p.x * 100}
+      cy={p.y * 100}
+      r={0.5}  
+      fill="#ffffff"
+      style={{
+        filter: isSelected
+          ? "drop-shadow(0 0 14px rgba(255,90,110,1))"
+          : "drop-shadow(0 0 4px rgba(255,255,255,0.85))",
+      }}
+    />
+  </g>
+);
+
                 })}
               </svg>
             </div>
