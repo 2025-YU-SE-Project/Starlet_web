@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
 import { IoMdClose } from "react-icons/io";
-import { searchFriend } from "../apis/friends/search";
-import { requestFriend } from "../apis/friends/request";
+import { searchFriend } from "../apis/Friends/search";
+import { requestFriend } from "../apis/Friends/request";
 import profileImg from "../assets/MyPage/profile.png";
 
 export default function FriendSearchModal({ isOpen, onClose }) {

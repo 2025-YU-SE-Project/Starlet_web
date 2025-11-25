@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { IoMdClose } from "react-icons/io";
-import { fetchFriendRequests } from "../apis/friends/friendRequests";
-import { acceptFriendRequest } from "../apis/friends/accept";
-import { rejectFriendRequest } from "../apis/friends/reject";
+import { fetchFriendRequests } from "../apis/Friends/friendRequests";
+import { acceptFriendRequest } from "../apis/Friends/accept";
+import { rejectFriendRequest } from "../apis/Friends/reject";
 import profileImg from "../assets/MyPage/profile.png";
 
 export default function FriendRequestsModal({ isOpen, onClose }) {

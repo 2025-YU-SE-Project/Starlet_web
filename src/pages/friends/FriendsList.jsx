@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchFriendList } from "../../apis/Friends/friends.jsx";
+import { fetchFriendList } from "../../apis/Friends/friends";
 import { FiTrash2 } from "react-icons/fi";
 import { IoIosAdd } from "react-icons/io";
 import { CiMenuBurger } from "react-icons/ci";
