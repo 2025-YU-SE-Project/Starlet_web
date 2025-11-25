@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchFriendList } from "../../apis/friends/friends.jsx";
+import { fetchFriendList } from "../../apis/Friends/friends.jsx";
 import { FiTrash2 } from "react-icons/fi";
 import { IoIosAdd } from "react-icons/io";
 import { CiMenuBurger } from "react-icons/ci";
@@ -8,7 +8,7 @@ import background from "../../assets/background.png";
 import Sidebar from "../../components/Sidebar";
 import FriendRequestsModal from "../../components/FriendRequestModal";
 import FriendSearchModal from "../../components/FriendSearchModal";
-import { deleteFriend } from "../../apis/friends/deleteFriend";
+import { deleteFriend } from "../../apis/Friends/deleteFriend";
 import profileImg from "../../assets/MyPage/profile.png";
 import getUser from "../../apis/Mypage/getUser";
 import getLevel from "../../apis/Mypage/getLevel";
