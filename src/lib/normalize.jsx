@@ -12,7 +12,7 @@ export function normalizeStars(stars, box = { w: 200, h: 140, pad: 10 }) {
     pad + (maxX === minX ? innerW / 2 : ((x - minX) / (maxX - minX)) * innerW);
 
   const scaleY = (y) =>
-    pad + (maxY === minY ? innerH / 2 : (1 - (y - minY) / (maxY - minY)) * innerH);
+    pad + (maxY === minY ? innerH / 2: ((y-minY) / (maxY - minY)) * innerH);
 
   return stars.map((s) => ({
     ...s,

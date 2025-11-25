@@ -65,6 +65,7 @@ function DiaryModal({
   const tagsBoxRef = useRef(null);
   const navigate = useNavigate();
   const parsed = parseDate(dateStr);
+  const displayName = userName || "사용자";
 
   useEffect(() => {
     if (open) {
@@ -153,8 +154,8 @@ function DiaryModal({
               </button>
             )}
             <div className="text-xl font-semibold">
-              <span className="text-[#4F4F4F]">Mins</span>{" "}
-              <span className="text-[#939393]">Diary</span>
+              <span className="text-[#4F4F4F]">{displayName}</span>{" "}
+              <span className="text-[#939393]">의 Diary</span>
             </div>
             <button
               onClick={handleClickDone}
@@ -181,14 +182,46 @@ function DiaryModal({
                   backgroundPosition: "center",
                 }}
               >
-                {emotionId && STICKER[emotionId] && (
-                  <img
-                    src={STICKER[emotionId]}
-                    alt=""
-                    className="absolute w-10 h-10 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                    draggable={false}
-                  />
-                )}
+                <svg
+                  viewBox="0 0 220 220"
+                  className="w-full h-full"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <defs>
+                    <filter
+                      id="glow"
+                      x="-50%"
+                      y="-50%"
+                      width="200%"
+                      height="200%"
+                    >
+                      <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
+                      <feMerge>
+                        <feMergeNode in="coloredBlur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+
+                  {emotionId && STICKER[emotionId] && (
+                    <g>
+                      <image
+                        href={STICKER[emotionId]}
+                        x={110 - 20}
+                        y={110 - 20}
+                        width="40"
+                        height="40"
+                        filter="url(#glow)"
+                        className="animate-pulse [animation-duration:900ms]"
+                        style={{
+                          transformOrigin: "center",
+                          transformBox: "fill-box",
+                        }}
+                      />
+                      <circle cx="110" cy="110" r="2" fill="#fff" />
+                    </g>
+                  )}
+                </svg>
               </div>
 
               <div className="flex-1 flex flex-col gap-3 text-[#4F4F4F]">

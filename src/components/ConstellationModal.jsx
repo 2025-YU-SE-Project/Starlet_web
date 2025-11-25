@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import backgroundImg from "../assets/background.png";
 import suggestConstellation from "../apis/Constellation/suggestConstellation";
 import { MdArrowBackIosNew } from "react-icons/md";
+import { normalizeStars } from "../lib/normalize";
 
 const MIN_NODES = 7;
 const MAX_NODES = 14;
@@ -33,6 +34,7 @@ const ConstellationModal = ({
   const [warn, setWarn] = useState("");
   const [suggesting, setSuggesting] = useState(false);
   const [suggestInfoOpen, setSuggestInfoOpen] = useState(false);
+  const [metaError, setMetaError] = useState("");
 
   const panelRef = useRef(null);
   const dragIdRef = useRef(null);
@@ -58,6 +60,7 @@ const ConstellationModal = ({
       (initial?.desc ?? initial?.description ?? "").slice(0, MAX_DESC_LEN)
     );
     setWarn("");
+    setMetaError("");
 
     const init = {};
     (stars || []).forEach((s) => {
@@ -192,6 +195,28 @@ const ConstellationModal = ({
 
     const trimmedName = name.trim();
     const trimmedDesc = desc.trim();
+
+    setMetaError("");
+
+  
+    if (
+      trimmedName.length > MAX_NAME_LEN ||
+      trimmedDesc.length > MAX_DESC_LEN
+    ) {
+      if (trimmedName.length > MAX_NAME_LEN && trimmedDesc.length > MAX_DESC_LEN) {
+        setMetaError(
+          `별자리 이름은 ${MAX_NAME_LEN}자 이내, 설명은 ${MAX_DESC_LEN}자 이내로 입력해주세요.`
+        );
+      } else if (trimmedName.length > MAX_NAME_LEN) {
+        setMetaError(`별자리 이름은 ${MAX_NAME_LEN}자 이내로 입력해주세요.`);
+      } else {
+        setMetaError(`별자리 설명은 ${MAX_DESC_LEN}자 이내로 입력해주세요.`);
+      }
+      return;
+    }
+
+    const trimmedNameFinal = trimmedName;
+    const trimmedDescFinal = trimmedDesc;
     const createdAt =
       initial?.constellationCreatedAt || new Date().toISOString();
 
@@ -203,16 +228,16 @@ const ConstellationModal = ({
       }
       onSubmit?.({
         id,
-        name: trimmedName,
-        description: trimmedDesc,
+        name: trimmedNameFinal,
+        description: trimmedDescFinal,
       });
       onClose?.();
       return;
     }
 
     onSubmit?.({
-      name: trimmedName,
-      desc: trimmedDesc,
+      name: trimmedNameFinal,
+      desc: trimmedDescFinal,
       lines: edges,
       starPositions,
       constellationCreatedAt: createdAt,
@@ -246,13 +271,35 @@ const ConstellationModal = ({
   if (!open) return null;
 
   let renderPositions = starPositions;
-  if (!interactive) {
+
+  if (isEdit) {
+    const ns = normalizeStars(
+      (stars || []).map((s) => ({
+        ...s,
+        starId: s.id ?? s.starId,
+      })),
+      { w: 100, h: 100, pad: 8 }
+    );
+
+    const pos = {};
+    ns.forEach((s) => {
+      const key = s.starId ?? s.id;
+
+      pos[key] = {
+        x: s._nx / 100,
+        y: s._ny / 100,
+      };
+    });
+
+    renderPositions = pos;
+  } else if (!interactive) {
     const ids = Object.keys(starPositions);
     if (ids.length > 0) {
-      let minX = 1,
-        maxX = 0,
-        minY = 1,
-        maxY = 0;
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minY = Infinity;
+      let maxY = -Infinity;
+
       ids.forEach((id) => {
         const p = starPositions[id];
         if (!p) return;
@@ -264,19 +311,25 @@ const ConstellationModal = ({
 
       const spanX = Math.max(maxX - minX, 0.001);
       const spanY = Math.max(maxY - minY, 0.001);
-      const margin = 0.12;
+
+      const padding = 0.08;
+      const innerW = 1 - padding * 2;
+      const innerH = 1 - padding * 2;
+      const scale = Math.min(innerW / spanX, innerH / spanY);
+
+      const offsetX = (1 - scale * spanX) / 2;
+      const offsetY = (1 - scale * spanY) / 2;
 
       const scaled = {};
       ids.forEach((id) => {
         const p = starPositions[id];
         if (!p) return;
-        const nx = (p.x - minX) / spanX;
-        const ny = (p.y - minY) / spanY;
         scaled[id] = {
-          x: margin + nx * (1 - margin * 2),
-          y: margin + ny * (1 - margin * 2),
+          x: offsetX + (p.x - minX) * scale,
+          y: offsetY + (p.y - minY) * scale,
         };
       });
+
       renderPositions = scaled;
     }
   }
@@ -301,6 +354,7 @@ const ConstellationModal = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
+    
         <div
           className="flex items-center justify-between px-7 h-[64px] rounded-t-[26px]"
           style={{
@@ -315,9 +369,10 @@ const ConstellationModal = ({
                 setStep(1);
                 setWarn("");
                 setSelectedStar(null);
+                setMetaError("");
               }
             }}
-            className="text-[24px] text-black/70 hover:text-black leading-none"
+            className="text-[24px] text-black/70 hover:text-black leading-none cursor-pointer"
           >
             {isEdit ? "×" : step === 1 ? "" : <MdArrowBackIosNew />}
           </button>
@@ -329,7 +384,7 @@ const ConstellationModal = ({
           {step === 1 && !isEdit ? (
             <button
               onClick={goNext}
-              className="text-[18px] font-semibold text-[#111827]"
+              className="text-[15px] font-semibold text-[#111827] cursor-pointer"
             >
               다음
             </button>
@@ -337,9 +392,9 @@ const ConstellationModal = ({
             <button
               onClick={finish}
               disabled={!canFinish}
-              className={`text-[18px] font-semibold ${
+              className={`text-[15px] font-semibold ${
                 canFinish
-                  ? "text-[#111827]"
+                  ? "text-[#111827] cursor-pointer"
                   : "text-black/30 cursor-not-allowed"
               }`}
             >
@@ -348,6 +403,7 @@ const ConstellationModal = ({
           )}
         </div>
 
+       
         <div className="flex flex-col items-center px-10 py-6 gap-4">
           {!isEdit && step === 1 && (
             <p className="text-[13px] text-black/60">
@@ -356,6 +412,7 @@ const ConstellationModal = ({
           )}
 
           <div className="flex flex-col items-center gap-5">
+            
             <div
               ref={panelRef}
               className="relative w-[440px] max-w-full aspect-square rounded-[26px] overflow-hidden"
@@ -396,8 +453,21 @@ const ConstellationModal = ({
                       <feMergeNode in="SourceGraphic" />
                     </feMerge>
                   </filter>
+
+                  <radialGradient
+                    id="selected-star-red"
+                    cx="50%"
+                    cy="50%"
+                    r="50%"
+                  >
+                    <stop offset="0%" stopColor="#ff3246" stopOpacity="0.85" />
+                    <stop offset="40%" stopColor="#ff465a" stopOpacity="0.45" />
+                    <stop offset="70%" stopColor="#ff465a" stopOpacity="0.15" />
+                    <stop offset="85%" stopColor="#ff0014" stopOpacity="0" />
+                  </radialGradient>
                 </defs>
 
+           
                 <g className="[mix-blend-mode:screen]">
                   {edges.map(([a, b], idx) => {
                     const pa = renderPositions[a];
@@ -418,6 +488,7 @@ const ConstellationModal = ({
                   })}
                 </g>
 
+        
                 {(stars || []).map((s, i) => {
                   const p = renderPositions[s.id];
                   if (!p) return null;
@@ -431,6 +502,20 @@ const ConstellationModal = ({
 
                   return (
                     <g key={s.id ?? i}>
+                      {isSelected && (
+                        <circle
+                          cx={p.x * 100}
+                          cy={p.y * 100}
+                          r={7}
+                          fill="url(#selected-star-red)"
+                          className="selected-star-halo"
+                          style={{
+                            filter:
+                              "blur(0.6px) drop-shadow(0 0 22px rgba(255,70,90,1))",
+                          }}
+                        />
+                      )}
+
                       <image
                         href={icon}
                         x={p.x * 100 - 3}
@@ -451,9 +536,7 @@ const ConstellationModal = ({
                             ? (e) => onPointerDownStar(e, s.id)
                             : undefined
                         }
-                        onClick={
-                          interactive ? () => onClickStar(s.id) : undefined
-                        }
+                        onClick={interactive ? () => onClickStar(s.id) : undefined}
                       />
 
                       <circle
@@ -463,8 +546,8 @@ const ConstellationModal = ({
                         fill="#ffffff"
                         style={{
                           filter: isSelected
-                            ? "drop-shadow(0 0 8px rgba(25,255,255,0.9))"
-                            : "none",
+                            ? "drop-shadow(0 0 14px rgba(255,90,110,1))"
+                            : "drop-shadow(0 0 4px rgba(255,255,255,0.85))",
                         }}
                       />
                     </g>
@@ -473,6 +556,7 @@ const ConstellationModal = ({
               </svg>
             </div>
 
+           
             {interactive && (
               <div className="flex gap-3">
                 <button
@@ -501,6 +585,7 @@ const ConstellationModal = ({
               </div>
             )}
 
+        
             {step === 2 && (
               <div className="flex flex-col items-center w-full gap-4">
                 <div className="flex items-center gap-2 relative">
@@ -539,10 +624,7 @@ const ConstellationModal = ({
                       {suggestInfoOpen && (
                         <div className="absolute bottom-full left-1/2 translate-x-[27%] mb-4 z-50">
                           <div className="relative">
-                            <div
-                              className="rounded-2xl bg-white shadow-[0_12px_30px_rgba(0,0,0,0.18)]
-border border-gray-100 px-6 py-4 w-[240px]"
-                            >
+                            <div className="rounded-2xl bg-white shadow-[0_12px_30px_rgba(0,0,0,0.18)] border border-gray-100 px-6 py-4 w-[240px]">
                               <div className="inline-flex items-center px-4 py-1 rounded-md bg-[#FFE75A] text-[13px] font-semibold text-[#4b5563] mb-3">
                                 별자리 네이밍 AI
                               </div>
@@ -583,12 +665,18 @@ border border-gray-100 px-6 py-4 w-[240px]"
                     maxLength={MAX_DESC_LEN}
                     className="w-full h-[44px] rounded-full bg-white px-5 text-[14px] text-black outline-none border border-black/10 focus:border-[#4b5563]"
                   />
+
+                  <div className="h-[10px] flex items-center">
+                    {metaError && (
+                      <p className="text-[12px] text-red-600">{metaError}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
 
             {warn && (
-              <div className="text-[12px] text-red-700 bg-red-50/80 border border-red-200 px-3 py-2 rounded-lg">
+              <div className="text-[12px] text-red-700 bg-red-50/80 border px-3 py-2 rounded-md">
                 {warn}
               </div>
             )}

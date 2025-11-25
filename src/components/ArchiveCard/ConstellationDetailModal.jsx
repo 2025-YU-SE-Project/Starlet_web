@@ -162,22 +162,27 @@ export default function ConstellationDetailModal({
   const goPrev = () => goIdx(index - 1);
   const goNext = () => goIdx(index + 1);
 
-  React.useEffect(() => {
-    const onKey = (e) => {
-      if (!open) return;
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        goPrev();
-      }
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        goNext();
-      }
-      if (e.key === "Escape") onClose?.();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, index, total]);
+
+React.useEffect(() => {
+  const onKey = (e) => {
+  
+    if (!open || editOpen) return;
+
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      goPrev();
+    }
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      goNext();
+    }
+    if (e.key === "Escape") onClose?.();
+  };
+
+  window.addEventListener("keydown", onKey);
+  return () => window.removeEventListener("keydown", onKey);
+}, [open, editOpen, index, total]);
+
 
   function resolveEmotionFromStar(s) {
     const explicit = s?.emotion || s?.emotionType || s?.mood;
@@ -276,13 +281,13 @@ export default function ConstellationDetailModal({
   return (
     <div className="fixed inset-0 z-[100]">
       <div
-        className="absolute inset-0 bg-black/60"
+        className="absolute inset-0 bg-black/60 "
         onClick={onClose}
         aria-hidden="true"
       />
       <div
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                    bg-white/85 text-neutral-900 w-280 max-w-[95vw] rounded-2xl shadow-2xl relative"
+        className="left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+                    bg-white text-neutral-900 w-280 max-w-[95vw] rounded-2xl shadow-2xl relative"
       >
         {canNav && (
           <>
@@ -344,56 +349,66 @@ export default function ConstellationDetailModal({
               <button
                 onClick={onClose}
                 aria-label="닫기"
-                className="p-2 rounded-full hover:bg-neutral-100 active:scale-95"
+                className="p-2 rounded-full hover:bg-neutral-100 active:scale-95 cursor-pointer"
               >
                 <IoClose size={40} />
               </button>
             </div>
 
-            <div className="text-neutral-500 text-xl leading-relaxed">
+            <div className="text-neutral-500 text-xl leading-relaxed mt-1">
               {description || "설명이 없습니다."}
             </div>
 
-            <div className="mt-4 grid grid-rows-2 gap-y-1 font-pretendard">
-              {EMOTIONS.map((em) => {
-                const colorKey = EMOTION_TO_COLOR[em.key] || "YELLOW";
-                const iconSrc = colorIconMap[colorKey];
-                const cnt = counts[em.key] || 0;
-                return (
-                  <div
-                    key={em.key}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="w-32 text-[18px]">{em.label}</span>
-                      <div className="flex items-center">
-                        {Array.from({ length: Math.min(6, cnt) }).map(
-                          (_, idx) => (
-                            <img
-                              key={idx}
-                              src={iconSrc}
-                              alt={`${em.label} (${colorKey})`}
-                              className="w-8 h-8"
-                            />
-                          )
-                        )}
-                      </div>
-                    </div>
+<div className="mt-6 grid grid-rows-2 gap-y-1 font-pretendard">
+  {EMOTIONS.map((em) => {
+    const colorKey = EMOTION_TO_COLOR[em.key] || "YELLOW";
+    const iconSrc = colorIconMap[colorKey];
+    const cnt = counts[em.key] || 0;
 
-                    {em.key === "CONFUSED" && (
-                      <button
-                        type="button"
-                        onClick={handleOpenEdit}
-                        className="flex items-center gap-1 text-[18px] text-[#808080]"
-                      >
-                        <span>수정</span>
-                        <span>✎</span>
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+    return (
+      <div
+        key={em.key}
+        className="flex items-center justify-between"
+      >
+  
+        <div className="flex items-center gap-3">
+          <span className="w-32 text-[18px]">{em.label}</span>
+
+
+          <div className="flex items-center w-40 h-8">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="w-8 h-8 flex items-center justify-center"
+              >
+                {idx < cnt && (
+                  <img
+                    src={iconSrc}
+                    alt={`${em.label} (${colorKey})`}
+                    className="w-7 h-7"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+
+        {em.key === "CONFUSED" && (
+          <button
+            type="button"
+            onClick={handleOpenEdit}
+            className="flex items-center gap-1 text-[18px] text-[#808080] cursor-pointer"
+          >
+            <span>수정</span>
+            <span>✎</span>
+          </button>
+        )}
+      </div>
+    );
+  })}
+</div>
+
           </div>
         </div>
 
@@ -458,7 +473,7 @@ export default function ConstellationDetailModal({
         </div>
       </div>
 
-      {/* 별자리 이름/설명 수정 모달 */}
+
       <ConstellationModal
         open={editOpen && !!editInitial}
         onClose={() => setEditOpen(false)}
