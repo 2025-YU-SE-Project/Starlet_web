@@ -198,12 +198,14 @@ const ConstellationModal = ({
 
     setMetaError("");
 
-  
     if (
       trimmedName.length > MAX_NAME_LEN ||
       trimmedDesc.length > MAX_DESC_LEN
     ) {
-      if (trimmedName.length > MAX_NAME_LEN && trimmedDesc.length > MAX_DESC_LEN) {
+      if (
+        trimmedName.length > MAX_NAME_LEN &&
+        trimmedDesc.length > MAX_DESC_LEN
+      ) {
         setMetaError(
           `별자리 이름은 ${MAX_NAME_LEN}자 이내, 설명은 ${MAX_DESC_LEN}자 이내로 입력해주세요.`
         );
@@ -354,7 +356,6 @@ const ConstellationModal = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-    
         <div
           className="flex items-center justify-between px-7 h-[64px] rounded-t-[26px]"
           style={{
@@ -403,7 +404,6 @@ const ConstellationModal = ({
           )}
         </div>
 
-       
         <div className="flex flex-col items-center px-10 py-6 gap-4">
           {!isEdit && step === 1 && (
             <p className="text-[13px] text-black/60">
@@ -412,7 +412,6 @@ const ConstellationModal = ({
           )}
 
           <div className="flex flex-col items-center gap-5">
-            
             <div
               ref={panelRef}
               className="relative w-[440px] max-w-full aspect-square rounded-[26px] overflow-hidden"
@@ -467,7 +466,6 @@ const ConstellationModal = ({
                   </radialGradient>
                 </defs>
 
-           
                 <g className="[mix-blend-mode:screen]">
                   {edges.map(([a, b], idx) => {
                     const pa = renderPositions[a];
@@ -488,7 +486,6 @@ const ConstellationModal = ({
                   })}
                 </g>
 
-        
                 {(stars || []).map((s, i) => {
                   const p = renderPositions[s.id];
                   if (!p) return null;
@@ -536,7 +533,9 @@ const ConstellationModal = ({
                             ? (e) => onPointerDownStar(e, s.id)
                             : undefined
                         }
-                        onClick={interactive ? () => onClickStar(s.id) : undefined}
+                        onClick={
+                          interactive ? () => onClickStar(s.id) : undefined
+                        }
                       />
 
                       <circle
@@ -556,7 +555,6 @@ const ConstellationModal = ({
               </svg>
             </div>
 
-           
             {interactive && (
               <div className="flex gap-3">
                 <button
@@ -585,7 +583,6 @@ const ConstellationModal = ({
               </div>
             )}
 
-        
             {step === 2 && (
               <div className="flex flex-col items-center w-full gap-4">
                 <div className="flex items-center gap-2 relative">
@@ -602,7 +599,7 @@ const ConstellationModal = ({
                           handleSuggest();
                         }}
                         disabled={suggesting}
-                        className={`ml-2 px-3 py-1 rounded-full text-[11px] ${
+                        className={`ml-2 px-3 py-1 rounded-[8px] text-[11px] ${
                           suggesting
                             ? "bg-[#e5e7eb] text-black/40 cursor-wait"
                             : "bg-[#e5e7eb] text-[#4F4F4FB2] hover:bg-[#d4d7dd]"

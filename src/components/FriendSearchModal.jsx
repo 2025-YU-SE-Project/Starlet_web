@@ -11,7 +11,6 @@ export default function FriendSearchModal({ isOpen, onClose }) {
   const [searched, setSearched] = useState(false);
   const [result, setResult] = useState(null);
   const [requesting, setRequesting] = useState(false);
-  const [requestDone, setRequestDone] = useState(false);
 
   const handleSearch = async () => {
     if (!nickname.trim()) return;
@@ -33,7 +32,8 @@ export default function FriendSearchModal({ isOpen, onClose }) {
     try {
       setRequesting(true);
       await requestFriend(result.nickname);
-      setRequestDone(true);
+
+      setResult((prev) => (prev ? { ...prev, status: "PENDING" } : prev));
     } catch (err) {
       console.error("친구 신청 실패:", err);
       alert("친구 신청 중 오류가 발생했습니다.");
@@ -53,7 +53,6 @@ export default function FriendSearchModal({ isOpen, onClose }) {
       />
 
       <div className="relative z-10 w-[800px] bg-[#f5f5f5] h-[42vh] rounded-[18px] shadow-xl overflow-hidden flex flex-col">
-        {/* 상단 타이틀 영역 */}
         <div className="h-[80px] bg-[#D9D9D9] flex items-center relative px-6">
           <span className="absolute left-1/2 -translate-x-1/2 text-[29px] font-medium text-[#4F4F4F]">
             친구 검색
@@ -69,12 +68,14 @@ export default function FriendSearchModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        {/* 본문 영역 */}
         <div className="flex-1 flex flex-col bg-white">
-          {/* 🔹 설명 + 인풋 + 선 */}
           <div className="flex flex-col items-center w-full pt-8 pb-4 px-8">
-            <p className="text-[18px] text-[#4F4F4F] mb-4">
-              추가하고 싶은 친구의 <b>닉네임</b>을 입력하세요
+            <p className="text-[18px] text-[#4F4F4F] mb-1">
+              추가하고 싶은 친구의{" "}
+              <span className="border-b-2 border-[#4F4F4F] font-bold">
+                닉네임
+              </span>
+              을 입력하세요
             </p>
 
             <div className="relative w-[80%] mb-6">
@@ -85,7 +86,6 @@ export default function FriendSearchModal({ isOpen, onClose }) {
                   setNickname(e.target.value);
                   setSearched(false);
                   setResult(null);
-                  setRequestDone(false);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !searching) {
@@ -93,30 +93,28 @@ export default function FriendSearchModal({ isOpen, onClose }) {
                   }
                 }}
                 placeholder="닉네임을 입력해주세요."
-                className="w-full bg-[#f0f0f0] rounded-full py-3 pl-5 pr-12 text-gray-700 focus:outline-none"
+                className="w-full bg-[#f0f0f0] rounded-[12px] py-3 pl-5 pr-12 text-gray-700 focus:outline-none"
               />
               <button
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-black"
                 onClick={handleSearch}
                 disabled={searching}
               >
-                <AiOutlineSearch size={28} />
+                <AiOutlineSearch size={30} />
               </button>
             </div>
 
-            {/* 위/아래를 나누는 전체 구분선 */}
             <div className="w-full h-[1px] bg-[#D9D9D9]" />
           </div>
 
-          {/* 🔹 아래쪽 검색 결과 영역 (캡처처럼) */}
-          <div className="flex-1 flex items-center justify-center px-16">
+          <div className="flex items-center justify-center px-16 mt-4">
             {!searched ? (
               <p className="text-[#8f8f8f] text-sm">
-                검색 결과가 여기에 표시됩니다.
+                사용자를 찾을 수 없습니다.
               </p>
             ) : result === null ? (
               <p className="text-[#8f8f8f] text-sm">
-                사용자를 찾을 수 없습니다
+                사용자를 찾을 수 없습니다.
               </p>
             ) : (
               <div className="flex items-center justify-between w-full max-w-[87%]">
@@ -126,16 +124,14 @@ export default function FriendSearchModal({ isOpen, onClose }) {
                       <img
                         src={result.profileUrl}
                         alt={result.nickname}
-                        className="w-full h-full object-cover"
+                        className="w/full h/full object-cover"
                       />
                     ) : (
-                      <span className="text-gray-600 text-sm flex items-center justify-center w-full h-full">
-                        <img
-                          src={profileImg}
-                          alt="프로필"
-                          className="w-full h-full object-cover"
-                        />
-                      </span>
+                      <img
+                        src={profileImg}
+                        alt="프로필"
+                        className="w-full h-full object-cover"
+                      />
                     )}
                   </div>
                   <span className="font-medium text-black text-[23px]">
@@ -143,22 +139,45 @@ export default function FriendSearchModal({ isOpen, onClose }) {
                   </span>
                 </div>
 
-                {requestDone ? (
-                  <button
-                    disabled
-                    className="px-5 py-2 rounded-[8px] bg-gray-300 text-white text-sm font-semibold cursor-not-allowed"
-                  >
-                    신청 완료
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleRequest}
-                    disabled={requesting}
-                    className="px-5 py-2 rounded-[8px] bg-[#34c759] text-white text-sm font-semibold hover:bg-[#2cab4c] disabled:opacity-60"
-                  >
-                    {requesting ? "신청 중..." : "친구 신청"}
-                  </button>
-                )}
+                {(() => {
+                  const status = result.status;
+
+                  if (status === "NONE") {
+                    return (
+                      <button
+                        onClick={handleRequest}
+                        disabled={requesting}
+                        className="px-5 py-2 rounded-[8px] bg-[#34c759] text-white text-sm font-semibold hover:bg-[#2cab4c] disabled:opacity-60"
+                      >
+                        {requesting ? "신청 중..." : "친구 신청"}
+                      </button>
+                    );
+                  }
+
+                  if (status === "PENDING") {
+                    return (
+                      <button
+                        disabled
+                        className="px-5 py-2 rounded-[8px] bg-gray-300 text-white text-sm font-semibold cursor-not-allowed"
+                      >
+                        신청 완료
+                      </button>
+                    );
+                  }
+
+                  if (status === "ACCEPTED") {
+                    return (
+                      <button
+                        disabled
+                        className="px-5 py-2 rounded-[8px] bg-gray-300 text-white text-sm font-semibold cursor-not-allowed"
+                      >
+                        이미 친구입니다
+                      </button>
+                    );
+                  }
+
+                  return null;
+                })()}
               </div>
             )}
           </div>

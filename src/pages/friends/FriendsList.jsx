@@ -104,7 +104,7 @@ export default function FriendsList() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#3f7bdc]/60 via-[#102854]/70 to-[#020617]/80" />
 
         <div className="relative z-10 w-full h-full text-white">
-          <div className="max-w-6xl mx-auto h-full px-8 pt-4 pb-10 flex flex-col">
+          <div className="max-w-[1400px] mx-auto h-full px-8 pt-4 pb-10 flex flex-col">
             <div className="flex justify-between items-start mb-10">
               <div className="flex flex-col">
                 <h1 className="mt-12 text-[45px] font-bold tracking-tight">
@@ -177,9 +177,9 @@ export default function FriendsList() {
                 <button
                   type="button"
                   onClick={() => setIsRequestModalOpen(true)}
-                  className="mt-4 text-left text-white/80 text-[14px]"
+                  className="mt-4 text-left text-white text-[14px]"
                 >
-                  <span className="inline-block border-b border-white/70 hover:text-white hover:border-white transition cursor-pointer">
+                  <span className="inline-block border-b border-white hover:text-white/70 hover:border-white/70 transition cursor-pointer">
                     친구 요청 확인하기
                   </span>
                 </button>
@@ -187,7 +187,7 @@ export default function FriendsList() {
 
               <button
                 type="button"
-                className="absolute right-0 top-15 w-[130px] flex items-center bg-[#34c759] text-white font-semibold px-4 py-2 rounded-md shadow-md hover:bg-[#2cab4c]"
+                className="absolute right-0 top-15 w-[130px] flex items-center bg-[#34c759] text-white font-semibold px-4 py-2 rounded-[8px] shadow-md hover:bg-[#2cab4c]"
                 onClick={() => setIsSearchModalOpen(true)}
               >
                 <IoIosAdd className="text-3xl" />
@@ -200,20 +200,20 @@ export default function FriendsList() {
                 <span className="font-medium text-[#54C65B]">
                   {friendCount}
                 </span>
-                명의 친구
+                {" 명의 친구"}
               </span>
 
               <div className="flex items-center text-[18px] text-white border-b border-white/40 pb-2 px-6">
                 <div className="w-[40%] flex items-center">
-                  <span className="ml-[72px]">name</span>
+                  <span className="ml-[86px]">name</span>
                 </div>
-                <div className="w-[25%] flex items-center">
-                  <span className="ml-[44px]">level</span>
+                <div className="w-[30%] flex items-center">
+                  <span className="ml-[43px]">level</span>
                 </div>
-                <div className="w-[17%] flex items-center">
-                  <span className="ml-[-6px]">total stars</span>
+                <div className="w-[20%] flex items-center">
+                  <span className="ml-[-3px]">total stars</span>
                 </div>
-                <div className="w-[18%] flex items-center">
+                <div className="w-[35%] flex items-center">
                   <span className="ml-[-14px]">total constellations</span>
                 </div>
                 <div className="w-[40px]" />
@@ -232,10 +232,10 @@ export default function FriendsList() {
                   friends.map((friend) => (
                     <div
                       key={friend.id}
-                      className="flex items-center px-6 py-4 border-b border-white/40 last:border-b-0 hover:bg-white/5 transition-colors"
+                      className="flex items-center px-6 py-4 border-b border-white/40 last:border-b-0  transition-colors"
                     >
                       <div className="w-[40%] flex items-center gap-8">
-                        <div className="w-10 h-10 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
+                        <div className="w-13 h-13 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
                           {friend.profileUrl ? (
                             <img
                               src={friend.profileUrl}
@@ -253,7 +253,7 @@ export default function FriendsList() {
                         <span className="text-[22px]">{friend.nickname}</span>
                       </div>
 
-                      <div className="w-[25%]">
+                      <div className="w-[30%] ml-15">
                         {(() => {
                           const level = friend.level || "탐험가";
                           const parts = level.split(" ");
@@ -261,7 +261,7 @@ export default function FriendsList() {
                           const prefix = parts.join(" ");
 
                           return (
-                            <span className="inline-flex items-center px-4 py-[4px] rounded-full bg-black/60 text-[18px]">
+                            <span className="inline-flex items-center px-4 py-[4px] rounded-full bg-[#060817CC]/80 text-[18px]">
                               {prefix && (
                                 <span className="text-white">
                                   {prefix}&nbsp;
@@ -273,14 +273,14 @@ export default function FriendsList() {
                         })()}
                       </div>
 
-                      <div className="w-[17%] text-[18px]">
-                        <span className="text-[#54C65B] font-semibold">
+                      <div className="w-[30%] text-[17px]">
+                        <span className="text-[#54C65B] font-semibold ml-14">
                           {friend.totalStars}
                         </span>{" "}
                         <span className="text-white/70 text-[16px]">stars</span>
                       </div>
 
-                      <div className="w-[18%] text-[18px]">
+                      <div className="w-[40%] text-[17px]">
                         <span className="text-[#54C65B] font-semibold">
                           {friend.totalConstellations}
                         </span>{" "}
@@ -289,12 +289,12 @@ export default function FriendsList() {
                         </span>
                       </div>
 
-                      <div className="w-[40px] flex justify-center">
+                      <div className="w-[50px] flex justify-center">
                         <button
-                          className="w-10 h-10 rounded-full border border-white/40 flex items-center justify-center hover:bg-white/10"
+                          className="w-12 h-12 rounded-full border border-white/40 flex items-center justify-center hover:bg-white/10"
                           onClick={() => handleDeleteFriend(friend.id)}
                         >
-                          <FiTrash2 className="text-xl" />
+                          <FiTrash2 className="text-3xl" />
                         </button>
                       </div>
                     </div>
