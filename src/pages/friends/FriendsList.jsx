@@ -66,7 +66,6 @@ export default function FriendsList() {
         if (err?.name === "CanceledError" || err?.code === "ERR_CANCELED") {
           return;
         }
-
         console.error("데이터 불러오기 실패:", err);
 
         if (err.message) {
