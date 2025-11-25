@@ -171,10 +171,19 @@ const ConstellationModal = ({
 
   const nodeCount = new Set(edges.flat()).size;
 
+  const selectedCount = Object.keys(starPositions).length;
+
   const goNext = () => {
-    if (nodeCount < MIN_NODES || nodeCount > MAX_NODES) {
+    if (selectedCount < MIN_NODES || selectedCount > MAX_NODES) {
       setWarn(
-        `별자리는 연결된 별이 ${MIN_NODES}~${MAX_NODES}개여야 해요. (현재: ${nodeCount}개)`
+        `별자리는 ${MIN_NODES}~${MAX_NODES}개의 별로 만들어야 해요. (선택한 별: ${selectedCount}개)`
+      );
+      return;
+    }
+
+    if (nodeCount !== selectedCount) {
+      setWarn(
+        `선택한 ${selectedCount}개의 별이 모두 연결되어야 해요. (현재 연결된 별: ${nodeCount}개)`
       );
       return;
     }
@@ -198,12 +207,14 @@ const ConstellationModal = ({
 
     setMetaError("");
 
-  
     if (
       trimmedName.length > MAX_NAME_LEN ||
       trimmedDesc.length > MAX_DESC_LEN
     ) {
-      if (trimmedName.length > MAX_NAME_LEN && trimmedDesc.length > MAX_DESC_LEN) {
+      if (
+        trimmedName.length > MAX_NAME_LEN &&
+        trimmedDesc.length > MAX_DESC_LEN
+      ) {
         setMetaError(
           `별자리 이름은 ${MAX_NAME_LEN}자 이내, 설명은 ${MAX_DESC_LEN}자 이내로 입력해주세요.`
         );
@@ -347,16 +358,15 @@ const ConstellationModal = ({
       <div className="absolute inset-0" onClick={onClose} aria-hidden="true" />
 
       <div
-        className="relative w-[950px] max-w-[96vw] rounded-[26px] flex flex-col"
+        className="relative w-[950px] max-w-[96vw] rounded-[12px] flex flex-col"
         style={{
           backgroundColor: "#f3f4f6",
           boxShadow: "0 14px 40px rgba(0,0,0,0.35)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-    
         <div
-          className="flex items-center justify-between px-7 h-[64px] rounded-t-[26px]"
+          className="flex items-center justify-between px-7 h-[85px] rounded-t-[26px]"
           style={{
             backgroundColor: "#e4e5e7",
             borderBottom: "1px solid rgba(0,0,0,0.08)",
@@ -372,19 +382,19 @@ const ConstellationModal = ({
                 setMetaError("");
               }
             }}
-            className="text-[24px] text-black/70 hover:text-black leading-none cursor-pointer"
+            className="text-[29px] text-black/70 hover:text-black leading-none cursor-pointer"
           >
             {isEdit ? "×" : step === 1 ? "" : <MdArrowBackIosNew />}
           </button>
 
-          <div className="text-[20px] font-semibold text-black">
+          <div className="text-[29px] font-medium text-[#4F4F4F]">
             {isEdit ? "별자리 수정" : "별자리 생성"}
           </div>
 
           {step === 1 && !isEdit ? (
             <button
               onClick={goNext}
-              className="text-[15px] font-semibold text-[#111827] cursor-pointer"
+              className="text-[26px] font-medium text-[#4F4F4F] cursor-pointer"
             >
               다음
             </button>
@@ -392,9 +402,9 @@ const ConstellationModal = ({
             <button
               onClick={finish}
               disabled={!canFinish}
-              className={`text-[15px] font-semibold ${
+              className={`text-[26px] font-medium ${
                 canFinish
-                  ? "text-[#111827] cursor-pointer"
+                  ? "text-[#4F4F4F] cursor-pointer"
                   : "text-black/30 cursor-not-allowed"
               }`}
             >
@@ -403,16 +413,14 @@ const ConstellationModal = ({
           )}
         </div>
 
-       
-        <div className="flex flex-col items-center px-10 py-6 gap-4">
+        <div className="flex flex-col items-center px-10 py-6 gap-3">
           {!isEdit && step === 1 && (
-            <p className="text-[13px] text-black/60">
+            <p className="text-[16px] text-[#4F4F4FB2]">
               *별을 끌어 이동하고, 서로 연결하여 별자리를 완성해보세요
             </p>
           )}
 
           <div className="flex flex-col items-center gap-5">
-            
             <div
               ref={panelRef}
               className="relative w-[440px] max-w-full aspect-square rounded-[26px] overflow-hidden"
@@ -467,7 +475,6 @@ const ConstellationModal = ({
                   </radialGradient>
                 </defs>
 
-           
                 <g className="[mix-blend-mode:screen]">
                   {edges.map(([a, b], idx) => {
                     const pa = renderPositions[a];
@@ -488,7 +495,6 @@ const ConstellationModal = ({
                   })}
                 </g>
 
-        
                 {(stars || []).map((s, i) => {
                   const p = renderPositions[s.id];
                   if (!p) return null;
@@ -536,7 +542,9 @@ const ConstellationModal = ({
                             ? (e) => onPointerDownStar(e, s.id)
                             : undefined
                         }
-                        onClick={interactive ? () => onClickStar(s.id) : undefined}
+                        onClick={
+                          interactive ? () => onClickStar(s.id) : undefined
+                        }
                       />
 
                       <circle
@@ -556,16 +564,15 @@ const ConstellationModal = ({
               </svg>
             </div>
 
-           
             {interactive && (
               <div className="flex gap-3">
                 <button
                   onClick={clearLines}
                   disabled={edges.length === 0}
-                  className={`px-5 py-2 rounded-[999px] text-[13px] ${
+                  className={`px-5 py-2 rounded-[8px] text-[13px] ${
                     edges.length === 0
-                      ? "bg-[#e5e7eb] text-black/35 cursor-not-allowed"
-                      : "bg-[#e5e7eb] text-black/70 hover:bg-[#d4d7dd]"
+                      ? "bg-[#D9D9D9] text-black/35 cursor-not-allowed"
+                      : "bg-[#D9D9D9] text-[#4F4F4FF2] hover:bg-[#d4d7dd]"
                   }`}
                 >
                   전체 삭제
@@ -574,10 +581,10 @@ const ConstellationModal = ({
                 <button
                   onClick={removeLastLine}
                   disabled={edges.length === 0}
-                  className={`px-5 py-2 rounded-[999px] text-[13px] ${
+                  className={`px-5 py-2 rounded-[8px] text-[13px] ${
                     edges.length === 0
-                      ? "bg-[#e5e7eb] text-black/35 cursor-not-allowed"
-                      : "bg-[#e5e7eb] text-black/70 hover:bg-[#d4d7dd]"
+                      ? "bg-[#D9D9D9] text-black/35 cursor-not-allowed"
+                      : "bg-[#D9D9D9] text-[#4F4F4FF2] hover:bg-[#d4d7dd]"
                   }`}
                 >
                   마지막 선 지우기
@@ -585,11 +592,10 @@ const ConstellationModal = ({
               </div>
             )}
 
-        
             {step === 2 && (
               <div className="flex flex-col items-center w-full gap-4">
                 <div className="flex items-center gap-2 relative">
-                  <h2 className="text-[17px] font-semibold text-black/80">
+                  <h2 className="text-[18px] font-semibold text-black/80">
                     별자리 이름을 지정해주세요
                   </h2>
 
@@ -602,7 +608,7 @@ const ConstellationModal = ({
                           handleSuggest();
                         }}
                         disabled={suggesting}
-                        className={`ml-2 px-3 py-1 rounded-full text-[11px] ${
+                        className={`ml-2 px-3 py-1 rounded-[8px] text-[11px] cursor-pointer ${
                           suggesting
                             ? "bg-[#e5e7eb] text-black/40 cursor-wait"
                             : "bg-[#e5e7eb] text-[#4F4F4FB2] hover:bg-[#d4d7dd]"
@@ -613,7 +619,7 @@ const ConstellationModal = ({
 
                       <button
                         type="button"
-                        className="w-4 h-4 ml-[-4px] rounded-full border border-[#B3B3B3] flex items-center justify-center text-[12px] text-[#B3B3B3] bg-white hover:bg-gray-50 self-end"
+                        className="w-4 h-4 ml-[-4px] rounded-full border border-[#B3B3B3] flex items-center justify-center text-[12px] text-[#B3B3B3] bg-white hover:bg-gray-50 cursor-pointer self-end"
                         onClick={() => setSuggestInfoOpen((v) => !v)}
                         onMouseEnter={() => setSuggestInfoOpen(true)}
                         onMouseLeave={() => setSuggestInfoOpen(false)}
@@ -647,14 +653,14 @@ const ConstellationModal = ({
                   )}
                 </div>
 
-                <div className="w-[380px] flex flex-col gap-3">
+                <div className="w-[450px] flex flex-col gap-3">
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="미지정 별자리"
                     maxLength={MAX_NAME_LEN}
-                    className="w-full h-[44px] rounded-full bg-white px-5 text-[14px] text-black outline-none border border-black/10 focus:border-[#4b5563]"
+                    className="w-full h-[44px] rounded-[12px] bg-white px-5 text-[14px] text-black outline-none border border-black/10 focus:border-[#4b5563]"
                   />
 
                   <input
@@ -663,7 +669,7 @@ const ConstellationModal = ({
                     onChange={(e) => setDesc(e.target.value)}
                     placeholder="별자리에 대한 소개를 작성해주세요"
                     maxLength={MAX_DESC_LEN}
-                    className="w-full h-[44px] rounded-full bg-white px-5 text-[14px] text-black outline-none border border-black/10 focus:border-[#4b5563]"
+                    className="w-full h-[44px] rounded-[12px] bg-white px-5 text-[14px] text-black outline-none border border-black/10 focus:border-[#4b5563]"
                   />
 
                   <div className="h-[10px] flex items-center">
