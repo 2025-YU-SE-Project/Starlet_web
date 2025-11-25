@@ -106,7 +106,7 @@ export default function ConstellationMini({
       </g>
 
       {ns.map((s, i) => {
-        const delayMs = `${((s.starId ?? i) * 137) % 1200}ms`;
+        const delayMs = `${((s.starId ?? i) * 137) % 1500}ms`;
         const colorKey = (s.color || "").toUpperCase();
         const icon = colorMap[colorKey] || FALLBACK_COLOR_ICON;
         return (

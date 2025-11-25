@@ -143,7 +143,13 @@ const StarArchive = () => {
 
       <div className="flex flex-col items-center">
         <span className="font-julius mt-5 text-7xl">STARLET ARCHIVE</span>
-        {nickname && <span className="mt-4 text-2xl text-center">{nickname}님의 별자리를 확인해보세요</span>}
+        {nickname && (
+  <span className="mt-4 text-2xl text-center">
+    <span className="font-bold">{nickname}</span>
+    님의 별자리를 확인해보세요
+  </span>
+)}
+
       </div>
 
       <div className="p-12 pl-32 ">
