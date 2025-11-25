@@ -10,8 +10,8 @@ import FriendRequestsModal from "../../components/FriendRequestModal";
 import FriendSearchModal from "../../components/FriendSearchModal";
 import { deleteFriend } from "../../apis/Friends/deleteFriend";
 import profileImg from "../../assets/MyPage/profile.png";
-import getUser from "../../apis/Mypage/getUser";
-import getLevel from "../../apis/Mypage/getLevel";
+import getUser from "../../apis/MyPage/getUser";
+import getLevel from "../../apis/MyPage/getLevel";
 
 export default function FriendsList() {
   const navigate = useNavigate();
