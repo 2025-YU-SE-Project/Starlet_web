@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { CiMenuBurger } from "react-icons/ci";
 import { useNavigate } from "react-router-dom";
-import { clearStorage } from "../contexts/AuthUtil";
-import Sidebar from "../components/Sidebar";
+import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import profileImg from "../assets/MyPage/profile.png";
+import { clearStorage } from "../contexts/AuthUtil";
+
+import Sidebar from "../components/Sidebar";
 import ProfileEdit from "../components/MyPage/ProfileEdit";
+import RepresentativeCons from "../components/MyPage/RepresentativeCons";
+
 import getLevel from "../apis/MyPage/getLevel";
 import getUser from "../apis/MyPage/getUser";
 import representativeStar from "../apis/MyPage/representativeStar";
-import RepresentativeCons from "../components/MyPage/RepresentativeCons";
+import getYear from "../apis/MyPage/getYear";
 
 function MyPage() {
   const [nickname, setNickname] = useState(
@@ -29,6 +33,11 @@ function MyPage() {
   const [repStar, setRepStar] = useState(null);
   const [repStarLoading, setRepStarLoading] = useState(true);
   const [repStarError, setRepStarError] = useState(null);
+
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [yearData, setYearData] = useState([]);
+  const [yearLoading, setYearLoading] = useState(false);
+  const [yearError, setYearError] = useState("");
 
   const navigate = useNavigate();
 
@@ -100,6 +109,25 @@ function MyPage() {
     fetchRepresentativeStar();
   }, []);
 
+  useEffect(() => {
+    const fetchYear = async () => {
+      try {
+        setYearLoading(true);
+        setYearError("");
+        const data = await getYear(year);
+        setYearData(data || []);
+      } catch (e) {
+        console.error(e);
+        setYearError(e?.message || "별자리 통계를 불러오지 못했습니다.");
+        setYearData([]);
+      } finally {
+        setYearLoading(false);
+      }
+    };
+
+    fetchYear();
+  }, [year]);
+
   const minStars = levelData?.min ?? 0;
   const maxStars = levelData?.max ?? 0;
   const progressToNext =
@@ -141,6 +169,32 @@ function MyPage() {
     : userData
     ? userData.totalConstellations
     : null;
+  const monthCounts = Array.from({ length: 12 }, () => 0);
+  yearData.forEach((item) => {
+    if (!item) return;
+    const m = item.month;
+    const c = item.count ?? 0;
+    if (m >= 1 && m <= 12) {
+      monthCounts[m - 1] = c;
+    }
+  });
+
+  const maxCountInData = Math.max(0, ...monthCounts);
+  const axisMax = maxCountInData === 0 ? 4 : Math.max(4, maxCountInData);
+
+  const xStart = 40;
+  const xEnd = 310;
+  const yBottom = 140;
+  const yTop = 20;
+  const xStep = (xEnd - xStart) / 11;
+
+  const getX = (idx) => xStart + idx * xStep;
+  const getY = (count) =>
+    yBottom - (axisMax === 0 ? 0 : (count / axisMax) * (yBottom - yTop));
+
+  const polylinePoints = monthCounts
+    .map((count, idx) => `${getX(idx)},${getY(count)}`)
+    .join(" ");
 
   return (
     <div className="relative w-full min-h-screen text-white">
@@ -310,7 +364,7 @@ function MyPage() {
                 감정별 일기 수
               </div>
 
-              <div className="text-center text-gray-300 font-medium mb-4 flex itemscenter justify-center">
+              <div className="text-center text-gray-300 font-medium mb-4 flex items-center justify-center">
                 <span className="px-4">&lt;</span>
                 SEPTEMBER
                 <span className="px-4">&gt;</span>
@@ -392,11 +446,20 @@ function MyPage() {
               <div className="text-center text-lg font-semibold text-white mb-2">
                 생성된 별자리 수
               </div>
-              <div className="text-center text-gray-300 font-medium mb-4">
-                <span className="px-4">&lt;</span>
-                2025
-                <span className="px-4">&gt;</span>
+              <div className="text-center text-gray-300 font-medium mb-4 flex items-center justify-center gap-3">
+                <IoChevronBack
+                  className="cursor-pointer hover:opacity-80"
+                  onClick={() => setYear(year - 1)}
+                />
+
+                <span className="px-4">{year}</span>
+
+                <IoChevronForward
+                  className="cursor-pointer hover:opacity-80"
+                  onClick={() => setYear(year + 1)}
+                />
               </div>
+
               <div className="w-full h-56 relative">
                 <svg viewBox="0 0 340 160" className="w-full h-full">
                   <line
@@ -415,56 +478,67 @@ function MyPage() {
                     stroke="#FFFFFF80"
                     strokeWidth="1"
                   />
-                  {[0, 1, 2, 3, 4].map((t, i) => (
-                    <g key={i}>
-                      <line
-                        x1="26"
-                        x2="30"
-                        y1={140 - i * 28}
-                        y2={140 - i * 28}
-                        stroke="#FFFFFF99"
-                      />
-                      <text
-                        x="15"
-                        y={144 - i * 28}
-                        fontSize="10"
-                        fill="#D1D5DB"
-                      >
-                        {i}
-                      </text>
-                    </g>
-                  ))}
-                  <polyline
-                    fill="none"
-                    stroke="#FFFFFF"
-                    strokeWidth="2"
-                    points="40,130 70,120 100,140 130,90 160,70 190,100 220,80 250,110 280,140 310,140"
-                  />
-                  {[40, 70, 100, 130, 160, 190, 220, 250, 280, 310].map(
-                    (x, i) => (
+
+                  {Array.from({ length: 5 }).map((_, i) => {
+                    const value = Math.round((axisMax / 4) * i);
+                    const y = getY(value);
+                    return (
+                      <g key={i}>
+                        <line
+                          x1="30"
+                          x2="30"
+                          y1={y}
+                          y2={y}
+                          stroke="#FFFFFF99"
+                        />
+                        <text x="15" y={y + 4} fontSize="10" fill="#D1D5DB">
+                          {value}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  {!yearLoading && monthCounts.some((c) => c > 0) && (
+                    <polyline
+                      fill="none"
+                      stroke="#FFFFFF"
+                      strokeWidth="2"
+                      points={polylinePoints}
+                    />
+                  )}
+
+                  {!yearLoading &&
+                    monthCounts.map((count, idx) => (
                       <circle
-                        key={i}
-                        cx={x}
-                        cy={[130, 120, 140, 90, 70, 100, 80, 110, 140, 140][i]}
+                        key={idx}
+                        cx={getX(idx)}
+                        cy={getY(count)}
                         r="4"
                         fill="#FFFFFF"
                         stroke="#00000055"
                         strokeWidth="1"
                       />
-                    )
-                  )}
+                    ))}
+
                   {Array.from({ length: 12 }).map((_, i) => (
                     <text
                       key={i}
-                      x={40 + i * 24}
+                      x={getX(i)}
                       y="155"
                       fontSize="9"
+                      textAnchor="middle"
                       fill="#9CA3AF"
                     >
                       {i + 1}
                     </text>
                   ))}
                 </svg>
+
+                {yearError && (
+                  <div className="absolute left-0 right-0 bottom-0 text-[11px] text-red-300 text-center">
+                    {yearError}
+                  </div>
+                )}
               </div>
             </div>
           </div>
