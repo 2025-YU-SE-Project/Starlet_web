@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { CiMenuBurger } from "react-icons/ci";
+import { useNavigate } from "react-router-dom";
+import { clearStorage } from "../contexts/AuthUtil";
 import Sidebar from "../components/Sidebar";
 import profileImg from "../assets/MyPage/profile.png";
 import ProfileEdit from "../components/MyPage/ProfileEdit";
@@ -27,6 +29,14 @@ function MyPage() {
   const [repStar, setRepStar] = useState(null);
   const [repStarLoading, setRepStarLoading] = useState(true);
   const [repStarError, setRepStarError] = useState(null);
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    clearStorage();
+    navigate("/");
+    navigate(0);
+  };
 
   useEffect(() => {
     const fetchLevel = async () => {
@@ -300,7 +310,7 @@ function MyPage() {
                 감정별 일기 수
               </div>
 
-              <div className="text-center text-gray-300 font-medium mb-4 flex items-center justify-center">
+              <div className="text-center text-gray-300 font-medium mb-4 flex itemscenter justify-center">
                 <span className="px-4">&lt;</span>
                 SEPTEMBER
                 <span className="px-4">&gt;</span>
@@ -459,6 +469,19 @@ function MyPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="w-full mt-16 pb-10 flex items-center justify-center gap-6 text-sm">
+        <button className="text-white hover:underline underline-offset-4 cursor-pointer drop-shadow-[0_0_6px_rgba(0,0,0,0.7)]">
+          계정 탈퇴
+        </button>
+        <span className="text-white">|</span>
+        <button
+          className="text-white hover:underline underline-offset-4 cursor-pointer drop-shadow-[0_0_6px_rgba(0,0,0,0.7)]"
+          onClick={handleLogout}
+        >
+          로그아웃
+        </button>
       </div>
 
       <ProfileEdit
