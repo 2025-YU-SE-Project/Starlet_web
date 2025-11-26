@@ -10,6 +10,7 @@ import StarArchive from "./pages/StarArchive";
 import NotFound from "./pages/NotFound";
 import StarSky from "./pages/StarSky";
 import MyPage from "./pages/MyPage";
+import FriendsList from "./pages/friends/FriendsList";
 
 const App = () => {
   return (
@@ -26,6 +27,7 @@ const App = () => {
             <Route path="/mypage" element={<MyPage />} />
             <Route path="/" element={<MainPage />} />
             <Route path="*" element={<NotFound />} />
+            <Route path="/friends-list" element={<FriendsList />} />
           </Routes>
         </div>
       </BrowserRouter>

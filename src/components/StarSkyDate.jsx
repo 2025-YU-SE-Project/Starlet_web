@@ -341,8 +341,8 @@ export default function StarSkyDate({
 
   const [hoveredEdgeSingle, setHoveredEdgeSingle] = useState(false);
   const [hoveredConstellationId, setHoveredConstellationId] = useState(null);
-  const [allowPulseAnim, setAllowPulseAnim] = useState(false);
-  const hasSelectedOnceRef = useRef(false);
+
+  const [hoveredStarSingle, setHoveredStarSingle] = useState(false);
 
   const multipleMode =
     Array.isArray(filteredConstellationGroups) &&
@@ -482,23 +482,6 @@ export default function StarSkyDate({
       setAppliedVersion((v) => v + 1);
     }
   }, [locked]);
-
-  useEffect(() => {
-    if (!locked) {
-      setAllowPulseAnim(false);
-      hasSelectedOnceRef.current = false;
-      return;
-    }
-
-    if (isSelected) {
-      if (!hasSelectedOnceRef.current) {
-        hasSelectedOnceRef.current = true;
-        setAllowPulseAnim(false);
-      } else {
-        setAllowPulseAnim(true);
-      }
-    }
-  }, [locked, isSelected]);
 
   useEffect(() => {
     if (locked) return;
@@ -724,6 +707,7 @@ export default function StarSkyDate({
     setActiveConstellationId(null);
     setHover({ show: false, x: 0, y: 0 });
     setHoveredEdgeSingle(false);
+    setHoveredStarSingle(false);
     setHoveredConstellationId(null);
     setLastDirection(null);
 
@@ -967,7 +951,10 @@ export default function StarSkyDate({
   })();
 
   const showLabelSingle =
-    !multipleMode && locked && hoveredEdgeSingle && liveBBox;
+    !multipleMode &&
+    locked &&
+    (hoveredEdgeSingle || hoveredStarSingle) &&
+    liveBBox;
 
   const constellationStarIdSet = useMemo(() => {
     if (!multipleMode) return null;
@@ -1201,264 +1188,286 @@ export default function StarSkyDate({
               });
             })}
         </svg>
-      {filteredStars.map((s, i) => {
-        if (
-          multipleMode &&
-          constellationStarIdSet &&
-          constellationStarIdSet.has(String(s.id))
-        ) {
-          return null;
-        }
+        {filteredStars.map((s, i) => {
+          if (
+            multipleMode &&
+            constellationStarIdSet &&
+            constellationStarIdSet.has(String(s.id))
+          ) {
+            return null;
+          }
 
-        const p = positionOf(s);
-        const img = colorImageMap[(s.color || "").toUpperCase()];
-        if (!img) return null;
-        const selectedForEdit = selectedIds.includes(s.id);
+          const p = positionOf(s);
+          const img = colorImageMap[(s.color || "").toUpperCase()];
+          if (!img) return null;
+          const selectedForEdit = selectedIds.includes(s.id);
 
-        const seed = Number(s.id ?? i) || i;
-        const delayMs = `${(seed * 137) % 1200}ms`;
+          const seed = Number(s.id ?? i) || i;
+          const delayMs = `${(seed * 137) % 1200}ms`;
 
-        return (
-          <div
-            key={`free-${s.id}`}
-            style={{
-              position: "absolute",
-              left: `${p.x * 100}%`,
-              top: `${p.y * 100}%`,
-              transform: "translate(-50%, -50%)",
-              zIndex: 3,
-            }}
-          >
-            <div style={{ position: "relative", width: 22, height: 22 }}>
-            
-              <div
-                className="absolute pointer-events-none animate-pulse [animation-duration:1600ms]"
-                style={{
-                  left: "50%",
-                  top: "50%",
-                  transform: "translate(-50%, -50%)",
-                  width: 24,
-                  height: 24,
-                  borderRadius: "9999px",
-                  background:
-                    "radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.35) 40%, rgba(255,255,255,0) 70%)",
-                  filter: "blur(2px)",
-                  animationDelay: delayMs,
-                  zIndex: 0,
-                }}
-              />
-
-              <div
-                className="absolute pointer-events-none"
-                style={{
-                  left: "50%",
-                  top: "50%",
-                  transform: "translate(-50%, -50%)",
-                  width: 3,
-                  height: 3,
-                  borderRadius: "9999px",
-                  background: "#ffffff",
-                  boxShadow: "0 0 6px rgba(255,255,255,0.9)",
-                  zIndex: 10,
-                }}
-              />
-
-             
-              {selectedForEdit && (
+          return (
+            <div
+              key={`free-${s.id}`}
+              style={{
+                position: "absolute",
+                left: `${p.x * 100}%`,
+                top: `${p.y * 100}%`,
+                transform: "translate(-50%, -50%)",
+                zIndex: 3,
+              }}
+            >
+              <div style={{ position: "relative", width: 22, height: 22 }}>
                 <div
-                  className="absolute pointer-events-none"
+                  className="absolute pointer-events-none animate-pulse [animation-duration:1600ms]"
                   style={{
                     left: "50%",
                     top: "50%",
                     transform: "translate(-50%, -50%)",
-                    width: 30,
-                    height: 30,
+                    width: 24,
+                    height: 24,
                     borderRadius: "9999px",
                     background:
-                      "radial-gradient(circle, rgba(255,50,70,0.85) 0%, rgba(255,70,90,0.45) 40%, rgba(255,70,90,0.15) 70%, rgba(255,0,20,0) 85%)",
-                    filter:
-                      "blur(2px) drop-shadow(0 0 14px rgba(255,80,80,0.95))",
-                    animation: "twinkleStrong 1.2s ease-in-out infinite",
-                    zIndex: 3,
-                  }}
-                />
-              )}
-
-              
-              {locked && isSelected && !multipleMode && !selectedForEdit && (
-                <div
-                  className="absolute pointer-events-none"
-                  style={{
-                    left: "50%",
-                    top: "50%",
-                    transform: "translate(-50%, -50%)",
-                    width: 28,
-                    height: 28,
-                    borderRadius: "9999px",
-                    background:
-                      "radial-gradient(circle, rgba(255,40,60,0.95) 0%, rgba(255,60,80,0.55) 100%)",
+                      "radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.35) 40%, rgba(255,255,255,0) 70%)",
                     filter: "blur(2px)",
-                    animation: "pulseSoft 2.2s ease-in-out infinite",
-                    zIndex: 1,
+                    animationDelay: delayMs,
+                    zIndex: 0,
                   }}
                 />
-              )}
 
-              <img
-                src={img}
-                alt={s.color}
-                draggable={false}
-                style={{
-                  width: 22,
-                  height: 22,
-                  userSelect: "none",
-                  touchAction: "none",
-                  cursor: locked ? "pointer" : "grab",
-                  position: "absolute",
-                  left: "50%",
-                  top: "50%",
-                  transform: "translate(-50%, -50%)",
-                  zIndex: 2,
-                  transition: "transform 0.12s ease-out",
-                  filter: "drop-shadow(0 0 6px rgba(203,225,255,0.85))",
-                  ...(selectedForEdit
-                    ? { transform: "translate(-50%, -50%) scale(1.08)" }
-                    : {}),
-                }}
-                onPointerDown={(e) => onStarPointerDown(e, s)}
-                onPointerMove={(e) => onStarPointerMove(e, s)}
-                onPointerUp={(e) => onStarPointerUp(e, s)}
-                onMouseEnter={showTooltip}
-                onMouseLeave={() => {
-                  if (!isSelected) hideTooltip();
-                }}
-              />
-            </div>
-          </div>
-        );
-      })}
+                <div
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: "50%",
+                    top: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: 3,
+                    height: 3,
+                    borderRadius: "9999px",
+                    background: "#ffffff",
+                    boxShadow: "0 0 6px rgba(255,255,255,0.9)",
+                    zIndex: 10,
+                  }}
+                />
 
-      {multipleMode &&
-        filteredConstellationGroups.map((g) => {
-          const appliedForThis = appliedMapRef.current[g.id] || null;
-          const baseMap = baseConstShapesRef.current[g.id] || null;
-          return (g.stars || []).map((s, i) => {
-            const img = colorImageMap[(s.color || "").toUpperCase()];
-            if (!img) return null;
-
-            const id = s.id ?? s.starId;
-            const p =
-              (previewMap &&
-                g.id === activeConstellationId &&
-                previewMap[id]) ||
-              (appliedForThis && appliedForThis[id]) ||
-              (baseMap && baseMap[id]) || { x: s.x, y: s.y };
-
-            const showPulse =
-              locked &&
-              (g.id === activeConstellationId ||
-                g.id === hoveredConstellationId) &&
-              isSelected;
-
-            const seed = Number(id ?? i) || i;
-            const delayMs = `${(seed * 137) % 1200}ms`;
-
-            return (
-              <div
-                key={`${g.id}-${id}`}
-                style={{
-                  position: "absolute",
-                  left: `${clampToView(p.x) * 100}%`,
-                  top: `${clampToView(p.y) * 100}%`,
-                  transform: "translate(-50%, -50%)",
-                  zIndex: 4,
-                }}
-              >
-                <div style={{ position: "relative", width: 22, height: 22 }}>
-                  
-                  {showPulse && (
-                    <div
-                      className="absolute pointer-events-none"
-                      style={{
-                        left: "50%",
-                        top: "50%",
-                        transform: "translate(-50%, -50%)",
-                        width: 28,
-                        height: 28,
-                        borderRadius: "9999px",
-                        background:
-                          "radial-gradient(circle, rgba(124,245,255,0.28) 0%, rgba(124,245,255,0.14) 40%, rgba(124,245,255,0) 75%)",
-                        filter: "blur(2px)",
-                        animation: "pulseSoft 2.2s ease-in-out infinite",
-                        zIndex: 0,
-                      }}
-                    />
-                  )}
-
-                  
+                {selectedForEdit && (
                   <div
-                    className="absolute pointer-events-none animate-pulse [animation-duration:1600ms]"
+                    className="absolute"
                     style={{
                       left: "50%",
                       top: "50%",
-                      transform: "translate(-50%, -50%)",
-                      width: 20,
-                      height: 20,
+                      transform: "translate(-50%, -50%) scale(1.08)",
+                      width: 30,
+                      height: 30,
                       borderRadius: "9999px",
                       background:
-                        "radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.35) 40%, rgba(255,255,255,0) 70%)",
-                      filter: "blur(2px)",
-                      animationDelay: delayMs,
-                      zIndex: 0,
+                        "radial-gradient(circle, rgba(255,50,70,0.85) 0%, rgba(255,70,90,0.45) 40%, rgba(255,70,90,0.15) 70%, rgba(255,0,20,0) 85%)",
+                      filter:
+                        "blur(2px) drop-shadow(0 0 14px rgba(255,80,80,0.95))",
+                      animation: "twinkleStrong 1.2s ease-in-out infinite",
+                      zIndex: 3,
+                      transition: "transform 0.12s ease-out",
+                    }}
+                    onPointerDown={(e) => onStarPointerDown(e, s)}
+                    onPointerMove={(e) => onStarPointerMove(e, s)}
+                    onPointerUp={(e) => onStarPointerUp(e, s)}
+                    onMouseEnter={(e) => {
+                      if (!multipleMode && locked) {
+                        setHoveredStarSingle(true);
+                      }
+                      showTooltip(e);
+                    }}
+                    onMouseLeave={() => {
+                      if (!multipleMode && locked) {
+                        setHoveredStarSingle(false);
+                      }
+                      if (!isSelected) hideTooltip();
                     }}
                   />
+                )}
 
-                
+                {locked && isSelected && !multipleMode && !selectedForEdit && (
                   <div
                     className="absolute pointer-events-none"
                     style={{
                       left: "50%",
                       top: "50%",
                       transform: "translate(-50%, -50%)",
-                      width: 3,
-                      height: 3,
+                      width: 28,
+                      height: 28,
                       borderRadius: "9999px",
-                      background: "#ffffff",
-                      boxShadow: "0 0 6px rgba(255,255,255,0.9)",
-                      zIndex: 10,
+                      background:
+                        "radial-gradient(circle, rgba(255,40,60,0.95) 0%, rgba(255,60,80,0.55) 100%)",
+                      filter: "blur(2px)",
+                      animation: "pulseSoft 2.2s ease-in-out infinite",
+                      zIndex: 1,
                     }}
                   />
+                )}
 
-                  <img
-                    src={img}
-                    alt={s.color}
-                    draggable={false}
-                    className="animate-pulse [animation-duration:1600ms]"
-                    style={{
-                      width: 22,
-                      height: 22,
-                      userSelect: "none",
-                      touchAction: "none",
-                      cursor: locked ? "pointer" : "grab",
-                      position: "absolute",
-                      left: "50%",
-                      top: "50%",
-                      transform: "translate(-50%, -50%)",
-                      zIndex: 2,
-                      filter: "drop-shadow(0 0 6px rgba(203,225,255,0.85))",
-                      animationDelay: delayMs,
-                    }}
-                    onPointerDown={(e) => startMoveDragConstellation(e, g)}
-                    onMouseEnter={showTooltip}
-                    onMouseLeave={() => {
-                      if (!isSelected) hideTooltip();
-                    }}
-                  />
-                </div>
+                <img
+                  src={img}
+                  alt={s.color}
+                  draggable={false}
+                  style={{
+                    width: 22,
+                    height: 22,
+                    userSelect: "none",
+                    touchAction: "none",
+                    cursor: locked ? "pointer" : "grab",
+                    position: "absolute",
+                    left: "50%",
+                    top: "50%",
+                    transform: "translate(-50%, -50%)",
+                    zIndex: 2,
+                    transition: "transform 0.12s ease-out",
+                    filter: "drop-shadow(0 0 6px rgba(203,225,255,0.85))",
+                    ...(selectedForEdit
+                      ? { transform: "translate(-50%, -50%) scale(1.08)" }
+                      : {}),
+                  }}
+                  onPointerDown={(e) => onStarPointerDown(e, s)}
+                  onPointerMove={(e) => onStarPointerMove(e, s)}
+                  onPointerUp={(e) => onStarPointerUp(e, s)}
+                  onMouseEnter={showTooltip}
+                  onMouseLeave={() => {
+                    if (!isSelected) hideTooltip();
+                  }}
+                />
               </div>
-            );
-          });
+            </div>
+          );
         })}
+
+        {multipleMode &&
+          filteredConstellationGroups.map((g) => {
+            const appliedForThis = appliedMapRef.current[g.id] || null;
+            const baseMap = baseConstShapesRef.current[g.id] || null;
+            return (g.stars || []).map((s, i) => {
+              const img = colorImageMap[(s.color || "").toUpperCase()];
+              if (!img) return null;
+
+              const id = s.id ?? s.starId;
+              const p = (previewMap &&
+                g.id === activeConstellationId &&
+                previewMap[id]) ||
+                (appliedForThis && appliedForThis[id]) ||
+                (baseMap && baseMap[id]) || { x: s.x, y: s.y };
+
+              const showPulse =
+                locked &&
+                (g.id === activeConstellationId ||
+                  g.id === hoveredConstellationId) &&
+                isSelected;
+
+              const seed = Number(id ?? i) || i;
+              const delayMs = `${(seed * 137) % 1200}ms`;
+
+              return (
+                <div
+                  key={`${g.id}-${id}`}
+                  style={{
+                    position: "absolute",
+                    left: `${clampToView(p.x) * 100}%`,
+                    top: `${clampToView(p.y) * 100}%`,
+                    transform: "translate(-50%, -50%)",
+                    zIndex: 4,
+                  }}
+                >
+                  <div style={{ position: "relative", width: 22, height: 22 }}>
+                    {showPulse && (
+                      <div
+                        className="absolute"
+                        style={{
+                          left: "50%",
+                          top: "50%",
+                          transform: "translate(-50%, -50%)",
+                          width: 28,
+                          height: 28,
+                          borderRadius: "9999px",
+                          background:
+                            "radial-gradient(circle, rgba(124,245,255,0.28) 0%, rgba(124,245,255,0.14) 40%, rgba(124,245,255,0) 75%)",
+                          filter: "blur(2px)",
+                          animation: "pulseSoft 2.2s ease-in-out infinite",
+                          zIndex: 1,
+                        }}
+                        onPointerDown={(e) => startMoveDragConstellation(e, g)}
+                        onMouseEnter={(e) => {
+                          if (locked) {
+                            setHoveredConstellationId(g.id);
+                          }
+                          showTooltip(e);
+                        }}
+                        onMouseLeave={() => {
+                          if (locked) {
+                            setHoveredConstellationId(null);
+                          }
+                          if (!isSelected) hideTooltip();
+                        }}
+                      />
+                    )}
+
+                    <div
+                      className="absolute pointer-events-none animate-pulse [animation-duration:1600ms]"
+                      style={{
+                        left: "50%",
+                        top: "50%",
+                        transform: "translate(-50%, -50%)",
+                        width: 20,
+                        height: 20,
+                        borderRadius: "9999px",
+                        background:
+                          "radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.35) 40%, rgba(255,255,255,0) 70%)",
+                        filter: "blur(2px)",
+                        animationDelay: delayMs,
+                        zIndex: 0,
+                      }}
+                    />
+
+                    <div
+                      className="absolute pointer-events-none"
+                      style={{
+                        left: "50%",
+                        top: "50%",
+                        transform: "translate(-50%, -50%)",
+                        width: 3,
+                        height: 3,
+                        borderRadius: "9999px",
+                        background: "#ffffff",
+                        boxShadow: "0 0 6px rgba(255,255,255,0.9)",
+                        zIndex: 10,
+                      }}
+                    />
+
+                    <img
+                      src={img}
+                      alt={s.color}
+                      draggable={false}
+                      className="animate-pulse [animation-duration:1600ms]"
+                      style={{
+                        width: 22,
+                        height: 22,
+                        userSelect: "none",
+                        touchAction: "none",
+                        cursor: locked ? "pointer" : "grab",
+                        position: "absolute",
+                        left: "50%",
+                        top: "50%",
+                        transform: "translate(-50%, -50%)",
+                        zIndex: 2,
+                        filter: "drop-shadow(0 0 6px rgba(203,225,255,0.85))",
+                        animationDelay: delayMs,
+                      }}
+                      onPointerDown={(e) => startMoveDragConstellation(e, g)}
+                      onMouseEnter={showTooltip}
+                      onMouseLeave={() => {
+                        if (!isSelected) hideTooltip();
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            });
+          })}
 
         {showLabelSingle && labelStyleSingle && (
           <div
@@ -1643,7 +1652,7 @@ export default function StarSkyDate({
         </button>
       </div>
 
-           <style>{`
+      <style>{`
   @keyframes pulseSoft {
     0% { transform: translate(-50%, -50%) scale(0.98); opacity: 0.6; }
     50% { transform: translate(-50%, -50%) scale(1.02); opacity: 0.9; }
@@ -1659,7 +1668,6 @@ export default function StarSkyDate({
     100% { opacity: 0.7; }
   }
 `}</style>
-
     </div>
   );
 }
