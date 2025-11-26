@@ -683,10 +683,14 @@ function MyPage() {
         open={isProfileEditOpen}
         onClose={() => setIsProfileEditOpen(false)}
         currentNickname={nickname}
-        onComplete={(newNickname) => {
-          if (!newNickname) return;
-          setNickname(newNickname);
-          sessionStorage.setItem("nickname", newNickname);
+        currentProfileUrl={userData?.profileUrl}
+        onComplete={({ nickname, profileUrl }) => {
+          if (nickname) {
+            setNickname(nickname);
+            sessionStorage.setItem("nickname", nickname);
+          }
+          if (profileUrl) {
+          }
         }}
       />
     </div>
