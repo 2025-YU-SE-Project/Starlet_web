@@ -158,7 +158,7 @@ function MyPage() {
         <CiMenuBurger className="cursor-pointer" size={30} />
       </button>
 
-      <section className="relative z-10 mt-[110px]">
+      <div className="relative z-10 mt-[110px]">
         <div className="max-w-[1300px] mx-auto px-6">
           <div className="flex items-center gap-6">
             <img
@@ -227,7 +227,7 @@ function MyPage() {
             </button>
           </div>
         </div>
-      </section>
+      </div>
 
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/30 z-0"
