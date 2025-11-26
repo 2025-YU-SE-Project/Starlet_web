@@ -464,6 +464,7 @@ function MyPage() {
       <ProfileEdit
         open={isProfileEditOpen}
         onClose={() => setIsProfileEditOpen(false)}
+        currentNickname={nickname}
         onComplete={(newNickname) => {
           if (!newNickname) return;
           setNickname(newNickname);

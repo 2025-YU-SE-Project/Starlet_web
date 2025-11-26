@@ -1,41 +1,78 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import profileImg from "../../assets/MyPage/profile.png";
 import cameraIcon from "../../assets/MyPage/camera.png";
+import checkNickname from "../../apis/MyPage/checkNickname";
 import changeNickname from "../../apis/MyPage/changeNickname";
 
-function ProfileEdit({ open, onClose, onComplete }) {
+function ProfileEdit({ open, onClose, onComplete, currentNickname }) {
   const [nickname, setNickname] = useState("");
   const [checkMessage, setCheckMessage] = useState("");
   const [checkType, setCheckType] = useState(null);
   const [checking, setChecking] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const [checkedNickname, setCheckedNickname] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      const initial = currentNickname || "";
+      setNickname(initial);
+      setCheckMessage("");
+      setCheckType(null);
+      setCheckedNickname(initial);
+    }
+  }, [open, currentNickname]);
 
   if (!open) return null;
 
-  const handleApiError = (error) => {
-    const status = error?.response?.status;
-    const message = error?.response?.data?.message;
+  const handleComplete = async () => {
+    const trimmed = nickname.trim();
+    const currentTrimmed = (currentNickname || "").trim();
 
-    if (status === 400 || status === 404 || status === 409) {
-      setCheckMessage(message || "요청 처리 중 오류가 발생했습니다.");
-    } else {
-      setCheckMessage("닉네임 처리 중 오류가 발생했습니다.");
+    if (trimmed.length < 2 || trimmed.length > 10) {
+      setCheckMessage("닉네임은 2~10글자여야 합니다.");
+      setCheckType("error");
+      return;
     }
-    setCheckType("error");
+
+    if (trimmed === currentTrimmed) {
+      onComplete?.(currentTrimmed);
+      onClose?.();
+      return;
+    }
+
+    if (checkType !== "success" || checkedNickname !== trimmed) {
+      setCheckMessage("닉네임 중복 확인을 먼저 해주세요.");
+      setCheckType("error");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setCheckMessage("");
+      setCheckType(null);
+
+      const res = await changeNickname(trimmed);
+
+      const newNickname = res?.nickname || trimmed;
+
+      onComplete?.(newNickname);
+      onClose?.();
+    } catch (e) {
+      console.error(e);
+      setCheckMessage(e.message || "닉네임 변경 중 오류가 발생했습니다.");
+      setCheckType("error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCheckNickname = async () => {
     const trimmed = nickname.trim();
 
-    if (!trimmed) {
-      setCheckMessage("닉네임을 입력해주세요.");
-      setCheckType("error");
-      return;
-    }
-
     if (trimmed.length < 2 || trimmed.length > 10) {
-      setCheckMessage("닉네임은 2~10자 사이여야 합니다.");
+      setCheckMessage("닉네임은 2-10글자여야 합니다.");
       setCheckType("error");
       return;
     }
@@ -45,51 +82,23 @@ function ProfileEdit({ open, onClose, onComplete }) {
       setCheckMessage("");
       setCheckType(null);
 
-      const res = await changeNickname(trimmed);
+      const res = await checkNickname(trimmed);
 
-      setCheckMessage("사용 가능한 닉네임입니다.");
-      setCheckType("success");
-    } catch (error) {
-      console.error(error);
-      handleApiError(error);
+      setCheckedNickname(trimmed);
+
+      if (res.available) {
+        setCheckMessage("사용 가능한 닉네임입니다.");
+        setCheckType("success");
+      } else {
+        setCheckMessage("중복된 닉네임입니다.");
+        setCheckType("error");
+      }
+    } catch (e) {
+      console.error(e);
+      setCheckMessage(e.message || "닉네임 확인 중 오류가 발생했습니다.");
+      setCheckType("error");
     } finally {
       setChecking(false);
-    }
-  };
-
-  const handleComplete = async () => {
-    const trimmed = nickname.trim();
-
-    if (!trimmed) {
-      setCheckMessage("닉네임을 입력해주세요.");
-      setCheckType("error");
-      return;
-    }
-
-    if (trimmed.length < 2 || trimmed.length > 10) {
-      setCheckMessage("닉네임은 2~10자 사이여야 합니다.");
-      setCheckType("error");
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      setCheckMessage("");
-      setCheckType(null);
-
-      const res = await changeNickname(trimmed);
-
-      const newNickname = res?.nickname ?? trimmed;
-      setCheckMessage("닉네임이 변경되었습니다.");
-      setCheckType("success");
-
-      onComplete?.(newNickname);
-      onClose?.();
-    } catch (error) {
-      console.error(error);
-      handleApiError(error);
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -127,12 +136,12 @@ function ProfileEdit({ open, onClose, onComplete }) {
             <button
               type="button"
               onClick={handleComplete}
-              disabled={submitting}
-              className={`text-lg font-medium cursor-pointer text-[#4A4A4A] ${
-                submitting ? "opacity-50 cursor-not-allowed" : ""
+              disabled={saving}
+              className={`text-lg font-medium cursor-pointer ${
+                saving ? "text-[#A0A0A0]" : "text-[#4A4A4A]"
               }`}
             >
-              {submitting ? "저장 중..." : "완료"}
+              완료
             </button>
           </div>
 
@@ -151,7 +160,7 @@ function ProfileEdit({ open, onClose, onComplete }) {
                   <img
                     src={cameraIcon}
                     className="w-full h-full object-contain cursor-pointer"
-                    alt="카메라 아이콘"
+                    alt="카메라"
                   />
                 </button>
               </div>
@@ -176,10 +185,10 @@ function ProfileEdit({ open, onClose, onComplete }) {
               <button
                 type="button"
                 onClick={handleCheckNickname}
-                disabled={checking || !nickname.trim()}
+                disabled={checking}
                 className={`w-24 h-12 rounded-[5px] text-[14px] font-medium cursor-pointer ${
-                  checking || !nickname.trim()
-                    ? "bg-[#BFBFBF] text-[#777777] cursor-not-allowed"
+                  checking
+                    ? "bg-[#BFBFBF] text-[#777777]"
                     : "bg-[#D9D9D9] text-[#555555] hover:bg-[#CFCFCF]"
                 }`}
               >
