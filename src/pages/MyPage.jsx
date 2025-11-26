@@ -432,7 +432,7 @@ function MyPage() {
           </div>
 
           <div className="mt-13">
-            <div className="w-full h-px bg-white/20" />
+            <div className="w-full h-[1px] bg-white/30" />
           </div>
 
           <div className="pt-6 flex flex-row items-start justify-between gap-8">
@@ -441,19 +441,21 @@ function MyPage() {
                 감정별 일기 수
               </div>
 
-              <div className="text-center text-gray-300 font-medium mb-4 flex items-center justify-center gap-3">
+              <div className="relative flex items-center justify-center text-gray-300 font-medium mb-5 w-40 mx-auto">
                 <IoChevronBack
-                  className="cursor-pointer hover:opacity-80"
+                  className="absolute left-0 cursor-pointer hover:opacity-80 "
                   onClick={handlePrevMonth}
                 />
-                <span className="px-4">{MONTH_NAMES[month - 1]}</span>
+                <span className="text-center select-none">
+                  {MONTH_NAMES[month - 1]}
+                </span>
                 <IoChevronForward
-                  className="cursor-pointer hover:opacity-80"
+                  className="absolute right-0 cursor-pointer hover:opacity-80"
                   onClick={handleNextMonth}
                 />
               </div>
 
-              <div className="grid grid-cols-6 items-end h-43">
+              <div className="grid grid-cols-6 items-end h-42">
                 {/* 화나요 */}
                 <div className="flex flex-col items-center">
                   <div
@@ -498,11 +500,11 @@ function MyPage() {
                 </div>
               </div>
 
-              <div className="mt-3 h-[1px] w-full bg-white/40 rounded-full" />
+              <div className="mt-1.5 h-[1.5px] w-full bg-white/40 rounded-full" />
               <div className="mt-2 grid grid-cols-6 text-center">
                 <div>
                   <div className="text-base font-medium">화나요</div>
-                  <div className="text-sm text-gray-300">
+                  <div className="text-[14px] text-gray-300">
                     <span className="mx-1">
                       {monthLoading ? "-" : emotionCounts[0] ?? 0}
                     </span>
@@ -510,7 +512,7 @@ function MyPage() {
                 </div>
                 <div>
                   <div className="text-base font-medium">웃겨요</div>
-                  <div className="text-sm text-gray-300">
+                  <div className="text-[14px] text-gray-300">
                     <span className="mx-1">
                       {monthLoading ? "-" : emotionCounts[1] ?? 0}
                     </span>
@@ -518,7 +520,7 @@ function MyPage() {
                 </div>
                 <div>
                   <div className="text-base font-medium">행복해요</div>
-                  <div className="text-sm text-gray-300">
+                  <div className="text-[14px] text-gray-300">
                     <span className="mx-1">
                       {monthLoading ? "-" : emotionCounts[2] ?? 0}
                     </span>
@@ -528,7 +530,7 @@ function MyPage() {
                   <div className="text-base font-medium whitespace-nowrap">
                     잘 모르겠어요
                   </div>
-                  <div className="text-sm text-gray-300">
+                  <div className="text-[14px] text-gray-300">
                     <span className="mx-1">
                       {monthLoading ? "-" : emotionCounts[3] ?? 0}
                     </span>
@@ -536,7 +538,7 @@ function MyPage() {
                 </div>
                 <div>
                   <div className="text-base font-medium">슬퍼요</div>
-                  <div className="text-sm text-gray-300">
+                  <div className="text-[14px] text-gray-300">
                     <span className="mx-1">
                       {monthLoading ? "-" : emotionCounts[4] ?? 0}
                     </span>
@@ -544,7 +546,7 @@ function MyPage() {
                 </div>
                 <div>
                   <div className="text-base font-medium">놀라워요</div>
-                  <div className="text-sm text-gray-300">
+                  <div className="text-[14px] text-gray-300">
                     <span className="mx-1">
                       {monthLoading ? "-" : emotionCounts[5] ?? 0}
                     </span>
@@ -559,7 +561,7 @@ function MyPage() {
               )}
             </div>
 
-            <div className="w-px bg-white/30 self-stretch" />
+            <div className="w-[1px] bg-white/30 self-stretch" />
 
             <div className="flex-1">
               <div className="text-center text-lg font-semibold text-white mb-2">
@@ -570,7 +572,7 @@ function MyPage() {
                   className="cursor-pointer hover:opacity-80"
                   onClick={() => setYear(year - 1)}
                 />
-                <span className="px-4">{year}</span>
+                <span className="px-4 select-none">{year}</span>
                 <IoChevronForward
                   className="cursor-pointer hover:opacity-80"
                   onClick={() => setYear(year + 1)}
@@ -642,7 +644,7 @@ function MyPage() {
                       key={i}
                       x={getX(i)}
                       y="155"
-                      fontSize="9"
+                      fontSize="10"
                       textAnchor="middle"
                       fill="#9CA3AF"
                     >
@@ -666,7 +668,9 @@ function MyPage() {
         <button className="text-white hover:underline underline-offset-4 cursor-pointer drop-shadow-[0_0_6px_rgba(0,0,0,0.7)]">
           계정 탈퇴
         </button>
-        <span className="text-white">|</span>
+        <span className="text-white font-extralight drop-shadow-[0_0_6px_rgba(0,0,0,0.7)]">
+          |
+        </span>
         <button
           className="text-white hover:underline underline-offset-4 cursor-pointer drop-shadow-[0_0_6px_rgba(0,0,0,0.7)]"
           onClick={handleLogout}
