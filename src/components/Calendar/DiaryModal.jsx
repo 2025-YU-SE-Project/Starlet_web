@@ -76,15 +76,6 @@ function DiaryModal({
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev || "";
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
     if (!tagsBoxRef.current) return;
     const h = tagsBoxRef.current.offsetHeight;
     setCompactTextArea(h > 40);
