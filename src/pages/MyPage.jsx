@@ -13,6 +13,31 @@ import getLevel from "../apis/MyPage/getLevel";
 import getUser from "../apis/MyPage/getUser";
 import representativeStar from "../apis/MyPage/representativeStar";
 import getYear from "../apis/MyPage/getYear";
+import getMonth from "../apis/MyPage/getMonth";
+
+const MONTH_NAMES = [
+  "JANUARY",
+  "FEBRUARY",
+  "MARCH",
+  "APRIL",
+  "MAY",
+  "JUNE",
+  "JULY",
+  "AUGUST",
+  "SEPTEMBER",
+  "OCTOBER",
+  "NOVEMBER",
+  "DECEMBER",
+];
+
+const EMOTION_ORDER = [
+  "ANGER",
+  "FUN",
+  "HAPPINESS",
+  "NEUTRAL",
+  "SADNESS",
+  "SURPRISE",
+];
 
 function MyPage() {
   const [nickname, setNickname] = useState(
@@ -38,6 +63,12 @@ function MyPage() {
   const [yearData, setYearData] = useState([]);
   const [yearLoading, setYearLoading] = useState(false);
   const [yearError, setYearError] = useState("");
+  const [emotionYear] = useState(new Date().getFullYear());
+
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [monthData, setMonthData] = useState([]);
+  const [monthLoading, setMonthLoading] = useState(false);
+  const [monthError, setMonthError] = useState("");
 
   const navigate = useNavigate();
 
@@ -128,6 +159,24 @@ function MyPage() {
     fetchYear();
   }, [year]);
 
+  useEffect(() => {
+    const fetchMonth = async () => {
+      try {
+        setMonthLoading(true);
+        setMonthError("");
+        const data = await getMonth(year, month);
+        setMonthData(data || []);
+      } catch (e) {
+        setMonthError(e?.message || "월별 감정 통계를 불러오지 못했습니다.");
+        setMonthData([]);
+      } finally {
+        setMonthLoading(false);
+      }
+    };
+
+    fetchMonth();
+  }, [year, month]);
+
   const minStars = levelData?.min ?? 0;
   const maxStars = levelData?.max ?? 0;
   const progressToNext =
@@ -169,6 +218,7 @@ function MyPage() {
     : userData
     ? userData.totalConstellations
     : null;
+
   const monthCounts = Array.from({ length: 12 }, () => 0);
   yearData.forEach((item) => {
     if (!item) return;
@@ -195,6 +245,33 @@ function MyPage() {
   const polylinePoints = monthCounts
     .map((count, idx) => `${getX(idx)},${getY(count)}`)
     .join(" ");
+
+  const emotionCounts = EMOTION_ORDER.map((code) => {
+    const row = monthData.find((item) => item.emotion === code);
+    return row ? row.count ?? 0 : 0;
+  });
+
+  const maxEmotionCount = Math.max(0, ...emotionCounts);
+  const maxBarHeight = 144;
+  const barHeights = emotionCounts.map((c) =>
+    maxEmotionCount === 0 ? 0 : (c / maxEmotionCount) * maxBarHeight
+  );
+
+  const handlePrevMonth = () => {
+    if (month === 1) {
+      setMonth(12);
+    } else {
+      setMonth(month - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (month === 12) {
+      setMonth(1);
+    } else {
+      setMonth(month + 1);
+    }
+  };
 
   return (
     <div className="relative w-full min-h-screen text-white">
@@ -364,36 +441,60 @@ function MyPage() {
                 감정별 일기 수
               </div>
 
-              <div className="text-center text-gray-300 font-medium mb-4 flex items-center justify-center">
-                <span className="px-4">&lt;</span>
-                SEPTEMBER
-                <span className="px-4">&gt;</span>
+              <div className="text-center text-gray-300 font-medium mb-4 flex items-center justify-center gap-3">
+                <IoChevronBack
+                  className="cursor-pointer hover:opacity-80"
+                  onClick={handlePrevMonth}
+                />
+                <span className="px-4">{MONTH_NAMES[month - 1]}</span>
+                <IoChevronForward
+                  className="cursor-pointer hover:opacity-80"
+                  onClick={handleNextMonth}
+                />
               </div>
 
               <div className="grid grid-cols-6 items-end h-43">
                 {/* 화나요 */}
                 <div className="flex flex-col items-center">
-                  <div className="w-10 h-36 bg-[#F23B00] rounded-md" />
+                  <div
+                    className="w-10 bg-[#F23B00] rounded-md transition-all duration-300"
+                    style={{ height: `${barHeights[0] || 0}px` }}
+                  />
                 </div>
                 {/* 웃겨요 */}
                 <div className="flex flex-col items-center">
-                  <div className="w-10 h-28 bg-[#FEA004] rounded-md" />
+                  <div
+                    className="w-10 bg-[#FEA004] rounded-md transition-all duration-300"
+                    style={{ height: `${barHeights[1] || 0}px` }}
+                  />
                 </div>
                 {/* 행복해요 */}
                 <div className="flex flex-col items-center">
-                  <div className="w-10 h-24 bg-[#FEE444] rounded-md" />
+                  <div
+                    className="w-10 bg-[#FEE444] rounded-md transition-all duration-300"
+                    style={{ height: `${barHeights[2] || 0}px` }}
+                  />
                 </div>
                 {/* 잘 모르겠어요 */}
                 <div className="flex flex-col items-center">
-                  <div className="w-10 h-16 bg-[#9AFF93] rounded-md" />
+                  <div
+                    className="w-10 bg-[#9AFF93] rounded-md transition-all duration-300"
+                    style={{ height: `${barHeights[3] || 0}px` }}
+                  />
                 </div>
                 {/* 슬퍼요 */}
                 <div className="flex flex-col items-center">
-                  <div className="w-10 h-20 bg-[#5DDCFF] rounded-md" />
+                  <div
+                    className="w-10 bg-[#5DDCFF] rounded-md transition-all duration-300"
+                    style={{ height: `${barHeights[4] || 0}px` }}
+                  />
                 </div>
                 {/* 놀라워요 */}
                 <div className="flex flex-col items-center">
-                  <div className="w-10 h-24 bg-[#C69EFF] rounded-md" />
+                  <div
+                    className="w-10 bg-[#C69EFF] rounded-md transition-all duration-300"
+                    style={{ height: `${barHeights[5] || 0}px` }}
+                  />
                 </div>
               </div>
 
@@ -402,19 +503,25 @@ function MyPage() {
                 <div>
                   <div className="text-base font-medium">화나요</div>
                   <div className="text-sm text-gray-300">
-                    <span className="mx-1">10</span>
+                    <span className="mx-1">
+                      {monthLoading ? "-" : emotionCounts[0] ?? 0}
+                    </span>
                   </div>
                 </div>
                 <div>
                   <div className="text-base font-medium">웃겨요</div>
                   <div className="text-sm text-gray-300">
-                    <span className="mx-1">7</span>
+                    <span className="mx-1">
+                      {monthLoading ? "-" : emotionCounts[1] ?? 0}
+                    </span>
                   </div>
                 </div>
                 <div>
                   <div className="text-base font-medium">행복해요</div>
                   <div className="text-sm text-gray-300">
-                    <span className="mx-1">5</span>
+                    <span className="mx-1">
+                      {monthLoading ? "-" : emotionCounts[2] ?? 0}
+                    </span>
                   </div>
                 </div>
                 <div>
@@ -422,22 +529,34 @@ function MyPage() {
                     잘 모르겠어요
                   </div>
                   <div className="text-sm text-gray-300">
-                    <span className="mx-1">3</span>
+                    <span className="mx-1">
+                      {monthLoading ? "-" : emotionCounts[3] ?? 0}
+                    </span>
                   </div>
                 </div>
                 <div>
                   <div className="text-base font-medium">슬퍼요</div>
                   <div className="text-sm text-gray-300">
-                    <span className="mx-1">3</span>
+                    <span className="mx-1">
+                      {monthLoading ? "-" : emotionCounts[4] ?? 0}
+                    </span>
                   </div>
                 </div>
                 <div>
                   <div className="text-base font-medium">놀라워요</div>
                   <div className="text-sm text-gray-300">
-                    <span className="mx-1">4</span>
+                    <span className="mx-1">
+                      {monthLoading ? "-" : emotionCounts[5] ?? 0}
+                    </span>
                   </div>
                 </div>
               </div>
+
+              {monthError && (
+                <div className="mt-2 text-[11px] text-red-300 text-center">
+                  {monthError}
+                </div>
+              )}
             </div>
 
             <div className="w-px bg-white/30 self-stretch" />
@@ -451,9 +570,7 @@ function MyPage() {
                   className="cursor-pointer hover:opacity-80"
                   onClick={() => setYear(year - 1)}
                 />
-
                 <span className="px-4">{year}</span>
-
                 <IoChevronForward
                   className="cursor-pointer hover:opacity-80"
                   onClick={() => setYear(year + 1)}
