@@ -76,15 +76,6 @@ function DiaryModal({
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev || "";
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
     if (!tagsBoxRef.current) return;
     const h = tagsBoxRef.current.offsetHeight;
     setCompactTextArea(h > 40);
@@ -189,15 +180,25 @@ function DiaryModal({
                 >
                   <defs>
                     <filter
-                      id="glow"
+                      id="star-glow"
                       x="-50%"
                       y="-50%"
                       width="200%"
                       height="200%"
                     >
-                      <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
+                      <feGaussianBlur
+                        in="SourceGraphic"
+                        stdDeviation="2.5"
+                        result="b1"
+                      />
+                      <feGaussianBlur
+                        in="SourceGraphic"
+                        stdDeviation="2.0"
+                        result="b2"
+                      />
                       <feMerge>
-                        <feMergeNode in="coloredBlur" />
+                        <feMergeNode in="b1" />
+                        <feMergeNode in="b2" />
                         <feMergeNode in="SourceGraphic" />
                       </feMerge>
                     </filter>
@@ -211,14 +212,14 @@ function DiaryModal({
                         y={110 - 20}
                         width="40"
                         height="40"
-                        filter="url(#glow)"
-                        className="animate-pulse [animation-duration:900ms]"
+                        filter="url(#star-glow)"
+                        className="animate-pulse [animation-duration:1000ms]"
                         style={{
                           transformOrigin: "center",
                           transformBox: "fill-box",
                         }}
                       />
-                      <circle cx="110" cy="110" r="2" fill="#fff" />
+                      <circle cx="110" cy="110" r="2.5" fill="#ffffff" />
                     </g>
                   )}
                 </svg>
