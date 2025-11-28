@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { FaCheck } from "react-icons/fa6";
 
 const MONTH_ABBR = [
   "JAN",
@@ -345,8 +346,6 @@ export default function StarSkyDate({
   const [hoveredStarSingle, setHoveredStarSingle] = useState(false);
   const [allowPulseAnim, setAllowPulseAnim] = useState(false);
   const hasSelectedOnceRef = useRef(false);
-
-
 
   const multipleMode =
     Array.isArray(filteredConstellationGroups) &&
@@ -1256,7 +1255,6 @@ export default function StarSkyDate({
 
                 {selectedForEdit && (
                   <div
-
                     className="absolute pointer-events-none"
                     style={{
                       left: "50%",
@@ -1272,7 +1270,6 @@ export default function StarSkyDate({
                         "blur(2px) drop-shadow(0 0 14px rgba(255,80,80,0.95))",
                       animation: "twinkleStrong 1.2s ease-in-out infinite",
                       zIndex: 3,
-
                     }}
                   />
                 )}
@@ -1320,7 +1317,6 @@ export default function StarSkyDate({
                   onPointerDown={(e) => onStarPointerDown(e, s)}
                   onPointerMove={(e) => onStarPointerMove(e, s)}
                   onPointerUp={(e) => onStarPointerUp(e, s)}
-
                   onMouseEnter={(e) => {
                     setHoveredStarSingle(true);
                     showTooltip(e);
@@ -1374,9 +1370,7 @@ export default function StarSkyDate({
                   <div style={{ position: "relative", width: 22, height: 22 }}>
                     {showPulse && (
                       <div
-
                         className="absolute pointer-events-none"
-
                         style={{
                           left: "50%",
                           top: "50%",
@@ -1389,7 +1383,6 @@ export default function StarSkyDate({
                           filter: "blur(2px)",
                           animation: "pulseSoft 2.2s ease-in-out infinite",
                           zIndex: 0,
-
                         }}
                       />
                     )}
@@ -1446,7 +1439,6 @@ export default function StarSkyDate({
                         animationDelay: delayMs,
                       }}
                       onPointerDown={(e) => startMoveDragConstellation(e, g)}
-
                       onMouseEnter={(e) => {
                         if (locked) {
                           setHoveredConstellationId(g.id);
@@ -1592,8 +1584,8 @@ export default function StarSkyDate({
 
             <button
               type="button"
-              className="mt-2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg
-         flex items-center justify-center"
+              className="mt-2 w-8 h-8 rounded-full border-2 border-[#A9A9A9] bg-white hover:bg-[#D9D9D9] shadow-lg
+             flex items-center justify-center"
               onClick={() => {
                 const ok = window.confirm("적용하시겠습니까?");
                 if (!ok) return;
@@ -1620,7 +1612,10 @@ export default function StarSkyDate({
                 setPreviewMap(null);
                 setPendingApply(false);
               }}
-            />
+              aria-label="Apply scale"
+            >
+              <FaCheck className="w-5 h-5 text-[#A9A9A9]" />
+            </button>
           </div>
         </div>
       )}
