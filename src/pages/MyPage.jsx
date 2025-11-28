@@ -47,6 +47,8 @@ function MyPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
 
+  const [profileUrl, setProfileUrl] = useState(profileImg);
+
   const [levelData, setLevelData] = useState(null);
   const [levelLoading, setLevelLoading] = useState(false);
   const [levelError, setLevelError] = useState("");
@@ -103,11 +105,20 @@ function MyPage() {
         setUserLoading(true);
         setUserError("");
         const data = await getUser();
+        console.log("🔍 getUser 응답:", data);
         setUserData(data);
 
         if (data?.nickname) {
           setNickname(data.nickname);
           sessionStorage.setItem("nickname", data.nickname);
+        }
+
+        const serverProfileUrl = data?.profilePhotoUrl;
+
+        if (serverProfileUrl) {
+          setProfileUrl(serverProfileUrl);
+        } else {
+          setProfileUrl(profileImg);
         }
       } catch (e) {
         setUserError(
@@ -211,6 +222,7 @@ function MyPage() {
     levelNameParts.length > 1
       ? levelNameParts.slice(0, levelNameParts.length - 1).join(" ")
       : levelName;
+  const isMaxLevel = levelName === "우주 탐험가";
 
   const totalStars = userLoading ? null : userData ? userData.totalStars : null;
   const totalConstellations = userLoading
@@ -303,7 +315,7 @@ function MyPage() {
         <div className="max-w-[1300px] mx-auto px-6">
           <div className="flex items-center gap-6">
             <img
-              src={profileImg}
+              src={profileUrl || profileImg}
               alt="프로필"
               className="w-[180px] h-[180px] rounded-full object-cover shadow-md"
             />
@@ -383,11 +395,13 @@ function MyPage() {
                 <span className="opacity-90">레벨 정보를 불러오는 중...</span>
               ) : levelData ? (
                 <>
-                  {progressToNext !== null && progressToNext > 0 && (
-                    <span className="opacity-90">
-                      다음 레벨까지 -{progressToNext}
-                    </span>
-                  )}
+                  {!isMaxLevel &&
+                    progressToNext !== null &&
+                    progressToNext > 0 && (
+                      <span className="opacity-90">
+                        다음 레벨까지 -{progressToNext}
+                      </span>
+                    )}
                 </>
               ) : (
                 <span className="opacity-90">
@@ -683,13 +697,17 @@ function MyPage() {
         open={isProfileEditOpen}
         onClose={() => setIsProfileEditOpen(false)}
         currentNickname={nickname}
-        currentProfileUrl={userData?.profileUrl}
-        onComplete={({ nickname, profileUrl }) => {
-          if (nickname) {
-            setNickname(nickname);
-            sessionStorage.setItem("nickname", nickname);
+        currentProfileUrl={profileUrl}
+        onComplete={({ nickname: newNickname, profileUrl: newProfileUrl }) => {
+          if (newNickname) {
+            setNickname(newNickname);
+            sessionStorage.setItem("nickname", newNickname);
           }
-          if (profileUrl) {
+          if (newProfileUrl) {
+            setProfileUrl(newProfileUrl);
+            setUserData((prev) =>
+              prev ? { ...prev, profileUrl: newProfileUrl } : prev
+            );
           }
         }}
       />

@@ -21,12 +21,10 @@ function ProfileEdit({
   const [checkType, setCheckType] = useState(null);
   const [checking, setChecking] = useState(false);
   const [saving, setSaving] = useState(false);
-
   const [checkedNickname, setCheckedNickname] = useState("");
 
   const [previewUrl, setPreviewUrl] = useState(currentProfileUrl || profileImg);
   const [file, setFile] = useState(null);
-
   const [showImageMenu, setShowImageMenu] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -100,10 +98,8 @@ function ProfileEdit({
         );
       }
 
-      const confirmRes = await changePfp(tempKey);
-      console.log("changePfp 결과 >>>", confirmRes);
-
-      return confirmRes.profileUrl;
+      const { profileUrl } = await changePfp(tempKey);
+      return profileUrl;
     } catch (error) {
       console.error("uploadProfileImage 전체 에러:", error);
       throw error;

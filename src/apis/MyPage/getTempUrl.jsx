@@ -8,10 +8,9 @@ async function getTempUrl(contentType) {
 
     return res.data;
   } catch (error) {
-    console.error("❌ tempUrl 요청 실패:", error);
+    console.error("요청 실패:", error);
     const status = error.response?.status;
-    const message =
-      error.response?.data?.message || "tempUrl 요청 중 오류가 발생했습니다.";
+    const message = error.response?.data?.message || "오류가 발생했습니다.";
 
     const err = new Error(message);
     err.status = status;
