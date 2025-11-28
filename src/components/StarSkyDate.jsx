@@ -343,6 +343,10 @@ export default function StarSkyDate({
   const [hoveredConstellationId, setHoveredConstellationId] = useState(null);
 
   const [hoveredStarSingle, setHoveredStarSingle] = useState(false);
+  const [allowPulseAnim, setAllowPulseAnim] = useState(false);
+  const hasSelectedOnceRef = useRef(false);
+
+
 
   const multipleMode =
     Array.isArray(filteredConstellationGroups) &&
@@ -388,6 +392,7 @@ export default function StarSkyDate({
     setScaleUIMap({});
     setLastDirection(null);
     setHoveredEdgeSingle(false);
+    setHoveredStarSingle(false);
     setHoveredConstellationId(null);
     setActiveConstellationId(null);
   }, [year, monthPairIndex]);
@@ -1251,11 +1256,13 @@ export default function StarSkyDate({
 
                 {selectedForEdit && (
                   <div
-                    className="absolute"
+
+                    className="absolute pointer-events-none"
                     style={{
                       left: "50%",
                       top: "50%",
-                      transform: "translate(-50%, -50%) scale(1.08)",
+                      transform: "translate(-50%, -50%)",
+
                       width: 30,
                       height: 30,
                       borderRadius: "9999px",
@@ -1265,22 +1272,7 @@ export default function StarSkyDate({
                         "blur(2px) drop-shadow(0 0 14px rgba(255,80,80,0.95))",
                       animation: "twinkleStrong 1.2s ease-in-out infinite",
                       zIndex: 3,
-                      transition: "transform 0.12s ease-out",
-                    }}
-                    onPointerDown={(e) => onStarPointerDown(e, s)}
-                    onPointerMove={(e) => onStarPointerMove(e, s)}
-                    onPointerUp={(e) => onStarPointerUp(e, s)}
-                    onMouseEnter={(e) => {
-                      if (!multipleMode && locked) {
-                        setHoveredStarSingle(true);
-                      }
-                      showTooltip(e);
-                    }}
-                    onMouseLeave={() => {
-                      if (!multipleMode && locked) {
-                        setHoveredStarSingle(false);
-                      }
-                      if (!isSelected) hideTooltip();
+
                     }}
                   />
                 )}
@@ -1328,8 +1320,14 @@ export default function StarSkyDate({
                   onPointerDown={(e) => onStarPointerDown(e, s)}
                   onPointerMove={(e) => onStarPointerMove(e, s)}
                   onPointerUp={(e) => onStarPointerUp(e, s)}
-                  onMouseEnter={showTooltip}
+
+                  onMouseEnter={(e) => {
+                    setHoveredStarSingle(true);
+                    showTooltip(e);
+                  }}
                   onMouseLeave={() => {
+                    setHoveredStarSingle(false);
+
                     if (!isSelected) hideTooltip();
                   }}
                 />
@@ -1376,7 +1374,9 @@ export default function StarSkyDate({
                   <div style={{ position: "relative", width: 22, height: 22 }}>
                     {showPulse && (
                       <div
-                        className="absolute"
+
+                        className="absolute pointer-events-none"
+
                         style={{
                           left: "50%",
                           top: "50%",
@@ -1388,20 +1388,8 @@ export default function StarSkyDate({
                             "radial-gradient(circle, rgba(124,245,255,0.28) 0%, rgba(124,245,255,0.14) 40%, rgba(124,245,255,0) 75%)",
                           filter: "blur(2px)",
                           animation: "pulseSoft 2.2s ease-in-out infinite",
-                          zIndex: 1,
-                        }}
-                        onPointerDown={(e) => startMoveDragConstellation(e, g)}
-                        onMouseEnter={(e) => {
-                          if (locked) {
-                            setHoveredConstellationId(g.id);
-                          }
-                          showTooltip(e);
-                        }}
-                        onMouseLeave={() => {
-                          if (locked) {
-                            setHoveredConstellationId(null);
-                          }
-                          if (!isSelected) hideTooltip();
+                          zIndex: 0,
+
                         }}
                       />
                     )}
@@ -1458,8 +1446,20 @@ export default function StarSkyDate({
                         animationDelay: delayMs,
                       }}
                       onPointerDown={(e) => startMoveDragConstellation(e, g)}
-                      onMouseEnter={showTooltip}
+
+                      onMouseEnter={(e) => {
+                        if (locked) {
+                          setHoveredConstellationId(g.id);
+                          showTooltip(e);
+                        } else {
+                          showTooltip(e);
+                        }
+                      }}
                       onMouseLeave={() => {
+                        if (locked) {
+                          setHoveredConstellationId(null);
+                        }
+
                         if (!isSelected) hideTooltip();
                       }}
                     />
