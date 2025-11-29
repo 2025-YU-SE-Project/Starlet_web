@@ -29,11 +29,11 @@
   },
 
 
-  "navbar.home": "Home",
-  "navbar.NightSkyPage": "Night Sky Page",
-  "navbar.MyDiary": "My Diary",
-  "navbar.ConstellationArchive": "Constellation Archive",
-  "navbar.MyPage": "My Page",
+  "navbar.home": "HOME",
+  "navbar.NightSkyPage": "NIGHT SKY",
+  "navbar.MyDiary": "DIARY CALENDER",
+  "navbar.ConstellationArchive": "CONSTELLATION ARCHIVE",
+  "navbar.MyPage": "MY PAGE",
 
   "navbar.Logout": "LOGOUT",
 
