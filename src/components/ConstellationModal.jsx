@@ -413,9 +413,7 @@ const ConstellationModal = ({
           )}
         </div>
 
-
         <div className="flex flex-col items-center px-10 py-6 gap-2">
-
           {!isEdit && step === 1 && (
             <p className="text-[16px] text-[#4F4F4FB2]">
               *별을 끌어 이동하고, 서로 연결하여 별자리를 완성해보세요
@@ -610,9 +608,7 @@ const ConstellationModal = ({
                           handleSuggest();
                         }}
                         disabled={suggesting}
-
                         className={`ml-2 px-3 py-1 rounded-[8px] text-[11px] cursor-pointer ${
-
                           suggesting
                             ? "bg-[#e5e7eb] text-black/40 cursor-wait"
                             : "bg-[#e5e7eb] text-[#4F4F4FB2] hover:bg-[#d4d7dd]"

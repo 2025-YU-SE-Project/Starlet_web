@@ -116,6 +116,7 @@ const StarSky = () => {
     desc: "",
     createdAt: "",
   });
+
   const [constellationEdges, setConstellationEdges] = useState([]);
   const [serverConstellations, setServerConstellations] = useState([]);
   const [locked, setLocked] = useState(false);
