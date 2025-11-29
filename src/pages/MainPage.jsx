@@ -77,10 +77,12 @@ const MainPage = () => {
             </div>
 
            
-             <div className="ml-50 flex-[1] flex justify-center">
-    <img className='w-60 h-50' src={star}/>
-  </div>
-
+        <div className="ml-50 flex-[1] flex justify-center relative h-[220px]">
+  <img
+    src={star}
+    className="w-60 h-50 absolute right-[80px] top-0 pointer-events-none"
+  />
+</div>
 
   <div className="ml-auto mt-60">
     <img  className='w-80 h-60' src={starcard1} />
