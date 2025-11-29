@@ -2,22 +2,32 @@
   "menu.login": "Sign in",
   "menu.signup": "Sign up",
 
-  "hero.tagline": "One star, one feeling",
-  "hero.title": "STARLET",
-  "hero.line1": "\"Memories don’t simply fade.",
-  "hero.line2": "Leave today’s feelings in the sky.\"",
 
-  "card.sky.title": "Night Sky Page",
-  "card.sky.subtitle1": "Create your own constellation",
-  "card.sky.subtitle2": "Your day remains as a star",
+ "hero": {
+    "tagline": "One Star, One Emotion",
+    "subtitle1": "Memories don't fade.",
+    "subtitle2": "Leave today's feelings in the night sky",
+    "ctaLogin": "Write your diary after logging in"
+  },
 
-  "card.diary.title": "My Diary",
-  "card.diary.subtitle1": "Record today’s feelings",
-  "card.diary.subtitle2": "Your day remains as a star",
+  
+ "subtext": {
+    "1": "Write your diary after logging in",
+    "2": "Connect the stars you record and create your own patterns and meanings",
+    "3": "Collect all your completed",
+    "4": "constellations in one space",
+    "5": "Smarter with AI, easier for you!",
+    "6": "Constellation Naming AI",
+    "7": "Based on the emotions, causes, and content of tour diary entries, ",
+   "8": "AI suggestes constellation names and descriptions",
+   "9": "that best match your story",
+   "10": "Monthly Diary Summary AI",
+   "11": "AI analyes",
+   "12": "a month's worth of emotional entries",
+   "13": "all delivers a concise summary of your key patterns.",
+   "14": "Share your level with friends"
+  },
 
-  "card.archive.title": "Constellation Archive",
-  "card.archive.subtitle1": "See the constellations",
-  "card.archive.subtitle2": "you created",
 
   "navbar.home": "Home",
   "navbar.NightSkyPage": "Night Sky Page",

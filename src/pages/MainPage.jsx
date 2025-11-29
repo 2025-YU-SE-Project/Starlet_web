@@ -1,14 +1,17 @@
 import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { CiMenuBurger } from "react-icons/ci";
-import starImg from "../assets/starImg.png";
-import diaryImg from "../assets/diaryImg.png";
-import archiveImg from "../assets/archiveImg.png";
+import star from "./../assets/home/star.png";
+import starcard1 from "./../assets/home/starcard1.png";
 import { useTranslation } from "react-i18next";
 import Sidebar from "../components/Sidebar";
 import AuthContext from "../contexts/AuthContext";
 import LanguageSelect from "../components/LanguageSelect";
-
+import HomeBottom from "../components/HomeBottom";
+import img5 from "./../assets/home/img5.png";
+import img6 from "./../assets/home/img6.png";
+import img7 from "./../assets/home/img7.png";
+import img8 from "./../assets/home/img8.png";
 const MainPage = () => {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -38,131 +41,100 @@ const MainPage = () => {
           >
             <CiMenuBurger className="cursor-pointer" size={30} />
           </button>
-          {isLoggedIn ? (
-            <div className="flex mt-[1.37rem] gap-[1.37rem] items-center mr-10">
-              <LanguageSelect />
-            </div>
-          ) : (
-            <>
-              <div className="flex mt-[1.37rem] gap-[1.37rem] items-center mr-10">
-                <LanguageSelect />
 
-                <div className="flex gap-[1.37rem] items-center mr-[3.06rem]">
-                  <Link to="/signin" className="text-[1.25rem]">
-                    {t("menu.login")}
-                  </Link>
-                  <Link to="/signup" className="text-[1.25rem]">
-                    {t("menu.signup")}
-                  </Link>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-        <div className="flex flex-col">
-          <span className="ml-[10.19rem] mt-[7.00rem] text-[1.25rem]">
-            {" "}
-            {/*피그마랑 다르게 수정(mt)*/}별 하나, 감정 하나
-          </span>
-          <span className="font-julius text-[6.00rem] ml-[9.38rem]">
-            {t("hero.title")}
-          </span>
-          <span className="ml-[10.31rem] text-[1.50rem]">
-            "기억은 흘러가지 않아요.
-          </span>
-          <span className="ml-[16.75rem] text-[1.50rem]">
-            오늘의 감정을 하늘에 남겨두세요."
-          </span>{" "}
-          {/*피그마랑 다르게 수정(글자 크기)*/}
-          <div className="flex flex-row">
-            <Link
-              to="/starsky"
-              className="inline-block mt-[4.94rem] ml-[9.38rem] w-[20.00rem] h-[24.94rem]"
-              onClick={(e) => {
-                if (!isLoggedIn) {
-                  e.preventDefault();
-                  alert("로그인 후 이용해주세요!");
-                  navigate("/signin");
-                }
-              }}
-            >
-              <div className="border w-full h-full rounded-[35px] bg-[#808080]/50 border-[#808080]/50">
-                {" "}
-                {/*밤하늘 페이지 피그마랑 다르게 수정(mt)*/}
-                <img
-                  className="flex ml-[5.25rem] mt-[1.94rem] w-[9.50rem] h-[9.50rem]"
-                  src={starImg}
-                  alt="starImg"
-                />
-                <div className="mt-[2.63rem] text-[1.88rem] flex justify-center">
-                  {t("card.sky.title")}
-                </div>
-                <div className="mt-[1.69rem] flex justify-center">
-                  나만의 별자리를 만들어보세요
-                </div>
-                <div className="flex justify-center">
-                  당신만의 하루가 별로 남겨집니다
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              to="/calendar"
-              className="inline-block mt-[4.94rem] ml-[9.38rem] w-[20.00rem] h-[24.94rem]"
-              onClick={(e) => {
-                if (!isLoggedIn) {
-                  e.preventDefault();
-                  alert("로그인 후 이용해주세요!");
-                  navigate("/signin");
-                }
-              }}
-            >
-              <div className="border w-full h-full rounded-[35px] bg-[#808080]/50 border-[#808080]/50">
-                <img
-                  className="flex ml-[5.25rem] mt-[1.94rem] w-[9.50rem] h-[9.50rem]"
-                  src={diaryImg}
-                  alt="diaryImg"
-                />
-                <div className="mt-[2.63rem] text-[1.88rem] flex justify-center">
-                  {t("card.diary.title")}
-                </div>
-                <div className="mt-[1.69rem] flex justify-center">
-                  오늘의 감정을 기록해보세요
-                </div>
-                <div className="flex justify-center">
-                  당신의 하루가 별로 남겨집니다
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              to="/archive"
-              className="inline-block mt-[4.94rem] ml-[9.38rem] w-[20.00rem] h-[24.94rem]"
-              onClick={(e) => {
-                if (!isLoggedIn) {
-                  e.preventDefault();
-                  alert("로그인 후 이용해주세요!");
-                  navigate("/signin");
-                }
-              }}
-            >
-              <div className="border  w-full h-full rounded-[35px] bg-[#808080]/50 border-[#808080]/50">
-                <img
-                  className="flex ml-[5.25rem] mt-[1.94rem] w-[9.50rem] h-[9.50rem]"
-                  src={archiveImg}
-                  alt="archiveImg"
-                />
-                <div className="mt-[2.63rem] text-[1.88rem] flex justify-center">
-                  {t("card.archive.title")}
-                </div>
-                <div className="mt-[1.69rem] flex justify-center">
-                  당신이 만든 별자리를
-                </div>
-                <div className="flex justify-center">확인해보세요</div>
-              </div>
-            </Link>
+          <div className="flex mt-[1.37rem] gap-[1.37rem] items-center mr-10">
+            <LanguageSelect />
           </div>
         </div>
+
+   
+        {isLoggedIn ? (
+
+          <div className="flex flex-row items-center">
+            <div className="flex flex-col justify-center items-center ml-100">
+              <span className="font-pretendard text-[20px]">
+                 {t("hero.tagline")}
+              </span>
+              <span className="font-julius text-[70px]">STARLET</span>
+              <div className="grid grid-cols-2 gap-x-20 gap-y-16 mt-10 font-pretendard text-[15px]">
+              <Link className='flex flex-col justify-center items-center gap-2' to='/starsky'>
+                <img className='border-white rounded-[20px] border-[2px] px-3 py-2'src={img5}/>
+                <span>NIGHT SKY</span>
+              </Link>
+              <Link className='flex flex-col justify-center items-center gap-2' to='/calendar'>
+                <img className='border-white rounded-[20px] border-[2px] px-3 py-3' src={img6}/>
+                <span>DIARY</span>
+              </Link>
+               <Link className='flex flex-col justify-center items-center gap-2'  to='/archive'>
+                <img className='border-white rounded-[20px] border-[2px] px-3 py-2' src={img7}/>
+                <span>ARCHIVE</span>
+              </Link>
+              <Link className='flex flex-col justify-center items-center gap-2' to='/mypage'>
+                <img className='border-white rounded-[20px] border-[2px] px-3 py-3' src={img8}/>
+                <span>MY PAGE</span>
+              </Link>
+            </div>
+            </div>
+
+           
+             <div className="ml-50 flex-[1] flex justify-center">
+    <img className='w-60 h-50' src={star}/>
+  </div>
+
+
+  <div className="ml-auto mt-60">
+    <img  className='w-80 h-60' src={starcard1} />
+  </div>
+          </div>
+        ) : (
+          // 로그인 전 화면 
+          
+          <div className="flex flex-row items-center">
+            <div className="flex flex-col justify-center items-center ml-100">
+              <span className="font-pretendard text-[20px]">
+                {t("hero.tagline")}
+              </span>
+              <span className="font-julius text-[70px]">STARLET</span>
+              <span className="font-pretendard text-[25px] mt-10">
+                 {t("hero.subtitle1")}
+              </span>
+              <span className="font-pretendard text-[25px] whitespace-nowrap">
+                {t("hero.subtitle2")}
+              </span>
+              <span className="font-pretendard text-[18px] text-[#FFFFFF]/60 mt-2 ">
+                 {t("hero.ctaLogin")}
+              </span>
+
+              <div className="flex flex-row gap-10 font-pretendard text-[22px] mt-7">
+                <Link
+                  className="border border-[#FFFFFF]/70 w-35 py-2 rounded-[50px] text-center"
+                  to="/signin"
+                >
+                  LOGIN
+                </Link>
+                <Link
+                  className="border border-[#FFFFFF]/70 w-35 py-2  rounded-[50px] text-center"
+                  to="/signup"
+                >
+                  REGISTER
+                </Link>
+              </div>
+            </div>
+<div className="ml-50 flex-[1] flex justify-center relative h-[220px]">
+  <img
+    src={star}
+    className="w-60 h-50 absolute right-[80px] top-0 pointer-events-none"
+  />
+</div>
+
+
+  <div className="ml-auto mt-60">
+    <img  className='w-80 h-60' src={starcard1} />
+  </div>
+          </div>
+        )}
+
+        <HomeBottom />
       </div>
     </>
   );

@@ -5,8 +5,11 @@ import img1 from "./../assets/home/img1.png";
 import img2 from "./../assets/home/img2.png"
 import img3 from "./../assets/home/img3.png"
 import img4 from "./../assets/home/img4.png"
+import { useTranslation } from "react-i18next";
 
 const HomeBottom = () => {
+
+  const { t, i18n } = useTranslation();
   return (
     <div className='flex flex-col bg-[#F7F7F7] mt-[40px]'>
 
@@ -17,7 +20,7 @@ const HomeBottom = () => {
         <span className='text-[#4F4F4F]/70'>Diary</span>
       </div>
 
-      <span className='text-[24px] font-semibold text-[#4F4F4F]/70 text-center'>다양한 색상의 별들으로 나의 감정을 표현해보세요</span>
+      <span className='text-[24px] font-semibold text-[#4F4F4F]/70 text-center'>{t("subtext.1")}</span>
 
       <div className='flex flex-row gap-11 items-center justify-center mt-11'>
         <div className='bg-[#F23B00] w-[70px] h-[70px] borde rounded-full'></div>
@@ -29,7 +32,7 @@ const HomeBottom = () => {
       </div>
 
        
-       <span className='font-semibold text-[#4F4F4F]/70 text-[24px] text-center mt-13'>기록한 별들을 이어서 나만의 패턴과 의미를 담아보세요.</span>
+       <span className='font-semibold text-[#4F4F4F]/70 text-[24px] text-center mt-13'>{t("subtext.2")}</span>
       
 
       <div className='flex flex-row justify-center gap-15 mt-10'>
@@ -41,7 +44,7 @@ const HomeBottom = () => {
 
       <div className='flex flex-row'>
           <div className='flex flex-col'>
-                <span className='text-[#335D9D] font-bold text-[26px] ml-24'>완성한 별자리를<br/>한곳에서 모아볼 수 있어요</span>
+                <div className='text-[#335D9D] font-bold text-[26px] ml-24 flex flex-col '><span>{t("subtext.3")}</span><span>{t("subtext.4")}</span></div>
                  <img className='w-40 h-40 ml-48 mt-10' src={img1}/>
           </div>
             <img className="ml-auto" src={img2}/>
@@ -54,19 +57,19 @@ const HomeBottom = () => {
         {/* 제목 */}
         <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-[#F7F7F7] px-4">
           <span className="text-[22px] font-extrabold text-[#334D9D] whitespace-nowrap">
-            AI 기능으로 더 편리하게 사용해보세요!
+            {t("subtext.5")}
           </span>
         </div>
 
         {/* 첫 번째 기능 */}
         <div className="flex flex-col items-center ">
           <div className="px-6 py-3 rounded-full bg-[#D9D9D9] text-[20px] font-semibold text-[#4F4F4F]/70">
-            별자리 네이밍 AI
+            {t("subtext.6")}
           </div>
 
-          <span className="text-center text-[#4F4F4F]/70 mt-4 leading-relaxed text-[20px] mb-10">
-            <span className='font-bold'>내가 쓴 일기의 감정상태 · 요인 · 내용</span>을 기반으로  AI <br/>
-            가 어울리는 별자리 이름과 별자리 설명을 추천해줘요.
+          <span className="text-center text-[#4F4F4F]/70 mt-4 leading-relaxed text-[20px] mb-10 flex flex-col ">
+            <div><span className='font-bold'>{t("subtext.7")}</span>{t("subtext.8")}</div>
+          {t("subtext.9")}
           </span>
         </div>
 
@@ -75,13 +78,15 @@ const HomeBottom = () => {
         {/* 두 번째 기능 */}
         <div className="flex flex-col items-center">
           <div className="px-6 py-3 rounded-full bg-[#D9D9D9] text-[20px] font-semibold text-[#4F4F4F]/70">
-            한달 일기 요약 AI
+            {t("subtext.10")}
           </div>
 
-          <span className="text-center text-[#4F4F4F]/70 mt-4 leading-relaxed text-[20px]">
-            <span className='font-bold'>한 달간</span> 작성한 일기의 감정과 내용을 분석해 <br/> 
-            AI가 핵심만 요약해 알려줘요.
-          </span>
+          <div className="flex flex-col text-center text-[#4F4F4F]/70 mt-4 leading-relaxed text-[20px]">
+          <div>
+            <span className='font-bold'>{t("subtext.11")} </span> 
+            {t("subtext.12")}</div>
+            {t("subtext.13")}
+          </div>
         </div>
       </div>
           {/* 이미지 첨부 */}
@@ -90,7 +95,7 @@ const HomeBottom = () => {
     
    <div className='flex flex-col'>
   <span className='text-[26px] ml-24 font-bold font-pretendard text-[#335D9D]'>
-    친구와 함께 레벨을 공유해요
+   {t("subtext.14")}
   </span>
 
   <div className='flex flex-row font-pretendard gap-10 justify-center items-center mt-10 mb-25'>
