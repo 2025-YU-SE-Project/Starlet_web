@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import ConstellationApplyModalModal from "./ConstellationApplyModal";
 import { FaCheck } from "react-icons/fa6";
 
 const MONTH_ABBR = [
@@ -226,6 +227,8 @@ export default function StarSkyDate({
   const committedConstMapRef = useRef({});
   const multiScaleOriginRef = useRef({});
   const scaleBaseRef = useRef({});
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const applyContextRef = useRef(null);
 
   const constellationCreatedAtRef = useRef({});
 
@@ -272,7 +275,10 @@ export default function StarSkyDate({
         Number.isFinite(g.scale) &&
         g.scale !== 1;
 
-      const needNormalize = rawSize > 0.3 && !isScaleEdited;
+      const alreadyNormalized = baseConstShapesRef.current[g.id] != null;
+
+      const needNormalize =
+        rawSize > 0.3 && !isScaleEdited && !alreadyNormalized;
 
       const stars = needNormalize
         ? normalizeConstellationSize(rawStars)
@@ -895,6 +901,9 @@ export default function StarSkyDate({
     });
 
     const fitted = fitMapIntoView(scaled, 0);
+
+    setScaleUIMap((prev) => ({ ...prev, [saveKey]: sAbs }));
+    scaleRef.current = sAbs;
 
     if (!pendingApply) {
       const original = appliedMapRef.current[saveKey] || base;
@@ -1585,32 +1594,21 @@ export default function StarSkyDate({
             <button
               type="button"
               className="mt-2 w-8 h-8 rounded-full border-2 border-[#A9A9A9] bg-white hover:bg-[#D9D9D9] shadow-lg
-             flex items-center justify-center"
+         flex items-center justify-center"
               onClick={() => {
-                const ok = window.confirm("적용하시겠습니까?");
-                if (!ok) return;
-
-                applyScalePreviewSingle(scaleUI, { commit: true });
-
                 const saveKey =
                   multipleMode && activeConstellationId
                     ? activeConstellationId
                     : "single";
-
                 const appliedMap =
                   appliedMapRef.current[saveKey] || previewMap || {};
-
-                if (multipleMode && activeConstellationId) {
-                  onConstellationMove?.(activeConstellationId, appliedMap);
-                }
-
-                onApply?.(appliedMap, {
-                  constellationId: saveKey,
+                applyContextRef.current = {
+                  saveKey,
+                  appliedMap,
                   scale: scaleUI,
-                });
-
-                setPreviewMap(null);
-                setPendingApply(false);
+                  targetId: activeConstellationId,
+                };
+                setApplyModalOpen(true);
               }}
               aria-label="Apply scale"
             >
@@ -1646,6 +1644,44 @@ export default function StarSkyDate({
           &gt;
         </button>
       </div>
+      <ConstellationApplyModalModal
+        open={applyModalOpen}
+        onClose={() => {
+          setApplyModalOpen(false);
+          applyContextRef.current = null;
+        }}
+        message={
+          applyContextRef.current ? "적용하시겠습니까?" : "적용하시겠습니까?"
+        }
+        onConfirm={() => {
+          setApplyModalOpen(false);
+
+          const ctx = applyContextRef.current || {};
+          const { saveKey, appliedMap: ctxAppliedMap, scale, targetId } = ctx;
+
+          try {
+            applyScalePreviewSingle(scale, { commit: true });
+
+            const appliedMap = ctxAppliedMap || previewMap || {};
+
+            if (multipleMode && targetId) {
+              onConstellationMove?.(targetId, appliedMap);
+            }
+
+            onApply?.(appliedMap, {
+              constellationId: saveKey,
+              scale,
+            });
+
+            setPreviewMap(null);
+            setPendingApply(false);
+          } catch (e) {
+            console.error("적용 실패:", e);
+          } finally {
+            applyContextRef.current = null;
+          }
+        }}
+      />
 
       <style>{`
   @keyframes pulseSoft {

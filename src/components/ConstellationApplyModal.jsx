@@ -1,7 +1,7 @@
 import React from "react";
 import img10 from "../assets/img10.png";
 
-export default function ConstellationConfirmModal({
+export default function ConstellationApplyModalModal({
   open,
   onClose,
   onConfirm,
