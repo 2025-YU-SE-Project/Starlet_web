@@ -5,8 +5,31 @@ import AuthContext from "../contexts/AuthContext";
 import userGetApi from "../apis/userGetApi";
 import logoutApi from "../apis/logoutApi";
 import getLevelApi from "../apis/getLevelApi";
-
+import img4 from "./../assets/home/img4.png";
+import img9 from "./../assets/home/img9.png";
+import img5 from "./../assets/home/img5.png";
+import img6 from "./../assets/home/img6.png";
+import img7 from "./../assets/home/img7.png";
+import img8 from "./../assets/home/img8.png";
 const Sidebar = ({ isOpen, setIsOpen }) => {
+    const renderLevelName = (name) => {
+  if (!name || typeof name !== "string") return "";
+
+  const parts = name.trim().split(/\s+/);
+
+  const suffix = parts.length > 1 ? parts[parts.length - 1] : "";
+  const prefix =
+    parts.length > 1 ? parts.slice(0, -1).join(" ") : parts[0];
+
+  return (
+    <>
+      <span className="text-[#FFFFFF]">{prefix}</span>{" "}
+      <span className="text-[#FFFFFF]/70">{suffix}</span>
+    </>
+  );
+};
+
+
   const navigate = useNavigate();
   const { accessToken, logout } = useContext(AuthContext);
   const { t } = useTranslation();
@@ -142,24 +165,43 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       >
         <div className="flex flex-col h-full p-5">
           <div>
-            <div className="flex items-center gap-3 mt-2">
-              <div className="w-12 h-12 rounded-full bg-gray-300" />
+            <div className="flex  gap-3 mt-2">
+    
               <div className="flex flex-col">
-                <span className="text-2xl">
-                  {isLoggedIn ? nickname : "미등록사용자"}
-                </span>
-                <span className="text-sm text-gray-300">
-  {isLoggedIn
-    ? levelName || "마스터" 
-    : "로그인 후 이용해주세요!"}
-</span>
+                      <div className="flex flex-row items-center gap-3 mb-8">
+                  <img src={img4} className="w-13 h-13" />
+                  <span className="text-[30px] font-extrabold">
+                    STARLET
+                  </span>
+                  </div>
+                    <div className="flex flex-row gap-4">
+                    {isLoggedIn && (
+  <div className="w-20 h-20 rounded-full bg-[#D9D9D9]" />
+)}
 
+                <div className="flex flex-col justify-center">
+               
+            <span className="font-pretendard font-semibold text-[16px]">
+  {isLoggedIn
+    ? renderLevelName(levelName || "마스터")
+    : ""}
+</span>
+          <div className="flex flex-row gap-1 font-bold items-center text-[20px]">
+                <span>
+                  {isLoggedIn && nickname}
+                </span>
+               {isLoggedIn && (
+  <span className="text-[#FFFFFF]/70">님</span>
+)}
+        </div>
+</div>
+</div>
               </div>
             </div>
 
           {isLoggedIn && (
   <div className="mt-4">
-    <div className="w-full h-5 bg-gray-400/60 overflow-hidden">
+    <div className="w-full h-5 bg-gray-400/60 overflow-hidden rounded-[15px]">
       <div
         className="h-full bg-green-500"
         style={{
@@ -167,19 +209,21 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         }}
       />
     </div>
-    <div className="flex items-center justify-between text-xs text-gray-300 mt-1">
-      <span>{levelMin}</span>
-      <span>{levelMax}</span>
-    </div>
+
   </div>
 )}
 
 
-            <hr className="my-4 border-white/40" />
+          {isLoggedIn && <hr className="my-4 border-white" />}
 
-            <nav className="flex flex-col gap-6 text-xl">
+        
+            <nav className="flex flex-col gap-4 font-pretendard">
               {isLoggedIn ? (
+               
                 <>
+                <span className="font-bold text-[24px]">MENU</span>
+                <div className="flex flex-row items-center gap-2 text-[20px] ">
+                  <img className='w-10 h-10'src={img9}/>
                   <Link
                     to="/"
                     onClick={closeAnd()}
@@ -187,6 +231,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   >
                     {t("navbar.home")}
                   </Link>
+                  </div>
+                  <div className="flex flex-row items-center gap-2 text-[20px]">
+                    <img className='w-10 h-10' src={img5}/>
                   <Link
                     to="/starsky"
                     onClick={closeAnd()}
@@ -194,6 +241,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   >
                     {t("navbar.NightSkyPage")}
                   </Link>
+                  </div>
+                  <div className="flex flex-row items-center gap-2 text-[20px]">
+                    <img className='w-10 h-10' src={img6}/>
                   <Link
                     to="/calendar"
                     onClick={closeAnd()}
@@ -201,6 +251,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   >
                     {t("navbar.MyDiary")}
                   </Link>
+                  </div>
+                  <div className="flex flex-row items-center gap-2 text-[20px]">
+                    <img className='w-10 h-10' src={img7}/>
                   <Link
                     to="/archive"
                     onClick={closeAnd()}
@@ -208,6 +261,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   >
                     {t("navbar.ConstellationArchive")}
                   </Link>
+                  </div>
+                  <div className="flex flex-row items-center gap-2 text-[20px]">
+                    <img className='w-10 h-10' src={img8}/>
                   <Link
                     to="/mypage"
                     onClick={closeAnd()}
@@ -215,6 +271,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   >
                     {t("navbar.MyPage")}
                   </Link>
+                  </div>
                 </>
               ) : null}
             </nav>
@@ -222,7 +279,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
           {isLoggedIn && (
             <button
-              className="mt-auto text-left mb-2 text-xl cursor-pointer"
+              className="mt-auto text-left mb-2 text-[20px] cursor-pointer font-pretendard"
               onClick={handleLogout}
               aria-label={t("navbar.Logout")}
             >
