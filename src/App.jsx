@@ -16,7 +16,11 @@ const App = () => {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <div className="bg-cover min-h-screen bg-[url('/src/assets/background.png')] overflow-hidden">
+      
+        <div className="fixed inset-0 -z-10 bg-[url('/src/assets/background.png')] bg-cover bg-center bg-no-repeat" />
+
+        
+        <div className="min-h-screen overflow-x-hidden text-white">
           <Routes>
             <Route path="/signup" element={<Signup />} />
             <Route path="/signin" element={<SignIn />} />
@@ -34,5 +38,6 @@ const App = () => {
     </AuthProvider>
   );
 };
+
 
 export default App;
