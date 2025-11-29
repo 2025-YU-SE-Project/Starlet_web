@@ -163,7 +163,7 @@ const Signup = () => {
   };
 
   const isPwValid = password.length >= 6 && password.length <= 15;
-  const isNicknameValid = nickname.length >= 2 && nickname.length <= 10
+  const isNicknameValid = nickname.length >= 2 && nickname.length <= 6
 
   return (
     <div className="text-white">
@@ -240,7 +240,7 @@ const Signup = () => {
             </div>
           <div className="h-[1px] leading-[18px] text-[13px]">
    {nickname && !isNicknameValid ? (
-     <span className="text-[#FF0000]">닉네임은 2~10글자 이내여야합니다.</span>
+     <span className="text-[#FF0000]">닉네임은 2~6글자 이내여야합니다.</span>
    ) : (
      "\u00A0"
    )}
