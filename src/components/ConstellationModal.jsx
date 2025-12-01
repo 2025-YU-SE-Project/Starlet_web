@@ -413,9 +413,7 @@ const ConstellationModal = ({
           )}
         </div>
 
-
         <div className="flex flex-col items-center px-10 py-6 gap-2">
-
           {!isEdit && step === 1 && (
             <p className="text-[16px] text-[#4F4F4FB2]">
               *별을 끌어 이동하고, 서로 연결하여 별자리를 완성해보세요
@@ -610,9 +608,7 @@ const ConstellationModal = ({
                           handleSuggest();
                         }}
                         disabled={suggesting}
-
                         className={`ml-2 px-3 py-1 rounded-[8px] text-[11px] cursor-pointer ${
-
                           suggesting
                             ? "bg-[#e5e7eb] text-black/40 cursor-wait"
                             : "bg-[#e5e7eb] text-[#4F4F4FB2] hover:bg-[#d4d7dd]"
@@ -632,7 +628,7 @@ const ConstellationModal = ({
                       </button>
 
                       {suggestInfoOpen && (
-                        <div className="absolute bottom-full left-1/2 translate-x-[27%] mb-4 z-50">
+                        <div className="absolute bottom-full left-32/33 -translate-x-1/2 mb-4 z-50">
                           <div className="relative">
                             <div className="rounded-2xl bg-white shadow-[0_12px_30px_rgba(0,0,0,0.18)] border border-gray-100 px-6 py-4 w-[240px]">
                               <div className="inline-flex items-center px-4 py-1 rounded-md bg-[#FFE75A] text-[13px] font-semibold text-[#4b5563] mb-3">
@@ -649,7 +645,7 @@ const ConstellationModal = ({
                               </p>
                             </div>
 
-                            <div className="absolute -bottom-2 left-[25%] w-4 h-4 bg-white border-l border-b border-gray-100 rotate-45" />
+                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l border-b border-gray-100 rotate-45" />
                           </div>
                         </div>
                       )}

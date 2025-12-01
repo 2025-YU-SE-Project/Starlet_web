@@ -10,6 +10,7 @@ import Sidebar from "../components/Sidebar";
 import { CiMenuBurger } from "react-icons/ci";
 import StarSkyDate from "../components/StarSkyDate";
 import ConstellationModal from "../components/ConstellationModal";
+import ConstellationConfirmModal from "../components/ConstellationConfirmModal";
 
 import getNightSkyStar from "../apis/Star/getNightSkyStar";
 import repositionStar from "../apis/Star/repositionStar";
@@ -106,6 +107,8 @@ const StarSky = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const [rawStars, setRawStars] = useState([]);
   const coordsCacheRef = useRef(new Map());
@@ -116,6 +119,7 @@ const StarSky = () => {
     desc: "",
     createdAt: "",
   });
+
   const [constellationEdges, setConstellationEdges] = useState([]);
   const [serverConstellations, setServerConstellations] = useState([]);
   const [locked, setLocked] = useState(false);
@@ -397,10 +401,16 @@ const StarSky = () => {
 
   const handleGenerate = () => {
     const cnt = selectedStarIds.length;
+
     if (cnt < MIN_PICK || cnt > MAX_PICK) {
-      alert(`별을 ${MIN_PICK}~${MAX_PICK}개 선택해주세요. (현재 ${cnt}개)`);
+      setErrorMessage(
+        `별을 ${MIN_PICK}~${MAX_PICK}개 선택해주세요. (현재 ${cnt}개)`
+      );
+      setConfirmOpen(true);
       return;
     }
+
+    setErrorMessage("");
     setOpen(true);
   };
 
@@ -587,6 +597,15 @@ const StarSky = () => {
             ? stars.filter((s) => selectedStarIds.includes(s.id))
             : stars
         }
+      />
+
+      <ConstellationConfirmModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={() => {
+          setConfirmOpen(false);
+        }}
+        message={errorMessage}
       />
     </div>
   );
