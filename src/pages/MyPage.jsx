@@ -134,6 +134,12 @@ function MyPage() {
     return serverProfileUrl;
   };
 
+  const addCacheBust = (url, version) => {
+    if (!url) return url;
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}_v=${version}`;
+  };
+
   useEffect(() => {
     const fetchLevel = async () => {
       try {
@@ -165,7 +171,13 @@ function MyPage() {
           setNickname(data.nickname);
           sessionStorage.setItem("nickname", data.nickname);
         }
-        setProfileUrl(normalizeProfileUrl(data?.profilePhotoUrl));
+
+        const baseUrl = normalizeProfileUrl(data?.profilePhotoUrl);
+        const version = data?.updatedAt
+          ? new Date(data.updatedAt).getTime()
+          : Date.now();
+
+        setProfileUrl(addCacheBust(baseUrl, version));
       } catch (e) {
         setUserError(
           e?.message || "사용자 정보를 불러오는 중 오류가 발생했습니다."
@@ -762,14 +774,22 @@ function MyPage() {
         onClose={() => setIsProfileEditOpen(false)}
         currentNickname={nickname}
         currentProfileUrl={profileUrl}
-        onComplete={({ nickname: newNickname, profileUrl: newProfileUrl }) => {
+        onComplete={({
+          nickname: newNickname,
+          profileUrl: newProfileUrl,
+          previewUrl: localPreview,
+        }) => {
           if (newNickname) {
             setNickname(newNickname);
             sessionStorage.setItem("nickname", newNickname);
           }
+
+          if (localPreview) {
+            setProfileUrl(localPreview);
+          }
+
           if (newProfileUrl) {
             const normalized = normalizeProfileUrl(newProfileUrl);
-            setProfileUrl(normalized);
             setUserData((prev) =>
               prev ? { ...prev, profilePhotoUrl: normalized } : prev
             );

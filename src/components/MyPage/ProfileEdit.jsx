@@ -52,8 +52,8 @@ function ProfileEdit({
     const trimmed = nickname.trim();
     const currentTrimmed = (currentNickname || "").trim();
 
-    if (trimmed.length < 2 || trimmed.length > 10) {
-      setCheckMessage("닉네임은 2~10글자여야 합니다.");
+    if (trimmed.length < 2 || trimmed.length > 6) {
+      setCheckMessage("닉네임은 2~6글자여야 합니다.");
       setCheckType("error");
       return null;
     }
@@ -95,9 +95,7 @@ function ProfileEdit({
 
       if (!uploadRes.ok) {
         const errText = await uploadRes.text().catch(() => "");
-        throw new Error(
-          `이미지 업로드에 실패했습니다. (S3 status: ${uploadRes.status})`
-        );
+        throw new Error(`이미지 업로드에 실패했습니다. (${uploadRes.status})`);
       }
 
       const { profileUrl } = await changePfp(tempKey);
@@ -121,7 +119,8 @@ function ProfileEdit({
 
       onComplete?.({
         nickname: newNickname,
-        profileUrl: newProfileUrl || previewUrl,
+        profileUrl: newProfileUrl || null,
+        previewUrl,
       });
 
       onClose?.();
@@ -163,8 +162,8 @@ function ProfileEdit({
   const handleCheckNickname = async () => {
     const trimmed = nickname.trim();
 
-    if (trimmed.length < 2 || trimmed.length > 10) {
-      setCheckMessage("닉네임은 2-10글자여야 합니다.");
+    if (trimmed.length < 2 || trimmed.length > 6) {
+      setCheckMessage("닉네임은 2-6글자여야 합니다.");
       setCheckType("error");
       return;
     }
