@@ -115,7 +115,7 @@ export default function FriendsList() {
             <section className="flex items-center gap-6 mb-8 relative">
               <div className="w-[160px] h-[160px] rounded-full overflow-hidden bg-white/20 shadow-md">
                 <img
-                  src={profileImg}
+                  src={user?.profilePhotoUrl || profileImg}
                   alt="프로필"
                   className="w-full h-full object-cover"
                 />
