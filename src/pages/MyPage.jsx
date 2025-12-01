@@ -82,13 +82,11 @@ function MyPage() {
 
   const normalizeProfileUrl = (rawUrl) => {
     const serverProfileUrl = rawUrl || "";
-
-    const isBackendDefault =
-      !serverProfileUrl ||
-      (serverProfileUrl.includes("/public/users/") &&
-        serverProfileUrl.endsWith("/profile.png")) ||
-      serverProfileUrl.includes("/public/defaults/profileDefault.png");
-    return isBackendDefault ? profileImg : serverProfileUrl;
+    if (!serverProfileUrl) return profileImg;
+    if (serverProfileUrl.includes("/public/defaults/")) {
+      return profileImg;
+    }
+    return serverProfileUrl;
   };
 
   useEffect(() => {
@@ -123,7 +121,6 @@ function MyPage() {
           setNickname(data.nickname);
           sessionStorage.setItem("nickname", data.nickname);
         }
-
         setProfileUrl(normalizeProfileUrl(data?.profilePhotoUrl));
       } catch (e) {
         setUserError(
