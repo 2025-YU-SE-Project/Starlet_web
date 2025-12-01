@@ -353,6 +353,11 @@ export default function StarSkyDate({
   const [allowPulseAnim, setAllowPulseAnim] = useState(false);
   const hasSelectedOnceRef = useRef(false);
 
+  const today = getTodayLocal();
+  const todayMonth = new Date(today).getMonth();
+  const todayPairIndex = Math.floor(todayMonth / 2);
+  const todayYear = new Date(today).getFullYear();
+
   const multipleMode =
     Array.isArray(filteredConstellationGroups) &&
     filteredConstellationGroups.length > 0;
@@ -377,29 +382,77 @@ export default function StarSkyDate({
   }, [multipleMode]);
 
   useEffect(() => {
-    baseConstShapesRef.current = {};
+    const isCurrentPair =
+      year === todayYear && monthPairIndex === todayPairIndex;
 
-    appliedMapRef.current = {};
-    committedConstMapRef.current = {};
-    committedMapRef.current = null;
     singleScaleOriginRef.current = null;
-    multiScaleOriginRef.current = {};
-
-    scaleBaseRef.current = {};
-
     originalPositionRef.current = null;
     groupDragRef.current = null;
+    multiScaleOriginRef.current = multiScaleOriginRef.current || {};
+    scaleBaseRef.current = {};
+
     setPreviewMap(null);
     setIsSelected(false);
     setPendingApply(false);
-    setScaleUI(1.0);
-    scaleRef.current = 1;
-    setScaleUIMap({});
     setLastDirection(null);
     setHoveredEdgeSingle(false);
     setHoveredStarSingle(false);
     setHoveredConstellationId(null);
     setActiveConstellationId(null);
+
+    if (!isCurrentPair) {
+      setScaleUI(1.0);
+      scaleRef.current = 1.0;
+    }
+
+    const baseSingle = Object.fromEntries(
+      (filteredStars || []).map((s) => [s.id, { x: s.x, y: s.y }])
+    );
+    if (
+      Object.keys(baseSingle).length > 0 &&
+      !appliedMapRef.current["single"]
+    ) {
+      appliedMapRef.current["single"] = baseSingle;
+    }
+
+    if (
+      Array.isArray(filteredConstellationGroups) &&
+      filteredConstellationGroups.length
+    ) {
+      filteredConstellationGroups.forEach((g) => {
+        const gid = g.id;
+        if (!gid) return;
+
+        if (!baseConstShapesRef.current[gid]) {
+          const base = {};
+          (g.stars || []).forEach((s) => {
+            const key = s.id ?? s.starId;
+            if (key == null) return;
+            base[key] = { x: s.x, y: s.y };
+          });
+          baseConstShapesRef.current[gid] = base;
+        }
+
+        if (!appliedMapRef.current[gid]) {
+          appliedMapRef.current[gid] =
+            committedConstMapRef.current[gid] ||
+            deepClone(baseConstShapesRef.current[gid] || {});
+        }
+
+        if (
+          typeof g.scale === "number" &&
+          Number.isFinite(g.scale) &&
+          scaleUIMap[gid] == null
+        ) {
+          setScaleUIMap((prev) => ({
+            ...prev,
+            [gid]: Math.max(0.5, Math.min(2.0, g.scale)),
+          }));
+        }
+      });
+    }
+
+    setAppliedVersion((v) => v + 1);
   }, [year, monthPairIndex]);
 
   const positionOf = (s) => {
@@ -1660,21 +1713,33 @@ export default function StarSkyDate({
           const { saveKey, appliedMap: ctxAppliedMap, scale, targetId } = ctx;
 
           try {
-            applyScalePreviewSingle(scale, { commit: true });
+            // 1) 최종 적용할 맵 결정 (모달에 전달된 맵이 우선)
+            const finalMap = ctxAppliedMap || previewMap || {};
 
-            const appliedMap = ctxAppliedMap || previewMap || {};
+            // 2) applied 상태에 직접 반영 (안전하게 deep clone)
+            appliedMapRef.current[saveKey] = deepClone(finalMap);
 
+            // 3) 스케일 상태 동기화
+            setScaleUI(scale);
+            scaleRef.current = scale;
+            setScaleUIMap((prev) => ({
+              ...prev,
+              [saveKey]: scale,
+            }));
+
+            // 4) 부모 콜백 호출 (서버 저장 등)
             if (multipleMode && targetId) {
-              onConstellationMove?.(targetId, appliedMap);
+              onConstellationMove?.(targetId, finalMap);
             }
-
-            onApply?.(appliedMap, {
+            onApply?.(finalMap, {
               constellationId: saveKey,
               scale,
             });
 
+            // 5) 정리: preview 제거, pending 해제, 화면 강제 갱신
             setPreviewMap(null);
             setPendingApply(false);
+            setAppliedVersion((v) => v + 1);
           } catch (e) {
             console.error("적용 실패:", e);
           } finally {
