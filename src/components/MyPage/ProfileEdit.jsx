@@ -21,10 +21,13 @@ function ProfileEdit({
   const [checkType, setCheckType] = useState(null);
   const [checking, setChecking] = useState(false);
   const [saving, setSaving] = useState(false);
+
   const [checkedNickname, setCheckedNickname] = useState("");
 
   const [previewUrl, setPreviewUrl] = useState(currentProfileUrl || profileImg);
   const [file, setFile] = useState(null);
+  const [isDefaultSelected, setIsDefaultSelected] = useState(false);
+
   const [showImageMenu, setShowImageMenu] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -38,6 +41,7 @@ function ProfileEdit({
 
       setPreviewUrl(currentProfileUrl || profileImg);
       setFile(null);
+      setIsDefaultSelected(false);
       setShowImageMenu(false);
     }
   }, [open, currentNickname, currentProfileUrl]);
@@ -69,13 +73,18 @@ function ProfileEdit({
   };
 
   const uploadProfileImage = async () => {
-    if (!file) {
-      return null;
-    }
-
-    console.log("uploadProfileImage - file.type >>>", file.type);
-
     try {
+      if (isDefaultSelected) {
+        const { profileUrl } = await changePfp("defaults");
+        return profileUrl;
+      }
+
+      if (!file) {
+        return null;
+      }
+
+      console.log("uploadProfileImage - file.type >>>", file.type);
+
       const { presignedUrl, tempKey } = await getTempUrl(file.type);
       console.log("받은 presignedUrl:", presignedUrl);
       console.log("받은 tempKey:", tempKey);
@@ -141,6 +150,7 @@ function ProfileEdit({
     console.log("file.type >>>", f.type);
 
     setFile(f);
+    setIsDefaultSelected(false);
     setPreviewUrl(URL.createObjectURL(f));
   };
 
@@ -150,13 +160,15 @@ function ProfileEdit({
 
   const handleSelectImageFromLibrary = () => {
     setShowImageMenu(false);
+    setIsDefaultSelected(false);
     fileInputRef.current?.click();
   };
 
   const handleSetDefaultImage = () => {
     setShowImageMenu(false);
-    setPreviewUrl(profileImg);
+    setIsDefaultSelected(true);
     setFile(null);
+    setPreviewUrl(profileImg);
   };
 
   const handleCheckNickname = async () => {

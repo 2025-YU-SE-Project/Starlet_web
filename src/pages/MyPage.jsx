@@ -80,6 +80,17 @@ function MyPage() {
     navigate(0);
   };
 
+  const normalizeProfileUrl = (rawUrl) => {
+    const serverProfileUrl = rawUrl || "";
+
+    const isBackendDefault =
+      !serverProfileUrl ||
+      (serverProfileUrl.includes("/public/users/") &&
+        serverProfileUrl.endsWith("/profile.png")) ||
+      serverProfileUrl.includes("/public/defaults/profileDefault.png");
+    return isBackendDefault ? profileImg : serverProfileUrl;
+  };
+
   useEffect(() => {
     const fetchLevel = async () => {
       try {
@@ -113,13 +124,7 @@ function MyPage() {
           sessionStorage.setItem("nickname", data.nickname);
         }
 
-        const serverProfileUrl = data?.profilePhotoUrl;
-
-        if (serverProfileUrl) {
-          setProfileUrl(serverProfileUrl);
-        } else {
-          setProfileUrl(profileImg);
-        }
+        setProfileUrl(normalizeProfileUrl(data?.profilePhotoUrl));
       } catch (e) {
         setUserError(
           e?.message || "사용자 정보를 불러오는 중 오류가 발생했습니다."
@@ -231,6 +236,12 @@ function MyPage() {
     ? userData.totalConstellations
     : null;
 
+  const friendsCount = userLoading
+    ? null
+    : userData
+    ? userData.friendsCount
+    : null;
+
   const monthCounts = Array.from({ length: 12 }, () => 0);
   yearData.forEach((item) => {
     if (!item) return;
@@ -336,7 +347,11 @@ function MyPage() {
 
                 <span className="text-white text-sm hover:underline hover:underline-offset-4 cursor-pointer">
                   <span className="font-medium" style={{ color: "#54C65B" }}>
-                    10
+                    {userLoading
+                      ? "-"
+                      : friendsCount !== null && friendsCount !== undefined
+                      ? friendsCount
+                      : 0}
                   </span>
                   명의 친구
                 </span>
@@ -704,9 +719,10 @@ function MyPage() {
             sessionStorage.setItem("nickname", newNickname);
           }
           if (newProfileUrl) {
-            setProfileUrl(newProfileUrl);
+            const normalized = normalizeProfileUrl(newProfileUrl);
+            setProfileUrl(normalized);
             setUserData((prev) =>
-              prev ? { ...prev, profileUrl: newProfileUrl } : prev
+              prev ? { ...prev, profilePhotoUrl: normalized } : prev
             );
           }
         }}
