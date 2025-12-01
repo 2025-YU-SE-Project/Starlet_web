@@ -1,24 +1,69 @@
 import React, { useMemo } from "react";
-import { normalizeStars } from "../lib/normalize";
-import blueColorIcon from "../assets/emotions/blue.png";
-import greenColorIcon from "../assets/emotions/green.png";
-import orangeColorIcon from "../assets/emotions/orange.png";
-import purpleColorIcon from "../assets/emotions/purple.png";
-import redColorIcon from "../assets/emotions/red.png";
-import yellowColorIcon from "../assets/emotions/yellow.png";
+import redIcon from "../../assets/emotions/red.png";
+import orangeIcon from "../../assets/emotions/orange.png";
+import yellowIcon from "../../assets/emotions/yellow.png";
+import greenIcon from "../../assets/emotions/green.png";
+import blueIcon from "../../assets/emotions/blue.png";
+import purpleIcon from "../../assets/emotions/purple.png";
 
-const FALLBACK_COLOR_ICON = yellowColorIcon;
+const FALLBACK_ICON = yellowIcon;
 
-export default function ConstellationMini({
-  stars,
-  connections = [],
-  width = 200,
-  height = 140,
-  hideBackground = false,
-}) {
+function normalizeStarsLocal(stars, { w, h, pad }) {
+  if (!stars || stars.length === 0) return [];
+
+  const xs = stars.map((s) => s.x ?? 0);
+  const ys = stars.map((s) => s.y ?? 0);
+
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+
+  const rangeX = maxX - minX || 1;
+  const rangeY = maxY - minY || 1;
+
+  return stars.map((s) => {
+    const nx = (s.x - minX) / rangeX;
+    const ny = (s.y - minY) / rangeY;
+
+    return {
+      ...s,
+      _nx: pad + nx * (w - pad * 2),
+      _ny: pad + (1 - ny) * (h - pad * 2),
+    };
+  });
+}
+
+const colorMap = {
+  YELLOW: yellowIcon,
+  BLUE: blueIcon,
+  RED: redIcon,
+  ORANGE: orangeIcon,
+  GREEN: greenIcon,
+  PURPLE: purpleIcon,
+};
+
+export default function RepresentativeCons({ data, loading, error }) {
+  const width = 270;
+  const height = 215;
+  const pad = 15;
+
+  if (loading || error || !data) {
+    return (
+      <svg
+        width={width}
+        height={height}
+        style={{ background: "transparent" }}
+      />
+    );
+  }
+
+  const stars = data.stars || [];
+  const connections = data.connections || [];
+
   const ns = useMemo(
-    () => normalizeStars(stars, { w: width, h: height, pad: 20 }),
-    [stars, width, height]
+    () => normalizeStarsLocal(stars, { w: width, h: height, pad }),
+    [stars]
   );
 
   const byId = useMemo(() => {
@@ -44,19 +89,15 @@ export default function ConstellationMini({
       .filter(Boolean);
   }, [connections, byId]);
 
-  const colorMap = {
-    YELLOW: yellowColorIcon,
-    BLUE: blueColorIcon,
-    RED: redColorIcon,
-    ORANGE: orangeColorIcon,
-    GREEN: greenColorIcon,
-    PURPLE: purpleColorIcon,
-  };
-
   return (
-    <svg width={width} height={height} className="rounded-[12px]">
+    <svg
+      width={width}
+      height={height}
+      style={{ background: "transparent" }}
+      className="rounded-[12px]"
+    >
       <defs>
-        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <filter id="rep-glow" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="b1" />
           <feGaussianBlur in="SourceGraphic" stdDeviation="4.0" result="b2" />
           <feMerge>
@@ -67,17 +108,6 @@ export default function ConstellationMini({
         </filter>
       </defs>
 
-      {!hideBackground && (
-        <rect
-          x="0"
-          y="0"
-          width={width}
-          height={height}
-          rx="12"
-          className="fill-[#333333]/40 stroke-[#333333]/60"
-        />
-      )}
-
       {ns.map((s) => (
         <circle
           key={`halo-${s.starId}`}
@@ -85,7 +115,7 @@ export default function ConstellationMini({
           cy={s._ny}
           r="12"
           fill="none"
-          filter="url(#glow)"
+          filter="url(#rep-glow)"
         />
       ))}
 
@@ -105,9 +135,10 @@ export default function ConstellationMini({
       </g>
 
       {ns.map((s, i) => {
-        const delayMs = `${((s.starId ?? i) * 137) % 1500}ms`;
+        const delayMs = `${((s.starId ?? i) * 137) % 1200}ms`;
         const colorKey = (s.color || "").toUpperCase();
-        const icon = colorMap[colorKey] || FALLBACK_COLOR_ICON;
+        const icon = colorMap[colorKey] || FALLBACK_ICON;
+
         return (
           <g key={s.starId ?? i}>
             <image
@@ -116,7 +147,7 @@ export default function ConstellationMini({
               y={s._ny - 10}
               width="20"
               height="20"
-              filter="url(#glow)"
+              filter="url(#rep-glow)"
               className="animate-pulse [animation-duration:900ms]"
               style={{
                 animationDelay: delayMs,

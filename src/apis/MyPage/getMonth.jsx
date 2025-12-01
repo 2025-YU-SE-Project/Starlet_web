@@ -1,11 +1,9 @@
 import api from "../api";
 
-async function changeNickname(nickname) {
-  const trimmed = (nickname || "").trim();
-
+async function getMonth(year, month) {
   try {
-    const res = await api.patch("mypage/nickname", {
-      nickname: trimmed,
+    const res = await api.get("mypage/month", {
+      params: { year, month },
     });
 
     return res.data;
@@ -13,7 +11,7 @@ async function changeNickname(nickname) {
     const status = error.response?.status;
     const message =
       error.response?.data?.message ||
-      "닉네임을 변경하는 중 오류가 발생했습니다.";
+      "감정 통계를 불러오는 중 오류가 발생했습니다.";
 
     const err = new Error(message);
     err.status = status;
@@ -21,4 +19,4 @@ async function changeNickname(nickname) {
   }
 }
 
-export default changeNickname;
+export default getMonth;

@@ -1,24 +1,16 @@
 import api from "../api";
 
-const changePfp = async (imageUrl) => {
+const changePfp = async (tempKey) => {
   try {
-    const response = await api.post("mypage/photo/confirm", {
-      url: imageUrl,
+    const res = await api.post("mypage/photo/confirm", {
+      tempKey,
     });
 
-    return response.data;
-  } catch (err) {
-    const serverMessage = err.response?.data?.message;
-
-    if (serverMessage) {
-      throw new Error(serverMessage);
-    }
-
-    if (err.response) {
-      throw new Error("프로필 사진 변경에 실패했습니다.");
-    }
-
-    throw new Error("서버에 연결할 수 없습니다.");
+    return res.data;
+  } catch (error) {
+    console.error("에러:", error);
+    const msg = error.response?.data?.message || "오류가 발생했습니다.";
+    throw new Error(msg);
   }
 };
 
