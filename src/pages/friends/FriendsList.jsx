@@ -112,88 +112,93 @@ export default function FriendsList() {
               </div>
             </div>
 
-            <section className="flex items-center gap-6 mb-8 relative">
-              <div className="w-[160px] h-[160px] rounded-full overflow-hidden bg-white/20 shadow-md">
-                <img
-                  src={user?.profilePhotoUrl || profileImg}
-                  alt="프로필"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <div className="flex flex-col leading-tight">
-                <span className="text-[25px]">
-                  {(() => {
-                    const level = userLoading
-                      ? ""
-                      : levelName || "별무리 탐험가";
-
-                    const parts = level.split(" ");
-                    const suffix = parts.pop();
-                    const prefix = parts.join(" ");
-
-                    return (
-                      <span className="text-white font-semibold">
-                        {prefix && (
-                          <span className="text-white">{prefix}&nbsp;</span>
-                        )}
-                        <span className="text-white/70">{suffix}</span>
-                      </span>
-                    );
-                  })()}
-                </span>
-
-                <span className="text-[35px] flex items-center">
-                  <span className="text-white font-bold">
-                    {userLoading ? "..." : user?.nickname || "익명"}
-                  </span>
-                  <span className="text-gray-300 font-medium ml-1 mr-5">
-                    님
-                  </span>
-                  <span className="bg-[#54C65B] text-white font-bold text-[13px] px-3 py-[4px] rounded-md shadow-md relative top-[4px]">
-                    ME
-                  </span>
-                </span>
-
-                <div className="mt-4 inline-flex items-center rounded-[12px] bg-white/30 backdrop-blur px-5 py-1">
-                  <div className="flex items-center gap-4 pr-5">
-                    <span className="text-[14px] text-white/80">기록된 별</span>
-                    <span className="text-[16px] font-semibold text-white">
-                      {userLoading ? "-" : user?.totalStars ?? "-"}
-                    </span>
-                  </div>
-                  <div className="h-6 w-px bg-white/30" />
-                  <div className="flex items-center gap-4 pl-4">
-                    <span className="text-[14px] text-white/80">
-                      생성한 별자리
-                    </span>
-                    <span className="text-[16px] font-semibold text-white">
-                      {userLoading ? "-" : user?.totalConstellations ?? "-"}
-                    </span>
-                  </div>
+            <section className="flex items-center gap-6 mb-8 flex-nowrap w-full">
+              <div className="flex items-center gap-6 flex-1 min-w-0">
+                <div className="w-[160px] h-[160px] rounded-full overflow-hidden bg-white/20 shadow-md flex-shrink-0">
+                  <img
+                    src={user?.profilePhotoUrl || profileImg}
+                    alt="프로필"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setIsRequestModalOpen(true)}
-                  className="mt-4 text-left text-white text-[14px]"
-                >
-                  <span className="inline-block border-b border-white hover:text-white/70 hover:border-white/70 transition cursor-pointer">
-                    친구 요청 확인하기
+                <div className="flex flex-col leading-tight min-w-0">
+                  <span className="text-[25px] truncate">
+                    {(() => {
+                      const level = userLoading
+                        ? ""
+                        : levelName || "별무리 탐험가";
+
+                      const parts = level.split(" ");
+                      const suffix = parts.pop();
+                      const prefix = parts.join(" ");
+
+                      return (
+                        <span className="text-white font-semibold">
+                          {prefix && (
+                            <span className="text-white">{prefix}&nbsp;</span>
+                          )}
+                          <span className="text-white/70">{suffix}</span>
+                        </span>
+                      );
+                    })()}
                   </span>
-                </button>
+
+                  <span className="text-[35px] flex items-center overflow-hidden">
+                    <span className="text-white font-bold truncate">
+                      {userLoading ? "..." : user?.nickname || "익명"}
+                    </span>
+                    <span className="text-gray-300 font-medium ml-1 mr-5">
+                      님
+                    </span>
+                    <span className="bg-[#54C65B] text-white font-bold text-[13px] px-3 py-[4px] rounded-md shadow-md relative top-[4px]">
+                      ME
+                    </span>
+                  </span>
+
+                  <div className="mt-4 inline-flex items-center rounded-[12px] bg-white/30 backdrop-blur px-5 py-1">
+                    <div className="flex items-center gap-4 pr-5">
+                      <span className="text-[14px] text-white/80">
+                        기록된 별
+                      </span>
+                      <span className="text-[16px] font-semibold text-white">
+                        {userLoading ? "-" : user?.totalStars ?? "-"}
+                      </span>
+                    </div>
+                    <div className="h-6 w-px bg-white/30" />
+                    <div className="flex items-center gap-4 pl-4">
+                      <span className="text-[14px] text-white/80">
+                        생성한 별자리
+                      </span>
+                      <span className="text-[16px] font-semibold text-white">
+                        {userLoading ? "-" : user?.totalConstellations ?? "-"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsRequestModalOpen(true)}
+                    className="mt-4 text-left text-white text-[14px]"
+                  >
+                    <span className="inline-block border-b border-white hover:text-white/70 hover:border-white/70 transition cursor-pointer">
+                      친구 요청 확인하기
+                    </span>
+                  </button>
+                </div>
               </div>
 
-              <button
-                type="button"
-                className="absolute right-0 top-15 w-[130px] flex items-center bg-[#34c759] text-white font-semibold px-4 py-2 rounded-[8px] shadow-md hover:bg-[#2cab4c]"
-                onClick={() => setIsSearchModalOpen(true)}
-              >
-                <IoIosAdd className="text-3xl" />
-                <span>친구 추가</span>
-              </button>
+              <div className="flex-shrink-0">
+                <button
+                  type="button"
+                  className="flex items-center w-[125px] justify-center bg-[#34c759] text-white font-semibold px-4 py-2 rounded-[8px] shadow-md hover:bg-[#2cab4c] transition"
+                  onClick={() => setIsSearchModalOpen(true)}
+                >
+                  <IoIosAdd className="text-3xl" />
+                  <span>친구 추가</span>
+                </button>
+              </div>
             </section>
-
             <div className="flex-1 flex flex-col min-h-0 mt-2">
               <span className="text-white text-[20px]">
                 <span className="font-medium text-[#54C65B]">
