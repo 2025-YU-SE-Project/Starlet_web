@@ -342,7 +342,10 @@ function MyPage() {
                 <span className="text-white font-bold">{nickname}</span>
                 <span className="text-gray-300 font-medium ml-1 mr-5">님</span>
 
-                <span className="text-white text-sm hover:underline hover:underline-offset-4 cursor-pointer">
+                <span
+                  className="text-white text-sm hover:underline hover:underline-offset-4 cursor-pointer"
+                  onClick={() => navigate("/friends-list")}
+                >
                   <span className="font-medium" style={{ color: "#54C65B" }}>
                     {userLoading
                       ? "-"
