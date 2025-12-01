@@ -8,12 +8,14 @@ import { clearStorage } from "../contexts/AuthUtil";
 import Sidebar from "../components/Sidebar";
 import ProfileEdit from "../components/MyPage/ProfileEdit";
 import RepresentativeCons from "../components/MyPage/RepresentativeCons";
+import RemoveAcc from "../components/MyPage/RemoveAcc";
 
 import getLevel from "../apis/MyPage/getLevel";
 import getUser from "../apis/MyPage/getUser";
 import representativeStar from "../apis/MyPage/representativeStar";
 import getYear from "../apis/MyPage/getYear";
 import getMonth from "../apis/MyPage/getMonth";
+import deleteUser from "../apis/MyPage/deleteUser";
 
 const MONTH_NAMES = [
   "JANUARY",
@@ -72,12 +74,55 @@ function MyPage() {
   const [monthLoading, setMonthLoading] = useState(false);
   const [monthError, setMonthError] = useState("");
 
+  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
+  const [deleteStatus, setDeleteStatus] = useState("confirm");
+
   const navigate = useNavigate();
 
   const handleLogout = () => {
     clearStorage();
     navigate("/");
     navigate(0);
+  };
+
+  const handleDeleteClick = () => {
+    setDeleteStatus("confirm");
+    setIsRemoveModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteUser();
+      setDeleteStatus("done");
+    } catch (e) {
+      alert(e.message || "계정 탈퇴 중 오류가 발생했습니다.");
+
+      if (e.message?.includes("토큰")) {
+        clearStorage();
+        navigate("/");
+        navigate(0);
+      } else {
+        setIsRemoveModalOpen(false);
+        setDeleteStatus("confirm");
+      }
+    }
+  };
+
+  const handleFinishDelete = () => {
+    clearStorage();
+    setIsRemoveModalOpen(false);
+    setDeleteStatus("confirm");
+    navigate("/");
+    navigate(0);
+  };
+
+  const handleCancelDelete = () => {
+    if (deleteStatus === "done") {
+      handleFinishDelete();
+    } else {
+      setIsRemoveModalOpen(false);
+      setDeleteStatus("confirm");
+    }
   };
 
   const normalizeProfileUrl = (rawUrl) => {
@@ -114,7 +159,6 @@ function MyPage() {
         setUserLoading(true);
         setUserError("");
         const data = await getUser();
-        console.log("🔍 getUser 응답:", data);
         setUserData(data);
 
         if (data?.nickname) {
@@ -213,6 +257,7 @@ function MyPage() {
   }
 
   const isNearMax = levelData && progressPercent >= 95;
+  const isNearMin = levelData && progressPercent <= 5;
   const displayStarCount =
     currentLevelStars !== null ? currentLevelStars : null;
 
@@ -436,7 +481,7 @@ function MyPage() {
 
             <div
               className={`absolute -translate-x-1/2 inline-flex items-center bg-[#54C65B] text-white text-sm font-semibold px-3 py-1 rounded-full ${
-                isNearMax ? "top-[115%]" : "top-[90%]"
+                isNearMin || isNearMax ? "top-[110%]" : "top-[90%]"
               }`}
               style={{
                 left: isNearMax
@@ -694,9 +739,13 @@ function MyPage() {
       </div>
 
       <div className="w-full mt-16 pb-10 flex items-center justify-center gap-6 text-sm">
-        <button className="text-white hover:underline underline-offset-4 cursor-pointer drop-shadow-[0_0_6px_rgba(0,0,0,0.7)]">
+        <button
+          className="text-white hover:underline underline-offset-4 cursor-pointer drop-shadow-[0_0_6px_rgba(0,0,0,0.7)]"
+          onClick={handleDeleteClick}
+        >
           계정 탈퇴
         </button>
+
         <span className="text-white font-extralight drop-shadow-[0_0_6px_rgba(0,0,0,0.7)]">
           |
         </span>
@@ -726,6 +775,15 @@ function MyPage() {
             );
           }
         }}
+      />
+
+      <RemoveAcc
+        open={isRemoveModalOpen}
+        status={deleteStatus}
+        onClose={handleCancelDelete}
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        onFinish={handleFinishDelete}
       />
     </div>
   );

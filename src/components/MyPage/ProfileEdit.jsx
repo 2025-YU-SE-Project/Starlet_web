@@ -83,11 +83,7 @@ function ProfileEdit({
         return null;
       }
 
-      console.log("uploadProfileImage - file.type >>>", file.type);
-
       const { presignedUrl, tempKey } = await getTempUrl(file.type);
-      console.log("받은 presignedUrl:", presignedUrl);
-      console.log("받은 tempKey:", tempKey);
 
       const uploadRes = await fetch(presignedUrl, {
         method: "PUT",
@@ -97,11 +93,8 @@ function ProfileEdit({
         body: file,
       });
 
-      console.log("S3 업로드 응답 status >>>", uploadRes.status);
-
       if (!uploadRes.ok) {
         const errText = await uploadRes.text().catch(() => "");
-        console.error("S3 업로드 실패 상세:", uploadRes.status, errText);
         throw new Error(
           `이미지 업로드에 실패했습니다. (S3 status: ${uploadRes.status})`
         );
@@ -110,7 +103,6 @@ function ProfileEdit({
       const { profileUrl } = await changePfp(tempKey);
       return profileUrl;
     } catch (error) {
-      console.error("uploadProfileImage 전체 에러:", error);
       throw error;
     }
   };
@@ -145,9 +137,6 @@ function ProfileEdit({
   const handleImageChange = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
-
-    console.log("선택된 파일 >>>", f);
-    console.log("file.type >>>", f.type);
 
     setFile(f);
     setIsDefaultSelected(false);
