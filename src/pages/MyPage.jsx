@@ -260,19 +260,6 @@ function MyPage() {
     if (currentLevelStars > maxStars) currentLevelStars = maxStars;
   }
 
-  let progressPercent = 0;
-  if (levelData && currentLevelStars !== null && maxStars > minStars) {
-    progressPercent =
-      ((currentLevelStars - minStars) / (maxStars - minStars)) * 100;
-    if (progressPercent < 0) progressPercent = 0;
-    if (progressPercent > 100) progressPercent = 100;
-  }
-
-  const isNearMax = levelData && progressPercent >= 95;
-  const isNearMin = levelData && progressPercent <= 5;
-  const displayStarCount =
-    currentLevelStars !== null ? currentLevelStars : null;
-
   const levelName = levelData?.name || "";
   const levelNameParts = levelName.split(" ");
   const levelSuffix =
@@ -282,6 +269,31 @@ function MyPage() {
       ? levelNameParts.slice(0, levelNameParts.length - 1).join(" ")
       : levelName;
   const isMaxLevel = levelName === "우주 탐험가";
+
+  let progressPercent = 0;
+  if (levelData && currentLevelStars !== null && maxStars > minStars) {
+    progressPercent =
+      ((currentLevelStars - minStars) / (maxStars - minStars)) * 100;
+    if (progressPercent < 0) progressPercent = 0;
+    if (progressPercent > 100) progressPercent = 100;
+  }
+
+  if (isMaxLevel) {
+    progressPercent = 100;
+  }
+
+  const isNearMax = levelData && progressPercent >= 95;
+  const isNearMin = levelData && progressPercent <= 5;
+
+  const effectiveMaxStars = isMaxLevel ? 300 : maxStars;
+
+  const displayStarCount = !levelData
+    ? null
+    : isMaxLevel
+    ? effectiveMaxStars
+    : currentLevelStars !== null
+    ? currentLevelStars
+    : null;
 
   const totalStars = userLoading ? null : userData ? userData.totalStars : null;
   const totalConstellations = userLoading
@@ -512,8 +524,8 @@ function MyPage() {
             </div>
 
             <div className="flex justify-between text-xs text-gray-300 mt-2">
-              <span>{levelData ? minStars : 0}</span>
-              <span>{levelData ? maxStars : "-"}</span>
+              <span>{levelData ? (isMaxLevel ? "" : minStars) : 0}</span>
+              <span>{levelData ? (isMaxLevel ? 300 : maxStars) : "-"}</span>
             </div>
           </div>
 
