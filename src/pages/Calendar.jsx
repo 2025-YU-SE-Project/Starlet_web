@@ -257,11 +257,13 @@ function Calendar() {
       setIsEdit(true);
       setIsDiaryOpen(true);
     } catch (e) {
-      const status = e?.response?.status || e?.status;
-      if (status === 401 || e?.message?.includes("토큰")) {
+      if (e.status === 401 || e.message?.includes("토큰")) {
         navigate("/signin");
         return;
       }
+
+      setMsg(e.message || "일기를 불러오는 중 오류가 발생했습니다.");
+      return;
     }
   };
 
