@@ -628,7 +628,7 @@ const ConstellationModal = ({
                       </button>
 
                       {suggestInfoOpen && (
-                        <div className="absolute bottom-full left-32/33 -translate-x-1/2 mb-4 z-50">
+                        <div className="absolute bottom-full left-199/200 -translate-x-1/3 mb-4 z-50">
                           <div className="relative">
                             <div className="rounded-2xl bg-white shadow-[0_12px_30px_rgba(0,0,0,0.18)] border border-gray-100 px-6 py-4 w-[240px]">
                               <div className="inline-flex items-center px-4 py-1 rounded-md bg-[#FFE75A] text-[13px] font-semibold text-[#4b5563] mb-3">
@@ -645,7 +645,13 @@ const ConstellationModal = ({
                               </p>
                             </div>
 
-                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l border-b border-gray-100 rotate-45" />
+                            <div
+                              className="absolute -bottom-2 w-4 h-4 bg-white border-l border-b border-gray-100"
+                              style={{
+                                left: "30%",
+                                transform: "translateX(-50%) rotate(45deg)",
+                              }}
+                            />
                           </div>
                         </div>
                       )}

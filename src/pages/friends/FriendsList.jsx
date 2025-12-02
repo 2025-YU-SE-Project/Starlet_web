@@ -9,7 +9,7 @@ import Sidebar from "../../components/Sidebar";
 import FriendRequestsModal from "../../components/FriendRequestModal";
 import FriendSearchModal from "../../components/FriendSearchModal";
 import { deleteFriend } from "../../apis/Friends/deleteFriend";
-import profileImg from "../../assets/MyPage/profile.png";
+import profileImg from "../../assets/friendprofile.png";
 import getUser from "../../apis/MyPage/getUser";
 import getLevel from "../../apis/MyPage/getLevel";
 
@@ -20,6 +20,7 @@ export default function FriendsList() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [defaultUserImg, setDefaultUserImg] = useState(false);
 
   const [user, setUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
@@ -82,6 +83,15 @@ export default function FriendsList() {
   }, []);
   const friendCount = friends.length;
 
+  function getProfileSrc(url) {
+    if (!url) return profileImg;
+
+    if (url.includes("default") || url.includes("basic") || url.trim() === "") {
+      return profileImg;
+    }
+    return url;
+  }
+
   return (
     <>
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
@@ -114,11 +124,25 @@ export default function FriendsList() {
 
             <section className="flex items-center gap-6 mb-8 flex-nowrap w-full">
               <div className="flex items-center gap-6 flex-1 min-w-0">
-                <div className="w-[160px] h-[160px] rounded-full overflow-hidden bg-white/20 shadow-md flex-shrink-0">
+                <div className="w-[160px] h-[160px] rounded-full overflow-hidden shadow-md">
                   <img
-                    src={user?.profilePhotoUrl || profileImg}
+                    src={getProfileSrc(user?.profilePhotoUrl)}
                     alt="프로필"
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full object-cover object-center block transition-transform duration-200 ${
+                      getProfileSrc(user?.profilePhotoUrl) === profileImg
+                        ? "scale-105"
+                        : ""
+                    }`}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = profileImg;
+                    }}
+                    onLoad={(e) => {
+                      const isDef =
+                        e.currentTarget.src.includes("friendprofile");
+                      setDefaultUserImg(isDef);
+                    }}
+                    style={defaultUserImg ? { transform: "scale(1.08)" } : {}}
                   />
                 </div>
 
@@ -239,20 +263,28 @@ export default function FriendsList() {
                       className="flex items-center px-6 py-4 border-b border-white/40 last:border-b-0  transition-colors"
                     >
                       <div className="w-[40%] flex items-center gap-8">
-                        <div className="w-13 h-13 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
-                          {friend.profileUrl ? (
-                            <img
-                              src={friend.profileUrl}
-                              alt={friend.nickname}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <img
-                              src={profileImg}
-                              alt="프로필"
-                              className="w-full h-full object-cover"
-                            />
-                          )}
+                        <div className="w-[52px] h-[52px] rounded-full overflow-hidden shadow-sm">
+                          <img
+                            src={getProfileSrc(friend.profileUrl)}
+                            alt="프로필"
+                            className={`w-full h-full object-cover object-center block transition-transform duration-200 ${
+                              getProfileSrc(user?.profileUrl) === profileImg
+                                ? "scale-105"
+                                : ""
+                            }`}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = profileImg;
+                            }}
+                            onLoad={(e) => {
+                              const isDef =
+                                e.currentTarget.src.includes("friendprofile");
+                              setDefaultUserImg(isDef);
+                            }}
+                            style={
+                              defaultUserImg ? { transform: "scale(1.08)" } : {}
+                            }
+                          />
                         </div>
                         <span className="text-[22px]">{friend.nickname}</span>
                       </div>

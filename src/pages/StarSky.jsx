@@ -261,10 +261,6 @@ const StarSky = () => {
           }
         }
         if (alt.length) {
-          console.log(
-            "[StarSky] 기본 month로는 별자리가 안 와서 앞/뒤 달로 대체함",
-            { month, alt }
-          );
           normalized = alt;
         }
       }
@@ -493,21 +489,14 @@ const StarSky = () => {
 
   const filteredConstellations = useMemo(() => {
     if (!serverConstellations.length) return [];
+
     return serverConstellations.filter((c) => {
-      const hasStarInThisPair = (c.stars || []).some((st) => {
-        if (!st.date) return false;
-        const m = new Date(st.date).getMonth() + 1;
-        return m === m1 || m === m2;
+      const starsList = c.stars || [];
+      return starsList.some((st) => {
+        if (!st?.date) return false;
+        const month = new Date(st.date).getMonth() + 1;
+        return month === m1 || month === m2;
       });
-
-      if (hasStarInThisPair) return true;
-
-      if (c.createdAt) {
-        const m = new Date(c.createdAt).getMonth() + 1;
-        if (m === m1 || m === m2) return true;
-      }
-
-      return false;
     });
   }, [serverConstellations, m1, m2]);
 
@@ -525,7 +514,7 @@ const StarSky = () => {
       )}
 
       <button
-        className="absolute z-[70] ml-[1.81rem] mt-[2.13rem]"
+        className="absolute z-[10] ml-[1.81rem] mt-[2.13rem]"
         onClick={() => setIsOpen(true)}
         aria-label="open sidebar"
       >
