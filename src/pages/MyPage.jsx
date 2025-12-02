@@ -267,6 +267,7 @@ function MyPage() {
     if (progressPercent < 0) progressPercent = 0;
     if (progressPercent > 100) progressPercent = 100;
   }
+  if (isMaxLevel) progressPercent = 100;
 
   const isNearMax = levelData && progressPercent >= 95;
   const isNearMin = levelData && progressPercent <= 5;
