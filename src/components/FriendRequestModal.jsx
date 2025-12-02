@@ -10,6 +10,7 @@ export default function FriendRequestsModal({ isOpen, onClose }) {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [defaultUserImg, setDefaultUserImg] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -59,6 +60,15 @@ export default function FriendRequestsModal({ isOpen, onClose }) {
       setActionLoadingId(null);
     }
   };
+
+  function getProfileSrc(url) {
+    if (!url) return profileImg;
+
+    if (url.includes("default") || url.includes("basic") || url.trim() === "") {
+      return profileImg;
+    }
+    return url;
+  }
 
   if (!isOpen) return null;
 
@@ -112,9 +122,25 @@ export default function FriendRequestsModal({ isOpen, onClose }) {
                   <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
                     {req.profileUrl ? (
                       <img
-                        src={req.profileUrl}
-                        alt={req.nickname}
-                        className="w-full h-full object-cover"
+                        src={getProfileSrc(req.profileUrl)}
+                        alt="프로필"
+                        className={`w-full h-full object-cover object-center block transition-transform duration-200 ${
+                          getProfileSrc(req?.profileUrl) === profileImg
+                            ? "scale-105"
+                            : ""
+                        }`}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = profileImg;
+                        }}
+                        onLoad={(e) => {
+                          const isDef =
+                            e.currentTarget.src.includes("friendprofile");
+                          setDefaultUserImg(isDef);
+                        }}
+                        style={
+                          defaultUserImg ? { transform: "scale(1.08)" } : {}
+                        }
                       />
                     ) : (
                       <span className="text-lg">
