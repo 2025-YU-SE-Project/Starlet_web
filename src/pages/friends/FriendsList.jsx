@@ -9,7 +9,7 @@ import Sidebar from "../../components/Sidebar";
 import FriendRequestsModal from "../../components/FriendRequestModal";
 import FriendSearchModal from "../../components/FriendSearchModal";
 import { deleteFriend } from "../../apis/Friends/deleteFriend";
-import profileImg from "../../assets/MyPage/profile.png";
+import profileImg from "../../assets/friendprofile.png";
 import getUser from "../../apis/MyPage/getUser";
 import getLevel from "../../apis/MyPage/getLevel";
 
@@ -20,6 +20,7 @@ export default function FriendsList() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [defaultUserImg, setDefaultUserImg] = useState(false);
 
   const [user, setUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
@@ -82,6 +83,15 @@ export default function FriendsList() {
   }, []);
   const friendCount = friends.length;
 
+  function getProfileSrc(url) {
+    if (!url) return profileImg;
+
+    if (url.includes("default") || url.includes("basic") || url.trim() === "") {
+      return profileImg;
+    }
+    return url;
+  }
+
   return (
     <>
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
@@ -112,88 +122,107 @@ export default function FriendsList() {
               </div>
             </div>
 
-            <section className="flex items-center gap-6 mb-8 relative">
-              <div className="w-[160px] h-[160px] rounded-full overflow-hidden bg-white/20 shadow-md">
-                <img
-                  src={profileImg}
-                  alt="프로필"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <div className="flex flex-col leading-tight">
-                <span className="text-[25px]">
-                  {(() => {
-                    const level = userLoading
-                      ? ""
-                      : levelName || "별무리 탐험가";
-
-                    const parts = level.split(" ");
-                    const suffix = parts.pop();
-                    const prefix = parts.join(" ");
-
-                    return (
-                      <span className="text-white font-semibold">
-                        {prefix && (
-                          <span className="text-white">{prefix}&nbsp;</span>
-                        )}
-                        <span className="text-white/70">{suffix}</span>
-                      </span>
-                    );
-                  })()}
-                </span>
-
-                <span className="text-[35px] flex items-center">
-                  <span className="text-white font-bold">
-                    {userLoading ? "..." : user?.nickname || "익명"}
-                  </span>
-                  <span className="text-gray-300 font-medium ml-1 mr-5">
-                    님
-                  </span>
-                  <span className="bg-[#54C65B] text-white font-bold text-[13px] px-3 py-[4px] rounded-md shadow-md relative top-[4px]">
-                    ME
-                  </span>
-                </span>
-
-                <div className="mt-4 inline-flex items-center rounded-[12px] bg-white/30 backdrop-blur px-5 py-1">
-                  <div className="flex items-center gap-4 pr-5">
-                    <span className="text-[14px] text-white/80">기록된 별</span>
-                    <span className="text-[16px] font-semibold text-white">
-                      {userLoading ? "-" : user?.totalStars ?? "-"}
-                    </span>
-                  </div>
-                  <div className="h-6 w-px bg-white/30" />
-                  <div className="flex items-center gap-4 pl-4">
-                    <span className="text-[14px] text-white/80">
-                      생성한 별자리
-                    </span>
-                    <span className="text-[16px] font-semibold text-white">
-                      {userLoading ? "-" : user?.totalConstellations ?? "-"}
-                    </span>
-                  </div>
+            <section className="flex items-center gap-6 mb-8 flex-nowrap w-full">
+              <div className="flex items-center gap-6 flex-1 min-w-0">
+                <div className="w-[160px] h-[160px] rounded-full overflow-hidden shadow-md">
+                  <img
+                    src={getProfileSrc(user?.profilePhotoUrl)}
+                    alt="프로필"
+                    className={`w-full h-full object-cover object-center block transition-transform duration-200 ${
+                      getProfileSrc(user?.profilePhotoUrl) === profileImg
+                        ? "scale-105"
+                        : ""
+                    }`}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = profileImg;
+                    }}
+                    onLoad={(e) => {
+                      const isDef =
+                        e.currentTarget.src.includes("friendprofile");
+                      setDefaultUserImg(isDef);
+                    }}
+                    style={defaultUserImg ? { transform: "scale(1.08)" } : {}}
+                  />
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setIsRequestModalOpen(true)}
-                  className="mt-4 text-left text-white text-[14px]"
-                >
-                  <span className="inline-block border-b border-white hover:text-white/70 hover:border-white/70 transition cursor-pointer">
-                    친구 요청 확인하기
+                <div className="flex flex-col leading-tight min-w-0">
+                  <span className="text-[25px] truncate">
+                    {(() => {
+                      const level = userLoading
+                        ? ""
+                        : levelName || "별무리 탐험가";
+
+                      const parts = level.split(" ");
+                      const suffix = parts.pop();
+                      const prefix = parts.join(" ");
+
+                      return (
+                        <span className="text-white font-semibold">
+                          {prefix && (
+                            <span className="text-white">{prefix}&nbsp;</span>
+                          )}
+                          <span className="text-white/70">{suffix}</span>
+                        </span>
+                      );
+                    })()}
                   </span>
-                </button>
+
+                  <span className="text-[35px] flex items-center overflow-hidden">
+                    <span className="text-white font-bold truncate">
+                      {userLoading ? "..." : user?.nickname || "익명"}
+                    </span>
+                    <span className="text-gray-300 font-medium ml-1 mr-5">
+                      님
+                    </span>
+                    <span className="bg-[#54C65B] text-white font-bold text-[13px] px-3 py-[4px] rounded-md shadow-md relative top-[4px]">
+                      ME
+                    </span>
+                  </span>
+
+                  <div className="mt-4 inline-flex items-center rounded-[12px] bg-white/30 backdrop-blur px-5 py-1">
+                    <div className="flex items-center gap-4 pr-5">
+                      <span className="text-[14px] text-white/80">
+                        기록된 별
+                      </span>
+                      <span className="text-[16px] font-semibold text-white">
+                        {userLoading ? "-" : user?.totalStars ?? "-"}
+                      </span>
+                    </div>
+                    <div className="h-6 w-px bg-white/30" />
+                    <div className="flex items-center gap-4 pl-4">
+                      <span className="text-[14px] text-white/80">
+                        생성한 별자리
+                      </span>
+                      <span className="text-[16px] font-semibold text-white">
+                        {userLoading ? "-" : user?.totalConstellations ?? "-"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsRequestModalOpen(true)}
+                    className="mt-4 text-left text-white text-[14px]"
+                  >
+                    <span className="inline-block border-b border-white hover:text-white/70 hover:border-white/70 transition cursor-pointer">
+                      친구 요청 확인하기
+                    </span>
+                  </button>
+                </div>
               </div>
 
-              <button
-                type="button"
-                className="absolute right-0 top-15 w-[130px] flex items-center bg-[#34c759] text-white font-semibold px-4 py-2 rounded-[8px] shadow-md hover:bg-[#2cab4c]"
-                onClick={() => setIsSearchModalOpen(true)}
-              >
-                <IoIosAdd className="text-3xl" />
-                <span>친구 추가</span>
-              </button>
+              <div className="flex-shrink-0">
+                <button
+                  type="button"
+                  className="flex items-center w-[125px] justify-center bg-[#34c759] text-white font-semibold px-4 py-2 rounded-[8px] shadow-md hover:bg-[#2cab4c] transition"
+                  onClick={() => setIsSearchModalOpen(true)}
+                >
+                  <IoIosAdd className="text-3xl" />
+                  <span>친구 추가</span>
+                </button>
+              </div>
             </section>
-
             <div className="flex-1 flex flex-col min-h-0 mt-2">
               <span className="text-white text-[20px]">
                 <span className="font-medium text-[#54C65B]">
@@ -234,20 +263,28 @@ export default function FriendsList() {
                       className="flex items-center px-6 py-4 border-b border-white/40 last:border-b-0  transition-colors"
                     >
                       <div className="w-[40%] flex items-center gap-8">
-                        <div className="w-13 h-13 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
-                          {friend.profileUrl ? (
-                            <img
-                              src={friend.profileUrl}
-                              alt={friend.nickname}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <img
-                              src={profileImg}
-                              alt="프로필"
-                              className="w-full h-full object-cover"
-                            />
-                          )}
+                        <div className="w-[52px] h-[52px] rounded-full overflow-hidden shadow-sm">
+                          <img
+                            src={getProfileSrc(friend.profileUrl)}
+                            alt="프로필"
+                            className={`w-full h-full object-cover object-center block transition-transform duration-200 ${
+                              getProfileSrc(user?.profileUrl) === profileImg
+                                ? "scale-105"
+                                : ""
+                            }`}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = profileImg;
+                            }}
+                            onLoad={(e) => {
+                              const isDef =
+                                e.currentTarget.src.includes("friendprofile");
+                              setDefaultUserImg(isDef);
+                            }}
+                            style={
+                              defaultUserImg ? { transform: "scale(1.08)" } : {}
+                            }
+                          />
                         </div>
                         <span className="text-[22px]">{friend.nickname}</span>
                       </div>

@@ -178,6 +178,36 @@ function fitMapIntoView(map, pad = 0) {
   return fitted;
 }
 
+function fitMapIntoViewClampCenter(map, pad = EDGE_PAD) {
+  const pts = Object.values(map);
+  const box = computeBBoxFromPoints(pts);
+  if (!box) return map;
+
+  const halfW = box.w / 2;
+  const halfH = box.h / 2;
+
+  const minCx = pad + halfW;
+  const maxCx = 1 - pad - halfW;
+  const minCy = pad + halfH;
+  const maxCy = 1 - pad - halfH;
+
+  const targetCx = Math.max(minCx, Math.min(maxCx, box.cx));
+  const targetCy = Math.max(minCy, Math.min(maxCy, box.cy));
+
+  const shiftX = targetCx - box.cx;
+  const shiftY = targetCy - box.cy;
+
+  const fitted = {};
+  Object.entries(map).forEach(([id, p]) => {
+    fitted[id] = {
+      x: clampToView(p.x + shiftX, pad),
+      y: clampToView(p.y + shiftY, pad),
+    };
+  });
+
+  return fitted;
+}
+
 function ensureMinSize(baseMap, minSize = 0.12) {
   const pts = Object.values(baseMap);
   const box = computeBBoxFromPoints(pts);
@@ -353,6 +383,11 @@ export default function StarSkyDate({
   const [allowPulseAnim, setAllowPulseAnim] = useState(false);
   const hasSelectedOnceRef = useRef(false);
 
+  const today = getTodayLocal();
+  const todayMonth = new Date(today).getMonth();
+  const todayPairIndex = Math.floor(todayMonth / 2);
+  const todayYear = new Date(today).getFullYear();
+
   const multipleMode =
     Array.isArray(filteredConstellationGroups) &&
     filteredConstellationGroups.length > 0;
@@ -377,29 +412,77 @@ export default function StarSkyDate({
   }, [multipleMode]);
 
   useEffect(() => {
-    baseConstShapesRef.current = {};
+    const isCurrentPair =
+      year === todayYear && monthPairIndex === todayPairIndex;
 
-    appliedMapRef.current = {};
-    committedConstMapRef.current = {};
-    committedMapRef.current = null;
     singleScaleOriginRef.current = null;
-    multiScaleOriginRef.current = {};
-
-    scaleBaseRef.current = {};
-
     originalPositionRef.current = null;
     groupDragRef.current = null;
+    multiScaleOriginRef.current = multiScaleOriginRef.current || {};
+    scaleBaseRef.current = {};
+
     setPreviewMap(null);
     setIsSelected(false);
     setPendingApply(false);
-    setScaleUI(1.0);
-    scaleRef.current = 1;
-    setScaleUIMap({});
     setLastDirection(null);
     setHoveredEdgeSingle(false);
     setHoveredStarSingle(false);
     setHoveredConstellationId(null);
     setActiveConstellationId(null);
+
+    if (!isCurrentPair) {
+      setScaleUI(1.0);
+      scaleRef.current = 1.0;
+    }
+
+    const baseSingle = Object.fromEntries(
+      (filteredStars || []).map((s) => [s.id, { x: s.x, y: s.y }])
+    );
+    if (
+      Object.keys(baseSingle).length > 0 &&
+      !appliedMapRef.current["single"]
+    ) {
+      appliedMapRef.current["single"] = baseSingle;
+    }
+
+    if (
+      Array.isArray(filteredConstellationGroups) &&
+      filteredConstellationGroups.length
+    ) {
+      filteredConstellationGroups.forEach((g) => {
+        const gid = g.id;
+        if (!gid) return;
+
+        if (!baseConstShapesRef.current[gid]) {
+          const base = {};
+          (g.stars || []).forEach((s) => {
+            const key = s.id ?? s.starId;
+            if (key == null) return;
+            base[key] = { x: s.x, y: s.y };
+          });
+          baseConstShapesRef.current[gid] = base;
+        }
+
+        if (!appliedMapRef.current[gid]) {
+          appliedMapRef.current[gid] =
+            committedConstMapRef.current[gid] ||
+            deepClone(baseConstShapesRef.current[gid] || {});
+        }
+
+        if (
+          typeof g.scale === "number" &&
+          Number.isFinite(g.scale) &&
+          scaleUIMap[gid] == null
+        ) {
+          setScaleUIMap((prev) => ({
+            ...prev,
+            [gid]: Math.max(0.5, Math.min(2.0, g.scale)),
+          }));
+        }
+      });
+    }
+
+    setAppliedVersion((v) => v + 1);
   }, [year, monthPairIndex]);
 
   const positionOf = (s) => {
@@ -849,6 +932,12 @@ export default function StarSkyDate({
         currentShape = previewMap;
       } else if (appliedMapRef.current[saveKey]) {
         currentShape = appliedMapRef.current[saveKey];
+      } else if (
+        multipleMode &&
+        targetId &&
+        baseConstShapesRef.current[targetId]
+      ) {
+        currentShape = deepClone(baseConstShapesRef.current[targetId]);
       } else if (multipleMode && targetId) {
         const targetConst = filteredConstellationGroups.find(
           (g) => g.id === targetId
@@ -900,7 +989,7 @@ export default function StarSkyDate({
       };
     });
 
-    const fitted = fitMapIntoView(scaled, 0);
+    const fitted = fitMapIntoViewClampCenter(scaled, EDGE_PAD);
 
     setScaleUIMap((prev) => ({ ...prev, [saveKey]: sAbs }));
     scaleRef.current = sAbs;
@@ -916,6 +1005,11 @@ export default function StarSkyDate({
 
     if (commit) {
       appliedMapRef.current[saveKey] = deepClone(fitted);
+      committedConstMapRef.current[saveKey] = deepClone(fitted);
+
+      if (multipleMode && targetId) {
+        baseConstShapesRef.current[targetId] = deepClone(fitted);
+      }
 
       scaleRef.current = sAbs;
       setScaleUI(sAbs);
@@ -927,6 +1021,10 @@ export default function StarSkyDate({
       onTransformEnd?.(fitted);
       setPendingApply(false);
       setAppliedVersion((v) => v + 1);
+
+      if (scaleBaseRef.current[saveKey]) {
+        delete scaleBaseRef.current[saveKey];
+      }
     }
   };
 
@@ -963,11 +1061,16 @@ export default function StarSkyDate({
     return computeBBoxFromPoints(pts);
   })();
 
+  const hasConstellationMeta =
+    constellationMeta &&
+    (String(constellationMeta.name || "").trim() !== "" ||
+      Boolean(constellationMeta.createdAt));
   const showLabelSingle =
     !multipleMode &&
     locked &&
     (hoveredEdgeSingle || hoveredStarSingle) &&
-    liveBBox;
+    liveBBox &&
+    hasConstellationMeta;
 
   const constellationStarIdSet = useMemo(() => {
     if (!multipleMode) return null;
@@ -1600,11 +1703,16 @@ export default function StarSkyDate({
                   multipleMode && activeConstellationId
                     ? activeConstellationId
                     : "single";
-                const appliedMap =
-                  appliedMapRef.current[saveKey] || previewMap || {};
+
+                const snapshot = previewMap
+                  ? JSON.parse(JSON.stringify(previewMap))
+                  : appliedMapRef.current[saveKey]
+                  ? JSON.parse(JSON.stringify(appliedMapRef.current[saveKey]))
+                  : {};
+
                 applyContextRef.current = {
                   saveKey,
-                  appliedMap,
+                  appliedMap: snapshot,
                   scale: scaleUI,
                   targetId: activeConstellationId,
                 };
@@ -1660,21 +1768,43 @@ export default function StarSkyDate({
           const { saveKey, appliedMap: ctxAppliedMap, scale, targetId } = ctx;
 
           try {
-            applyScalePreviewSingle(scale, { commit: true });
+            const finalMap =
+              ctxAppliedMap && Object.keys(ctxAppliedMap).length
+                ? ctxAppliedMap
+                : previewMap && Object.keys(previewMap).length
+                ? previewMap
+                : {};
 
-            const appliedMap = ctxAppliedMap || previewMap || {};
+            appliedMapRef.current[saveKey] = deepClone(finalMap);
+
+            committedConstMapRef.current[saveKey] = deepClone(finalMap);
 
             if (multipleMode && targetId) {
-              onConstellationMove?.(targetId, appliedMap);
+              baseConstShapesRef.current[targetId] = deepClone(finalMap);
             }
 
-            onApply?.(appliedMap, {
+            setScaleUI(scale);
+            scaleRef.current = scale;
+            setScaleUIMap((prev) => ({
+              ...prev,
+              [saveKey]: scale,
+            }));
+
+            if (multipleMode && targetId) {
+              onConstellationMove?.(targetId, finalMap);
+            }
+            onApply?.(finalMap, {
               constellationId: saveKey,
               scale,
             });
 
             setPreviewMap(null);
             setPendingApply(false);
+            setAppliedVersion((v) => v + 1);
+
+            if (scaleBaseRef.current[saveKey]) {
+              delete scaleBaseRef.current[saveKey];
+            }
           } catch (e) {
             console.error("적용 실패:", e);
           } finally {
