@@ -29,7 +29,7 @@ function normalizeStarsLocal(stars, { w, h, pad }) {
     return {
       ...s,
       _nx: pad + nx * (w - pad * 2),
-      _ny: pad + (1 - ny) * (h - pad * 2),
+      _ny: pad + ny * (h - pad * 2),
     };
   });
 }
