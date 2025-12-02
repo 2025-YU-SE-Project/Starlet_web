@@ -4,6 +4,7 @@ import { fetchFriendRequests } from "../apis/Friends/friendRequests";
 import { acceptFriendRequest } from "../apis/Friends/accept";
 import { rejectFriendRequest } from "../apis/Friends/reject";
 import profileImg from "../assets/MyPage/profile.png";
+import img10 from "../assets/img10.png";
 
 export default function FriendRequestsModal({ isOpen, onClose }) {
   const [requests, setRequests] = useState([]);
@@ -71,6 +72,13 @@ export default function FriendRequestsModal({ isOpen, onClose }) {
 
       <div className="relative z-10 w-[75vw] max-w-[900px] h-[70vh] bg-[#f5f5f5] rounded-[18px] shadow-xl flex flex-col overflow-hidden">
         <div className="h-[80px] bg-[#D9D9D9] flex items-center relative px-6">
+          <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center ml-2">
+            <img
+              src={img10}
+              alt="STARLET"
+              className="w-12 h-12 object-contain"
+            />
+          </div>
           <span className="absolute left-1/2 -translate-x-1/2 text-[29px] font-medium text-[#4F4F4F]">
             친구 요청
           </span>

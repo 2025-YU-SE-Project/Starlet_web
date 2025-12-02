@@ -4,6 +4,7 @@ import { IoMdClose } from "react-icons/io";
 import { searchFriend } from "../apis/Friends/search";
 import { requestFriend } from "../apis/Friends/request";
 import profileImg from "../assets/MyPage/profile.png";
+import img10 from "../assets/img10.png";
 
 export default function FriendSearchModal({ isOpen, onClose }) {
   const [nickname, setNickname] = useState("");
@@ -11,6 +12,7 @@ export default function FriendSearchModal({ isOpen, onClose }) {
   const [searched, setSearched] = useState(false);
   const [result, setResult] = useState(null);
   const [requesting, setRequesting] = useState(false);
+  const [defaultUserImg, setDefaultUserImg] = useState(false);
 
   const handleSearch = async () => {
     if (!nickname.trim()) return;
@@ -42,6 +44,15 @@ export default function FriendSearchModal({ isOpen, onClose }) {
     }
   };
 
+  function getProfileSrc(url) {
+    if (!url) return profileImg;
+
+    if (url.includes("default") || url.includes("basic") || url.trim() === "") {
+      return profileImg;
+    }
+    return url;
+  }
+
   if (!isOpen) return null;
 
   return (
@@ -53,7 +64,15 @@ export default function FriendSearchModal({ isOpen, onClose }) {
       />
 
       <div className="relative z-10 w-[800px] bg-[#f5f5f5] h-[42vh] rounded-[18px] shadow-xl overflow-hidden flex flex-col">
-        <div className="h-[80px] bg-[#D9D9D9] flex items-center relative px-6">
+        <div className="h-[80px] bg-[#D9D9D9] flex items-center relative">
+          <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center ml-6">
+            <img
+              src={img10}
+              alt="STARLET"
+              className="w-12 h-12 object-contain"
+            />
+          </div>
+
           <span className="absolute left-1/2 -translate-x-1/2 text-[29px] font-medium text-[#4F4F4F]">
             친구 검색
           </span>
@@ -61,7 +80,7 @@ export default function FriendSearchModal({ isOpen, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="ml-auto text-[#555] hover:text-black"
+            className="ml-auto text-[#555] hover:text-black mr-4"
             aria-label="close"
           >
             <IoMdClose size={38} />
@@ -122,9 +141,25 @@ export default function FriendSearchModal({ isOpen, onClose }) {
                   <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden">
                     {result.profileUrl ? (
                       <img
-                        src={result.profileUrl}
-                        alt={result.nickname}
-                        className="w/full h/full object-cover"
+                        src={getProfileSrc(result?.profileUrl)}
+                        alt="프로필"
+                        className={`w-full h-full object-cover object-center block transition-transform duration-200 ${
+                          getProfileSrc(result?.profileUrl) === profileImg
+                            ? "scale-105"
+                            : ""
+                        }`}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = profileImg;
+                        }}
+                        onLoad={(e) => {
+                          const isDef =
+                            e.currentTarget.src.includes("friendprofile");
+                          setDefaultUserImg(isDef);
+                        }}
+                        style={
+                          defaultUserImg ? { transform: "scale(1.08)" } : {}
+                        }
                       />
                     ) : (
                       <img
