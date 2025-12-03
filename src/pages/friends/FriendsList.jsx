@@ -99,7 +99,7 @@ export default function FriendsList() {
       <button
         onClick={() => setIsSidebarOpen(true)}
         aria-label="open sidebar"
-        className="fixed top-6 left-6 z-50"
+        className="fixed top-6 left-6 z-10"
       >
         <CiMenuBurger className="cursor-pointer text-white" size={30} />
       </button>
