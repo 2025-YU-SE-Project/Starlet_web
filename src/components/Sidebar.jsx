@@ -11,6 +11,8 @@ import img5 from "./../assets/home/img5.png";
 import img6 from "./../assets/home/img6.png";
 import img7 from "./../assets/home/img7.png";
 import img8 from "./../assets/home/img8.png";
+import myPageUserApi from "../apis/myPageUserApi";
+
 const Sidebar = ({ isOpen, setIsOpen }) => {
     const renderLevelName = (name) => {
   if (!name || typeof name !== "string") return "";
@@ -38,94 +40,97 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const [levelMin, setLevelMin] = useState(0);     
   const [levelMax, setLevelMax] = useState(0);      
   const [progress, setProgress] = useState(0);    
-
+const [profileUrl, setProfileUrl] = useState(""); 
   const [nickname, setNickname] = useState("user");
 
   const isLoggedIn = !!accessToken;
 
-   useEffect(() => {
-    let cancelled = false;
+ useEffect(() => {
+  let cancelled = false;
 
-    const loadUserData = async () => {
-      if (!isLoggedIn) {
-        setNickname("미등록사용자");
-        setLevelName("");
-        setLevelMin(0);
-        setLevelMax(0);
-        setProgress(0);
+  const loadUserData = async () => {
+    if (!isLoggedIn) {
+      setNickname("미등록사용자");
+      setProfileUrl("");
+      setLevelName("");
+      setLevelMin(0);
+      setLevelMax(0);
+      setProgress(0);
+      return;
+    }
+
+    const cached =
+      localStorage.getItem("nickname") || sessionStorage.getItem("nickname");
+    if (cached && !cancelled) setNickname(cached);
+
+    try {
+      // 1) 결과 3개 모두 변수로 받기
+      const [users, levelData, myPage] = await Promise.all([
+        userGetApi(accessToken),
+        getLevelApi(accessToken),
+        myPageUserApi(accessToken),
+      ]);
+
+      const myEmail =
+        localStorage.getItem("email") || sessionStorage.getItem("email");
+      let nk = "user";
+
+      if (myEmail && Array.isArray(users)) {
+        const me = users.find((u) => u.email === myEmail);
+        if (me?.nickname) nk = me.nickname;
+      }
+
+      if (!cancelled) {
+        setNickname(nk);
+        // 2) 프로필 URL 세팅 (없으면 빈 문자열)
+        setProfileUrl(myPage?.profilePhotoUrl || "");
+
+        if (localStorage.getItem("accessToken")) {
+          localStorage.setItem("nickname", nk);
+        } else {
+          sessionStorage.setItem("nickname", nk);
+        }
+      }
+
+      if (!cancelled && levelData) {
+        const { name, min, max, progressToNext } = levelData;
+
+        setLevelName(name || "");
+        setLevelMin(typeof min === "number" ? min : 0);
+        setLevelMax(typeof max === "number" ? max : 0);
+
+        const range = Math.max(1, (max ?? 0) - (min ?? 0));
+        const current = (max ?? 0) - (progressToNext ?? 0);
+        const percent = Math.round(
+          Math.min(100, Math.max(0, ((current - (min ?? 0)) / range) * 100))
+        );
+        setProgress(percent);
+      }
+    } catch (err) {
+      console.error("유저/레벨 정보 불러오기 실패:", err);
+
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        logout();
         return;
       }
 
-      const cached =
-        localStorage.getItem("nickname") || sessionStorage.getItem("nickname");
-      if (cached && !cancelled) setNickname(cached);
-
-      try {
-
-        const [users, levelData] = await Promise.all([
-          userGetApi(accessToken),
-          getLevelApi(accessToken),
-        ]);
-
-    
-        const myEmail =
-          localStorage.getItem("email") || sessionStorage.getItem("email");
-        let nk = "user";
-
-        if (myEmail && Array.isArray(users)) {
-          const me = users.find((u) => u.email === myEmail);
-          if (me?.nickname) nk = me.nickname;
-        }
-
-        if (!cancelled) {
-          setNickname(nk);
-          if (localStorage.getItem("accessToken")) {
-            localStorage.setItem("nickname", nk);
-          } else {
-            sessionStorage.setItem("nickname", nk);
-          }
-        }
-
-  
-        if (!cancelled && levelData) {
-          const { name, min, max, progressToNext } = levelData;
-
-          setLevelName(name || "");
-          setLevelMin(typeof min === "number" ? min : 0);
-          setLevelMax(typeof max === "number" ? max : 0);
-
-        
-          const range = Math.max(1, (max ?? 0) - (min ?? 0));
-          const current = (max ?? 0) - (progressToNext ?? 0);
-          const percent = Math.round(
-            Math.min(100, Math.max(0, ((current - (min ?? 0)) / range) * 100))
-          );
-          setProgress(percent);
-        }
-      } catch (err) {
-        console.error("유저/레벨 정보 불러오기 실패:", err);
-
-        if (err?.response?.status === 401 || err?.response?.status === 403) {
-          logout();
-          return;
-        }
-
-        if (!cancelled) {
-          const fallback =
-            localStorage.getItem("nickname") ||
-            sessionStorage.getItem("nickname") ||
-            "사용자";
-          setNickname(fallback);
-    
-        }
+      if (!cancelled) {
+        const fallback =
+          localStorage.getItem("nickname") ||
+          sessionStorage.getItem("nickname") ||
+          "사용자";
+        setNickname(fallback);
+        setProfileUrl("");
       }
-    };
+    }
+  };
 
-    loadUserData();
-    return () => {
-      cancelled = true;
-    };
-  }, [accessToken, isLoggedIn, logout]);
+  loadUserData();
+  return () => {
+    cancelled = true;
+  };
+}, [accessToken, isLoggedIn, logout]);
+
 
   const handleLogout = async () => {
     try {
@@ -175,9 +180,24 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   </span>
                   </div>
                     <div className="flex flex-row gap-4">
-                    {isLoggedIn && (
-  <div className="w-20 h-20 rounded-full bg-[#D9D9D9]" />
+                  {isLoggedIn && (
+  profileUrl ? (
+    <div className="w-20 h-20 rounded-full overflow-hidden">
+      <img
+        src={profileUrl}
+        alt="프로필"
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          // 이미지 깨질 때는 숨기고 회색 배경만 보이게
+          e.currentTarget.style.display = "none";
+        }}
+      />
+    </div>
+  ) : (
+    <div className="w-20 h-20 rounded-full bg-[#D9D9D9]" />
+  )
 )}
+
 
                 <div className="flex flex-col justify-center">
                
