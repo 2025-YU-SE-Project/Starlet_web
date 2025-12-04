@@ -235,7 +235,7 @@ function Calendar() {
     try {
       const data = await getDiary(k);
 
-      if (!data) {
+      if (!data || !data.hasDiary || !data.diary) {
         setPickedEmotion("");
         setSelectedTags([]);
         setIsEdit(false);
@@ -243,17 +243,25 @@ function Calendar() {
         return;
       }
 
-      const localEmotion = EMOTION_API_TO_LOCAL[data.emotion] || "";
+      const diary = data.diary;
+      const localEmotion = EMOTION_API_TO_LOCAL[diary.emotion] || "";
+
       setPickedEmotion(localEmotion);
       setSelectedTags(
-        data.factors?.map((f) =>
+        diary.factors?.map((f) =>
           Object.keys(TAG_TO_FACTOR).find((kk) => TAG_TO_FACTOR[kk] === f)
         ) || []
       );
+
       setEntries((prev) => ({
         ...prev,
-        [k]: { text: data.content, emotion: localEmotion, color: data.color },
+        [k]: {
+          text: diary.content,
+          emotion: localEmotion,
+          color: diary.color,
+        },
       }));
+
       setIsEdit(true);
       setIsDiaryOpen(true);
     } catch (e) {
