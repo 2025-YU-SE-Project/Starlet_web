@@ -33,9 +33,27 @@ const StarArchive = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 4;
 
-  useEffect(() => {
-    if (archives) setArchivesState(archives);
-  }, [archives]);
+  const sortArchives = (list) => {
+  return [...(list || [])].sort((a, b) => {
+    // 대표별자리 맨 앞 위치
+    if (a.isRepresentative && !b.isRepresentative) return -1;
+    if (!a.isRepresentative && b.isRepresentative) return 1;
+
+    // 내림차순
+    const da = new Date(a.date);
+    const db = new Date(b.date);
+
+    return db.getTime() - da.getTime(); 
+  });
+};
+
+
+useEffect(() => {
+  if (archives) {
+    setArchivesState(sortArchives(archives));
+  }
+}, [archives]);
+
 
   useEffect(() => {
     const totalPages = Math.ceil((archivesState?.length || 0) / pageSize) || 1;
@@ -103,12 +121,15 @@ const StarArchive = () => {
     try {
       await setRepresentative(id);
 
-      setArchivesState((prev) =>
-        (prev || []).map((it) => ({
-          ...it,
-          isRepresentative: it.constellationId === id,
-        }))
-      );
+setArchivesState((prev) =>
+  sortArchives(
+    (prev || []).map((it) => ({
+      ...it,
+      isRepresentative: it.constellationId === id,
+    }))
+  )
+);
+
 
       setSelected((prev) =>
         prev && prev.constellationId === id ? { ...prev, isRepresentative: true } : prev
