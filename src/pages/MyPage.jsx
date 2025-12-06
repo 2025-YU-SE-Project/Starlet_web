@@ -34,11 +34,11 @@ const MONTH_NAMES = [
 
 const EMOTION_ORDER = [
   "ANGER",
-  "FUN",
+  "FUNNY",
   "HAPPINESS",
   "NEUTRAL",
   "SADNESS",
-  "SURPRISE",
+  "SURPRISING",
 ];
 
 function MyPage() {
