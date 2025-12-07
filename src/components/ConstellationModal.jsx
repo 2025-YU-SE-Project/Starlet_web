@@ -55,12 +55,18 @@ const ConstellationModal = ({
     if (!open) return;
 
     setStep(isEdit ? 2 : 1);
-    setName((initial?.name ?? "").slice(0, MAX_NAME_LEN));
-    setDesc(
-      (initial?.desc ?? initial?.description ?? "").slice(0, MAX_DESC_LEN)
-    );
     setWarn("");
     setMetaError("");
+
+    if (isEdit) {
+      setName((initial?.name ?? "").slice(0, MAX_NAME_LEN));
+      setDesc(
+        (initial?.desc ?? initial?.description ?? "").slice(0, MAX_DESC_LEN)
+      );
+    } else {
+      setName("");
+      setDesc("");
+    }
 
     const init = {};
     (stars || []).forEach((s) => {

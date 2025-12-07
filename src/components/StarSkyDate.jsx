@@ -309,7 +309,6 @@ export default function StarSkyDate({
 
       const needNormalize =
         rawSize > 0.3 && !isScaleEdited && !alreadyNormalized;
-
       const stars = needNormalize
         ? normalizeConstellationSize(rawStars)
         : rawStars;
