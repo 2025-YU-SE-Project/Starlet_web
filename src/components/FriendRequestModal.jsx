@@ -12,6 +12,27 @@ export default function FriendRequestsModal({ isOpen, onClose }) {
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [defaultUserImg, setDefaultUserImg] = useState(false);
 
+  const normalizeProfileUrl = (rawUrl) => {
+    const serverProfileUrl = rawUrl || "";
+    if (!serverProfileUrl) return profileImg;
+
+    if (
+      serverProfileUrl.includes("default") ||
+      serverProfileUrl.includes("basic") ||
+      serverProfileUrl.includes("/public/defaults/")
+    ) {
+      return profileImg;
+    }
+
+    return serverProfileUrl;
+  };
+
+  const addCacheBust = (url, version) => {
+    if (!url) return url;
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}_v=${version}`;
+  };
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -21,7 +42,23 @@ export default function FriendRequestsModal({ isOpen, onClose }) {
       try {
         setLoading(true);
         const data = await fetchFriendRequests(controller.signal);
-        setRequests(data || []);
+
+        const processed =
+          (data || []).map((req) => {
+            const base = normalizeProfileUrl(req.profileUrl);
+            const version = req.profileUpdatedAt
+              ? new Date(req.profileUpdatedAt).getTime()
+              : req.updatedAt
+              ? new Date(req.updatedAt).getTime()
+              : Date.now();
+
+            return {
+              ...req,
+              profileUrl: addCacheBust(base, version),
+            };
+          }) ?? [];
+
+        setRequests(processed);
       } catch (err) {
         if (err.name !== "CanceledError" && err.name !== "AbortError") {
           console.error("친구 요청 목록 불러오기 실패:", err);

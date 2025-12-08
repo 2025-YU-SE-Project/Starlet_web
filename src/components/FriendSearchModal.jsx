@@ -14,12 +14,50 @@ export default function FriendSearchModal({ isOpen, onClose }) {
   const [requesting, setRequesting] = useState(false);
   const [defaultUserImg, setDefaultUserImg] = useState(false);
 
+  const normalizeProfileUrl = (rawUrl) => {
+    const serverProfileUrl = rawUrl || "";
+    if (!serverProfileUrl) return profileImg;
+
+    if (
+      serverProfileUrl.includes("default") ||
+      serverProfileUrl.includes("basic") ||
+      serverProfileUrl.includes("/public/defaults/")
+    ) {
+      return profileImg;
+    }
+
+    return serverProfileUrl;
+  };
+
+  const addCacheBust = (url, version) => {
+    if (!url) return url;
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}_v=${version}`;
+  };
+
   const handleSearch = async () => {
     if (!nickname.trim()) return;
     try {
       setSearching(true);
       const data = await searchFriend(nickname);
-      setResult(data);
+
+      if (data) {
+        const base = normalizeProfileUrl(data.profileUrl);
+        const version = data.profileUpdatedAt
+          ? new Date(data.profileUpdatedAt).getTime()
+          : data.updatedAt
+          ? new Date(data.updatedAt).getTime()
+          : Date.now();
+
+        const processed = {
+          ...data,
+          profileUrl: addCacheBust(base, version),
+        };
+        setResult(processed);
+      } else {
+        setResult(null);
+      }
+
       setSearched(true);
     } catch (err) {
       console.error("친구 검색 실패:", err);
