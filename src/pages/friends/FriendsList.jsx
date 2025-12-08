@@ -29,6 +29,26 @@ export default function FriendsList() {
   const [levelName, setLevelName] = useState("");
   const [levelError, setLevelError] = useState("");
 
+  const normalizeProfileUrl = (rawUrl) => {
+    const serverProfileUrl = rawUrl || "";
+    if (!serverProfileUrl) return profileImg;
+
+    if (
+      serverProfileUrl.includes("default") ||
+      serverProfileUrl.includes("basic") ||
+      serverProfileUrl.includes("/public/defaults/")
+    ) {
+      return profileImg;
+    }
+
+    return serverProfileUrl;
+  };
+  const addCacheBust = (url, version) => {
+    if (!url) return url;
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}_v=${version}`;
+  };
+
   const handleDeleteFriend = async (id) => {
     const ok = window.confirm("정말 친구를 삭제할까요?");
     if (!ok) return;
@@ -58,8 +78,37 @@ export default function FriendsList() {
           getLevel(),
         ]);
 
-        setFriends(friendsData || []);
-        setUser(userData || null);
+        const processedFriends = (friendsData || []).map((f) => {
+          const base = normalizeProfileUrl(f.profileUrl);
+          const version = f.profileUpdatedAt
+            ? new Date(f.profileUpdatedAt).getTime()
+            : f.updatedAt
+            ? new Date(f.updatedAt).getTime()
+            : Date.now();
+
+          return {
+            ...f,
+            profileUrl: addCacheBust(base, version),
+          };
+        });
+
+        setFriends(processedFriends);
+
+        if (userData) {
+          const base = normalizeProfileUrl(userData.profilePhotoUrl);
+          const version = userData.updatedAt
+            ? new Date(userData.updatedAt).getTime()
+            : Date.now();
+
+          const profileWithVersion = addCacheBust(base, version);
+
+          setUser({
+            ...userData,
+            profilePhotoUrl: profileWithVersion,
+          });
+        } else {
+          setUser(null);
+        }
 
         const levelLabel = levelData?.name ?? levelData?.levelName ?? "";
         setLevelName(levelLabel);
@@ -81,6 +130,7 @@ export default function FriendsList() {
     load();
     return () => controller.abort();
   }, []);
+
   const friendCount = friends.length;
 
   function getProfileSrc(url) {
@@ -223,6 +273,7 @@ export default function FriendsList() {
                 </button>
               </div>
             </section>
+
             <div className="flex-1 flex flex-col min-h-0 mt-2">
               <span className="text-white text-[20px]">
                 <span className="font-medium text-[#54C65B]">
@@ -260,7 +311,7 @@ export default function FriendsList() {
                   friends.map((friend) => (
                     <div
                       key={friend.id}
-                      className="flex items-center px-6 py-4 border-b border-white/40 last:border-b-0  transition-colors"
+                      className="flex items-center px-6 py-4 border-b border-white/40 last:border-b-0 transition-colors"
                     >
                       <div className="w-[40%] flex items-center gap-8">
                         <div className="w-[52px] h-[52px] rounded-full overflow-hidden shadow-sm">
@@ -268,7 +319,7 @@ export default function FriendsList() {
                             src={getProfileSrc(friend.profileUrl)}
                             alt="프로필"
                             className={`w-full h-full object-cover object-center block transition-transform duration-200 ${
-                              getProfileSrc(user?.profileUrl) === profileImg
+                              getProfileSrc(friend.profileUrl) === profileImg
                                 ? "scale-105"
                                 : ""
                             }`}
