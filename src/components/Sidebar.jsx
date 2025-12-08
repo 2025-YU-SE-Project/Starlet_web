@@ -15,7 +15,6 @@ import myPageUserApi from "../apis/myPageUserApi";
 import profileImg from "../assets/MyPage/profile.png";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
-
   const renderLevelName = (name) => {
     if (!name || typeof name !== "string") return "";
 
@@ -33,13 +32,18 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     );
   };
 
+  // profileVersion을 이용해 캐시를 깨기 위한 쿼리 파라미터 추가
   const getProfileSrc = (url) => {
     if (!url) return profileImg;
 
     if (url.includes("default") || url.includes("basic") || url.trim() === "") {
       return profileImg;
     }
-    return url;
+
+    if (!profileVersion) return url;
+
+    const separator = url.includes("?") ? "&" : "?";
+    return `${url}${separator}v=${profileVersion}`;
   };
 
   const navigate = useNavigate();
@@ -51,13 +55,17 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const [levelMax, setLevelMax] = useState(0);
   const [progress, setProgress] = useState(0);
   const [profileUrl, setProfileUrl] = useState("");
+  const [profileVersion, setProfileVersion] = useState(0); // 추가: 이미지 캐시 버전
   const [nickname, setNickname] = useState("user");
-  const [defaultUserImg, setDefaultUserImg] = useState(false); 
+  const [defaultUserImg, setDefaultUserImg] = useState(false);
 
   const isLoggedIn = !!accessToken;
 
   useEffect(() => {
     let cancelled = false;
+
+  
+    if (!isOpen) return;
 
     const loadUserData = async () => {
       if (!isLoggedIn) {
@@ -67,6 +75,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         setLevelMin(0);
         setLevelMax(0);
         setProgress(0);
+        setProfileVersion(0);
         return;
       }
 
@@ -91,8 +100,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         }
 
         if (!cancelled) {
+          const url = myPage?.profilePhotoUrl || "";
+
           setNickname(nk);
-          setProfileUrl(myPage?.profilePhotoUrl || "");
+          setProfileUrl(url);
+          setProfileVersion(Date.now());
 
           if (localStorage.getItem("accessToken")) {
             localStorage.setItem("nickname", nk);
@@ -130,6 +142,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             "사용자";
           setNickname(fallback);
           setProfileUrl("");
+          setProfileVersion(0);
         }
       }
     };
@@ -138,7 +151,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     return () => {
       cancelled = true;
     };
-  }, [accessToken, isLoggedIn, logout]);
+  }, [accessToken, isLoggedIn, logout, isOpen]); 
 
   const handleLogout = async () => {
     try {
@@ -179,130 +192,128 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         <div className="flex flex-col h-full p-5">
           <div>
             <div className="flex  gap-3 mt-2">
-    
               <div className="flex flex-col">
-                      <div className="flex flex-row items-center gap-3 mb-8">
+                <div className="flex flex-row items-center gap-3 mb-8">
                   <img src={img4} className="w-13 h-13" />
                   <span className="text-[30px] font-extrabold">
                     STARLET
                   </span>
-                  </div>
-                    <div className="flex flex-row gap-4">
+                </div>
+
+                <div className="flex flex-row gap-4">
                   {isLoggedIn && (
-  <div className="w-20 h-20 rounded-full overflow-hidden bg-[#D9D9D9]">
-    <img
-      src={getProfileSrc(profileUrl)}
-      alt="프로필"
-      className={`w-full h-full object-cover object-center block transition-transform duration-200 ${
-        getProfileSrc(profileUrl) === profileImg ? "scale-105" : ""
-      }`}
-      onError={(e) => {
-        e.currentTarget.onerror = null;
-        e.currentTarget.src = profileImg;
-      }}
-      onLoad={(e) => {
-        const isDef = e.currentTarget.src.includes("profile");
-        setDefaultUserImg(isDef);
-      }}
-      style={defaultUserImg ? { transform: "scale(1.08)" } : {}}
-    />
-  </div>
-)}
+                    <div className="w-20 h-20 rounded-full overflow-hidden bg-[#D9D9D9]">
+                      <img
+                        src={getProfileSrc(profileUrl)}
+                        alt="프로필"
+                        className={`w-full h-full object-cover object-center block transition-transform duration-200 ${
+                          getProfileSrc(profileUrl) === profileImg
+                            ? "scale-105"
+                            : ""
+                        }`}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = profileImg;
+                        }}
+                        onLoad={(e) => {
+                          const isDef = e.currentTarget.src.includes("profile");
+                          setDefaultUserImg(isDef);
+                        }}
+                        style={defaultUserImg ? { transform: "scale(1.08)" } : {}}
+                      />
+                    </div>
+                  )}
 
-
-
-                <div className="flex flex-col justify-center">
-               
-            <span className="font-pretendard font-semibold text-[16px]">
-  {isLoggedIn
-    ? renderLevelName(levelName || "마스터")
-    : ""}
-</span>
-          <div className="flex flex-row gap-1 font-bold items-center text-[20px]">
-                <span>
-                  {isLoggedIn && nickname}
-                </span>
-               {isLoggedIn && (
-  <span className="text-[#FFFFFF]/70">님</span>
-)}
-        </div>
-</div>
-</div>
+                  <div className="flex flex-col justify-center">
+                    <span className="font-pretendard font-semibold text-[16px]">
+                      {isLoggedIn
+                        ? renderLevelName(levelName || "마스터")
+                        : ""}
+                    </span>
+                    <div className="flex flex-row gap-1 font-bold items-center text-[20px]">
+                      <span>{isLoggedIn && nickname}</span>
+                      {isLoggedIn && (
+                        <span className="text-[#FFFFFF]/70">님</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-          {isLoggedIn && (
-  <div className="mt-4">
-    <div className="w-full h-5 bg-gray-400/60 overflow-hidden rounded-[15px]">
-      <div
-        className="h-full bg-green-500"
-        style={{
-          width: `${Math.min(100, Math.max(0, progress))}%`,
-        }}
-      />
-    </div>
+            {isLoggedIn && (
+              <div className="mt-4">
+                <div className="w-full h-5 bg-gray-400/60 overflow-hidden rounded-[15px]">
+                  <div
+                    className="h-full bg-green-500"
+                    style={{
+                      width: `${Math.min(100, Math.max(0, progress))}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
 
-  </div>
-)}
+            {isLoggedIn && <hr className="my-4 border-white" />}
 
-
-          {isLoggedIn && <hr className="my-4 border-white" />}
-
-        
             <nav className="flex flex-col gap-4 font-pretendard">
               {isLoggedIn ? (
-               
                 <>
-                <span className="font-bold text-[24px]">MENU</span>
-                <div className="flex flex-row items-center gap-2 text-[20px] ">
-                  <img className='w-10 h-10'src={img9}/>
-                  <Link
-                    to="/"
-                    onClick={closeAnd()}
-                    aria-label={t("navbar.home")}
-                  >
-                    {t("navbar.home")}
-                  </Link>
+                  <span className="font-bold text-[24px]">MENU</span>
+
+                  <div className="flex flex-row items-center gap-2 text-[20px] ">
+                    <img className="w-10 h-10" src={img9} />
+                    <Link
+                      to="/"
+                      onClick={closeAnd()}
+                      aria-label={t("navbar.home")}
+                    >
+                      {t("navbar.home")}
+                    </Link>
                   </div>
+
                   <div className="flex flex-row items-center gap-2 text-[20px]">
-                    <img className='w-10 h-10' src={img5}/>
-                  <Link
-                    to="/starsky"
-                    onClick={closeAnd()}
-                    aria-label={t("navbar.NightSkyPage")}
-                  >
-                    {t("navbar.NightSkyPage")}
-                  </Link>
+                    <img className="w-10 h-10" src={img5} />
+                    <Link
+                      to="/starsky"
+                      onClick={closeAnd()}
+                      aria-label={t("navbar.NightSkyPage")}
+                    >
+                      {t("navbar.NightSkyPage")}
+                    </Link>
                   </div>
+
                   <div className="flex flex-row items-center gap-2 text-[20px]">
-                    <img className='w-10 h-10' src={img6}/>
-                  <Link
-                    to="/calendar"
-                    onClick={closeAnd()}
-                    aria-label={t("navbar.MyDiary")}
-                  >
-                    {t("navbar.MyDiary")}
-                  </Link>
+                    <img className="w-10 h-10" src={img6} />
+                    <Link
+                      to="/calendar"
+                      onClick={closeAnd()}
+                      aria-label={t("navbar.MyDiary")}
+                    >
+                      {t("navbar.MyDiary")}
+                    </Link>
                   </div>
+
                   <div className="flex flex-row items-center gap-2 text-[20px]">
-                    <img className='w-10 h-10' src={img7}/>
-                  <Link
-                    to="/archive"
-                    onClick={closeAnd()}
-                    aria-label={t("navbar.ConstellationArchive")}
-                  >
-                    {t("navbar.ConstellationArchive")}
-                  </Link>
+                    <img className="w-10 h-10" src={img7} />
+                    <Link
+                      to="/archive"
+                      onClick={closeAnd()}
+                      aria-label={t("navbar.ConstellationArchive")}
+                    >
+                      {t("navbar.ConstellationArchive")}
+                    </Link>
                   </div>
+
                   <div className="flex flex-row items-center gap-2 text-[20px]">
-                    <img className='w-10 h-10' src={img8}/>
-                  <Link
-                    to="/mypage"
-                    onClick={closeAnd()}
-                    aria-label={t("navbar.MyPage")}
-                  >
-                    {t("navbar.MyPage")}
-                  </Link>
+                    <img className="w-10 h-10" src={img8} />
+                    <Link
+                      to="/mypage"
+                      onClick={closeAnd()}
+                      aria-label={t("navbar.MyPage")}
+                    >
+                      {t("navbar.MyPage")}
+                    </Link>
                   </div>
                 </>
               ) : null}
