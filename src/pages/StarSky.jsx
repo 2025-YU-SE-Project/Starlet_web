@@ -514,7 +514,7 @@ const StarSky = () => {
       )}
 
       <button
-        className="absolute z-[10] ml-[1.81rem] mt-[2.13rem]"
+        className="absolute z-[10] ml-[1.81rem] mt-[2.13rem] cursor-pointer"
         onClick={() => setIsOpen(true)}
         aria-label="open sidebar"
       >

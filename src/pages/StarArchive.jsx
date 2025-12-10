@@ -157,7 +157,7 @@ setArchivesState((prev) =>
       )}
 
       <div className="flex flex-row justify-between">
-        <button className="ml-[1.81rem] mt-[2.13rem]" onClick={handleBurgerClick} aria-label="open sidebar">
+        <button className="ml-[1.81rem] mt-[2.13rem] cursor-pointer" onClick={handleBurgerClick} aria-label="open sidebar">
           <CiMenuBurger size={30} />
         </button>
       </div>
