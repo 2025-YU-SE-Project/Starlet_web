@@ -449,7 +449,7 @@ function Calendar() {
       </div>
 
       <div className="w-[90%] max-w-5xl mx-auto mt-10 mb-5 flex flex-col items-center gap-6">
-        <span className="text-[50px] font-julius">STAR CALENDAR</span>
+        <span className="text-[50px] font-julius">DIARY CALENDAR</span>
         <span className="text-[30px] font-julius flex items-center gap-8">
           <button
             onClick={() => setViewDate((d) => addMonths(d, -1))}
