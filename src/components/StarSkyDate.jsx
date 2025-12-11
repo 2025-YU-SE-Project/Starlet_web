@@ -1636,7 +1636,7 @@ export default function StarSkyDate({
                 />
 
                 <div
-                  className="absolute left-0 right-0 bg-white/60"
+                  className="absolute left-0 right-0 bg-white/60 "
                   style={downFillStyle}
                 />
 
@@ -1733,7 +1733,7 @@ export default function StarSkyDate({
         <button
           type="button"
           onClick={onPrev}
-          className="text-white text-2xl hover:opacity-80"
+          className="text-white text-2xl hover:opacity-80 cursor-pointer "
         >
           &lt;
         </button>
@@ -1746,7 +1746,7 @@ export default function StarSkyDate({
         <button
           type="button"
           onClick={onNext}
-          className="text-white text-2xl hover:opacity-80"
+          className="text-white text-2xl hover:opacity-80 cursor-pointer "
         >
           &gt;
         </button>

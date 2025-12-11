@@ -523,7 +523,7 @@ const StarSky = () => {
 
       <button
         onClick={handleGenerate}
-        className="absolute top-3 right-3 z-[70] px-4 py-2 text-white text-[20px]"
+        className="absolute cursor-pointer  top-3 right-3 z-[70] px-4 py-2 text-white text-[20px]"
       >
         Generate
       </button>

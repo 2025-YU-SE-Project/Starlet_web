@@ -133,7 +133,7 @@ export default function FriendRequestsModal({ isOpen, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="ml-auto text-[#555] hover:text-black"
+            className="ml-auto text-[#555] hover:text-black cursor-pointer "
             aria-label="close"
           >
             <IoMdClose size={38} />
@@ -205,7 +205,7 @@ export default function FriendRequestsModal({ isOpen, onClose }) {
                 <div className="flex items-center gap-4">
                   <button
                     type="button"
-                    className="min-w-[50px] h-[40px] px-5 rounded-[8px] bg-[#34c759] text-white text-[16px] font-semibold hover:bg-[#2cab4c] disabled:opacity-60"
+                    className="min-w-[50px]  cursor-pointer h-[40px] px-5 rounded-[8px] bg-[#34c759] text-white text-[16px] font-semibold hover:bg-[#2cab4c] disabled:opacity-60"
                     onClick={() => handleAccept(req.id)}
                     disabled={actionLoadingId === req.id}
                   >
@@ -213,7 +213,7 @@ export default function FriendRequestsModal({ isOpen, onClose }) {
                   </button>
                   <button
                     type="button"
-                    className="min-w-[0px] h-[40px] px-5 rounded-[8px] bg-[#ff3b30] text-white text-[16px] font-semibold hover:bg-[#e2332a]"
+                    className="min-w-[0px] h-[40px] cursor-pointer  px-5 rounded-[8px] bg-[#ff3b30] text-white text-[16px] font-semibold hover:bg-[#e2332a]"
                     onClick={() => handleReject(req.id)}
                   >
                     거절

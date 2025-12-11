@@ -265,7 +265,7 @@ export default function FriendsList() {
               <div className="flex-shrink-0">
                 <button
                   type="button"
-                  className="flex items-center w-[140px] justify-center bg-[#34c759] text-white font-semibold px-4 py-2 rounded-[8px] shadow-md hover:bg-[#2cab4c] transition"
+                  className="flex items-center w-[140px]  cursor-pointer  justify-center bg-[#34c759] text-white font-semibold px-4 py-2 rounded-[8px] shadow-md hover:bg-[#2cab4c] transition"
                   onClick={() => setIsSearchModalOpen(true)}
                 >
                   <IoIosAdd className="text-3xl" />
@@ -381,7 +381,7 @@ export default function FriendsList() {
                           className="w-12 h-12 rounded-full border border-white/40 flex items-center justify-center hover:bg-white/10"
                           onClick={() => handleDeleteFriend(friend.id)}
                         >
-                          <FiTrash2 className="text-3xl" />
+                          <FiTrash2  className="text-3xl cursor-pointer " />
                         </button>
                       </div>
                     </div>

@@ -153,7 +153,7 @@ export default function FriendSearchModal({ isOpen, onClose }) {
                 className="w-full bg-[#f0f0f0] rounded-[12px] py-3 pl-5 pr-12 text-gray-700 focus:outline-none"
               />
               <button
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-black"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-black cursor-pointer "
                 onClick={handleSearch}
                 disabled={searching}
               >
@@ -220,7 +220,7 @@ export default function FriendSearchModal({ isOpen, onClose }) {
                       <button
                         onClick={handleRequest}
                         disabled={requesting}
-                        className="px-5 py-2 rounded-[8px] bg-[#34c759] text-white text-sm font-semibold hover:bg-[#2cab4c] disabled:opacity-60"
+                        className="px-5 py-2  cursor-pointer  rounded-[8px] bg-[#34c759] text-white text-sm font-semibold hover:bg-[#2cab4c] disabled:opacity-60"
                       >
                         {requesting ? "신청 중..." : "친구 신청"}
                       </button>
