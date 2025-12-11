@@ -55,7 +55,7 @@ export default function ConstellationConfirmModal({
             <button
               onClick={onConfirm}
               className="min-w-[90px] px-5 py-2 rounded-md bg-[#E3E3E3] text-[#222]
-                         hover:bg-[#D5D5D5]"
+                         hover:bg-[#D5D5D5] cursor-pointer "
             >
               확인
             </button>

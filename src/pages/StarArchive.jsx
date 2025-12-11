@@ -205,7 +205,7 @@ setArchivesState((prev) =>
     <button
       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
       disabled={currentPage === 1}
-      className={`mx-4 ${
+      className={`mx-4 cursor-pointer ${
         currentPage === 1 ? "opacity-50" : "hover:text-blue-300"
       }`}
     >
@@ -217,7 +217,7 @@ setArchivesState((prev) =>
     <button
       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
       disabled={currentPage === totalPages}
-      className={`mx-4 ${
+      className={`mx-4 cursor-pointer ${
         currentPage === totalPages ? "opacity-50" : "hover:text-blue-300"
       }`}
     >
