@@ -31,8 +31,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       </>
     );
   };
-
-  // profileVersion을 이용해 캐시를 깨기 위한 쿼리 파라미터 추가
   const getProfileSrc = (url) => {
     if (!url) return profileImg;
 
@@ -55,7 +53,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const [levelMax, setLevelMax] = useState(0);
   const [progress, setProgress] = useState(0);
   const [profileUrl, setProfileUrl] = useState("");
-  const [profileVersion, setProfileVersion] = useState(0); // 추가: 이미지 캐시 버전
+  const [profileVersion, setProfileVersion] = useState(0); 
   const [nickname, setNickname] = useState("user");
   const [defaultUserImg, setDefaultUserImg] = useState(false);
 
@@ -113,20 +111,26 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           }
         }
 
-        if (!cancelled && levelData) {
-          const { name, min, max, progressToNext } = levelData;
+      if (!cancelled && levelData) {
+  const { code, main, min, max, progressToNext } = levelData;
 
-          setLevelName(name || "");
-          setLevelMin(typeof min === "number" ? min : 0);
-          setLevelMax(typeof max === "number" ? max : 0);
+  setLevelName(main || "");
 
-          const range = Math.max(1, (max ?? 0) - (min ?? 0));
-          const current = (max ?? 0) - (progressToNext ?? 0);
-          const percent = Math.round(
-            Math.min(100, Math.max(0, ((current - (min ?? 0)) / range) * 100))
-          );
-          setProgress(percent);
-        }
+  setLevelMin(typeof min === "number" ? min : 0);
+  setLevelMax(typeof max === "number" ? max : 0);
+
+  if (code === "UNIVERSE_EXPLORER") {
+    setProgress(100);
+    return;
+  }
+  const range = Math.max(1, (max ?? 0) - (min ?? 0));
+  const current = (max ?? 0) - (progressToNext ?? 0);
+  const percent = Math.round(
+    Math.min(100, Math.max(0, ((current - (min ?? 0)) / range) * 100))
+  );
+  setProgress(percent);
+}
+
       } catch (err) {
         console.error("유저/레벨 정보 불러오기 실패:", err);
 
